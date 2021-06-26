@@ -6,14 +6,14 @@ SensorNet
 
 * /sensors
     - /sensors/airQuality/
-        + /sensors/airQuality/0
-            * /sensors/airQuality/0/data
-            * /sensors/airQuality/0/cmd
+        + /sensors/airQuality/<WifiMAC>
+            * /sensors/airQuality/<WifiMAC>/data
+            * /sensors/airQuality/<WifiMAC>/cmd
     - /sensors/birdyNomNom/
-        + /sensors/birdyNomNom/0
-            * /sensors/birdyNomNom/0/data
-            * /sensors/birdyNomNom/0/cmd
+        + /sensors/birdyNomNom/<WifiMAC>
+            * /sensors/birdyNomNom/<WifiMAC>/data
+            * /sensors/birdyNomNom/<WifiMAC>/cmd
     - /sensors/radiation/
-        + /sensors/radiation/0
-            * /sensors/radiation/0/data
-            * /sensors/radiation/0/cmd
+        + /sensors/radiation/<WifiMAC>
+            * /sensors/radiation/<WifiMAC>/data
+            * /sensors/radiation/<WifiMAC>/cmd

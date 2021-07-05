@@ -63,9 +63,11 @@ void SensorNet::mqttStart(String server, int port, String prefix) {
     }
   }
 
-  String topic = prefix + "/" + _macAddr + "/data";
+  String topic = prefix + "/" + _macAddr + "/cmd";
+  topic.toCharArray(cmdTopic, MAX_MQTT_TOPIC_LEN);
+
+  topic = prefix + "/" + _macAddr + "/data";
   topic.toCharArray(dataTopic, MAX_MQTT_TOPIC_LEN);
-  condPrintln(dataTopic);
   mqttClient.publish(dataTopic, "ESP8266 Startup");
 }
 
@@ -75,16 +77,11 @@ void SensorNet::mqttPub(String msg) {
 	mqttClient.publish(dataTopic, pubMsg);
 }
 
-
-/*
 // Subscribe to a topic and give a callback handler
-void SensorNet::mqttSub(void *callback()){
+void SensorNet::mqttSub(void (*callback)(char *, byte *, unsigned int)) {
   mqttClient.setCallback(callback);
-  String rad = radTopic + macAddr;
-  radStr = rad + "/cmd";
-  radStr.toCharArray(radCmd, MAX_TOPIC_LEN);}
-  mqttClient.subscribe(radCmd);
-*/
+  mqttClient.subscribe(cmdTopic);
+}
 
 // Conditional print string
 void SensorNet::condPrint(String str) {

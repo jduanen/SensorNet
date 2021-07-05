@@ -30,7 +30,7 @@ class SensorNet {
 
 	  void mqttStart(String server, int port, String prefix);
 	  void mqttPub(String msg);
-//	  void mqttSub();
+	  void mqttSub(void (*callback)(char *, byte *, unsigned int));
 
 	private:
   	byte _mac[6];
@@ -40,6 +40,7 @@ class SensorNet {
   	char mqttServer[BUF_SIZE];
 	  int mqttPort;
     char dataTopic[MAX_MQTT_TOPIC_LEN];
+    char cmdTopic[MAX_MQTT_TOPIC_LEN];
 		char pubMsg[MAX_MQTT_PUB_MSG_LEN];
 
  		WiFiClient espClient;

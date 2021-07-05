@@ -10,10 +10,11 @@ String AIR_TOPIC = "/sensors/airQuality/";
 const int MAX_MSG_LEN = 128;
 byte mac[6];
 String macAddr;
+IPAddress ipAddr;
 const int MAX_TOPIC_LEN = 80;
 char airData[MAX_TOPIC_LEN];
 char airCmd[MAX_TOPIC_LEN];
-const int VERBOSE = 1;
+const int VERBOSE = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -28,13 +29,14 @@ void setup()
   Serial1.println("AirQuality");
 
   WiFi.begin(ssid, password);
-  Serial.println("Starting WIFI");
+  Serial1.println("Starting WIFI");
   delay(1000);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("Connecting to WiFi.." + String(WiFi.status()));
+    Serial1.println("Connecting to WiFi.." + String(WiFi.status()));
   }
 
+  ipAddr = WiFi.localIP();
   WiFi.macAddress(mac);
   macAddr = String(mac[0], HEX) + ":" + 
             String(mac[1], HEX) + ":" +
@@ -42,16 +44,16 @@ void setup()
             String(mac[3], HEX) + ":" +
             String(mac[4], HEX) + ":" +
             String(mac[5], HEX);
-  Serial.println("Connected to the WiFi network: " + macAddr);
+  Serial1.println("Connected to the WiFi network: " + macAddr + " @ " + ipAddr.toString());
 
   client.setServer(mqttServer, mqttPort);
   client.setCallback(callback);
   while (!client.connected()) {
-    Serial.print("Connecting to MQTT...");
+    Serial1.print("Connecting to MQTT...");
     if (client.connect("ESP8266Client")) {
-      Serial.println("connected");
+      Serial1.println("connected");
     } else {
-      Serial.println("ERROR: failed with state " + client.state());
+      Serial1.println("ERROR: failed with state " + client.state());
       delay(2000);
     }
   }
@@ -69,15 +71,15 @@ void setup()
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.println("Message arrived in topic: " + String(topic));
+  Serial1.println("Message arrived in topic: " + String(topic));
 
-  Serial.print("Message: ");
+  Serial1.print("Message: ");
   for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    Serial1.print((char)payload[i]);
   }
 
-  Serial.println();
-  Serial.println("-----------------------");
+  Serial1.println();
+  Serial1.println("-----------------------");
 }
 
 void loop()
@@ -110,6 +112,7 @@ void loop()
           String(data.PM_AE_UG_10_0);
     msg.toCharArray(buf, MAX_MSG_LEN);
     client.publish(airData, buf);
+    Serial1.println(buf);
   } else {
     Serial1.println("No data.");
   }

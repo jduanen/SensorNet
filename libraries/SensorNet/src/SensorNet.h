@@ -4,15 +4,16 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define BUF_SIZE              20
 #define NUM_SERIALS      	 		2
 #define MAX_MQTT_PUB_MSG_LEN	128
 #define MAX_MQTT_TOPIC_LEN		80
+#define BUF_SIZE              64
 
 #define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
 
 class SensorNet {
 	public:
+		String appName = "UNKNOWN";
 		HardwareSerial *consolePtr;
 
 		struct WIFI_STATE {
@@ -21,7 +22,15 @@ class SensorNet {
 			IPAddress ipAddr;
 		};
 
+		struct MQTT_STATE {
+			String server;
+			int port;
+			String dataTopic;
+			String cmdTopic;
+		};
+
 	  SensorNet();
+	  SensorNet(String);
 
 	  void serialStart(HardwareSerial *portPtr, uint16 baud, bool console);
 
@@ -31,6 +40,7 @@ class SensorNet {
 	  void mqttStart(String server, int port, String prefix);
 	  void mqttPub(String msg);
 	  void mqttSub(void (*callback)(char *, byte *, unsigned int));
+		MQTT_STATE mqttState();
 
 	private:
   	byte _mac[6];

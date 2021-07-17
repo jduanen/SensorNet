@@ -1,5 +1,6 @@
 #include "wifi.h"
 #include "mqtt.h"
+#include <ESP8266WiFi.h>
 
 const char *ssid = WLAN_SSID;
 const char *password =  WLAN_PASS;

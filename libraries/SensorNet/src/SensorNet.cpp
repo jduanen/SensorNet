@@ -6,6 +6,11 @@ SensorNet::SensorNet() {
 	consolePtr = NULL;
 }
 
+SensorNet::SensorNet(String name) {
+	consolePtr = NULL;
+	appName = name;
+}
+
 // Initialize a serial port
 //// TODO figure out default parameters
 void SensorNet::serialStart(HardwareSerial *portPtr, uint16 baud, bool console) {
@@ -49,13 +54,17 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
 
 // Make connection to an MQTT server
 void SensorNet::mqttStart(String server, int port, String prefix) {
+	//// TODO assert that WiFi.status() == WL_CONNECTED
+	char clientName[64];
+	String(appName + "_" + _macAddr).toCharArray(clientName, 64);
+
 	server.toCharArray(mqttServer, BUF_SIZE);
 	mqttPort = port;
   mqttClient.setServer(mqttServer, mqttPort);
 
   while (!mqttClient.connected()) {
     condPrint("Connecting to MQTT...");
-    if (mqttClient.connect("ESP8266mqttClient")) {
+    if (mqttClient.connect(clientName)) {
       condPrintln("connected");
     } else {
       condPrintln("ERROR: failed with state " + mqttClient.state());
@@ -63,7 +72,8 @@ void SensorNet::mqttStart(String server, int port, String prefix) {
     }
   }
 
-  String topic = prefix + "/" + _macAddr + "/cmd";
+//  String topic = prefix + "/" + _macAddr + "/cmd";
+  String topic = prefix + "/#";
   topic.toCharArray(cmdTopic, MAX_MQTT_TOPIC_LEN);
 
   topic = prefix + "/" + _macAddr + "/data";
@@ -75,12 +85,30 @@ void SensorNet::mqttStart(String server, int port, String prefix) {
 void SensorNet::mqttPub(String msg) {
 	msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
 	mqttClient.publish(dataTopic, pubMsg);
+//	condPrintln("ZZZZ");
+//	mqttClient.publish(dataTopic, "YYYY");
 }
 
 // Subscribe to a topic and give a callback handler
 void SensorNet::mqttSub(void (*callback)(char *, byte *, unsigned int)) {
   mqttClient.setCallback(callback);
-  mqttClient.subscribe(cmdTopic);
+  if (mqttClient.subscribe(cmdTopic) == false) {
+  	condPrint("ERROR: failed to subscribe to topic -- ");
+  	condPrintln(cmdTopic);
+  	//// TODO handle error
+  } else {
+	  condPrintln(String("Subscribed to: ") + String(cmdTopic));
+	}
+}
+
+SensorNet::MQTT_STATE SensorNet::mqttState() {
+	SensorNet::MQTT_STATE state = {
+		String(mqttServer),
+		mqttPort,
+		String(dataTopic),
+		String(cmdTopic)
+	};
+	return state;
 }
 
 // Conditional print string

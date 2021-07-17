@@ -1,6 +1,7 @@
 #include "PMS.h"
 #include "wifi.h"
 #include "mqtt.h"
+#include <ESP8266WiFi.h>
 
 const char *ssid = WLAN_SSID;
 const char *password =  WLAN_PASS;
@@ -24,9 +25,13 @@ PMS::DATA data;
 
 void setup()
 {
+  const int MAX_NAME_LEN = 64;
+  char clientName[MAX_NAME_LEN];
+  String name = "AirQuality";
+
   Serial.begin(9600);   // GPIO1, GPIO3 (TX/RX pin on ESP-12E Development Board)
   Serial1.begin(9600);  // GPIO2 (D4 pin on ESP-12E Development Board)
-  Serial1.println("AirQuality");
+  Serial1.println(name);
 
   WiFi.begin(ssid, password);
   Serial1.println("Starting WIFI");
@@ -44,13 +49,16 @@ void setup()
             String(mac[3], HEX) + ":" +
             String(mac[4], HEX) + ":" +
             String(mac[5], HEX);
+  name += "_" + macAddr;
+  name.toCharArray(clientName, MAX_NAME_LEN);
   Serial1.println("Connected to the WiFi network: " + macAddr + " @ " + ipAddr.toString());
 
   client.setServer(mqttServer, mqttPort);
+  client.setSocketTimeout(90);
   client.setCallback(callback);
   while (!client.connected()) {
     Serial1.print("Connecting to MQTT...");
-    if (client.connect("ESP8266Client")) {
+    if (client.connect(clientName)) {
       Serial1.println("connected");
     } else {
       Serial1.println("ERROR: failed with state " + client.state());
@@ -65,7 +73,9 @@ void setup()
   airStr = air + "/cmd";
   airStr.toCharArray(airCmd, MAX_TOPIC_LEN);
   client.publish(airData, "ESP8266 Startup");
+  Serial1.println("airData: " + String(airData));
   client.subscribe(airCmd);
+  Serial1.println("airCmd: " + String(airCmd));
 
   pms.passiveMode();    // Switch to passive mode
 }
@@ -107,8 +117,8 @@ void loop()
       Serial1.println(data.PM_AE_UG_10_0);
     }
 
-    msg = String(data.PM_AE_UG_1_0) + ", " + 
-          String(data.PM_AE_UG_2_5) + ", " + 
+    msg = String(data.PM_AE_UG_1_0) + "," + 
+          String(data.PM_AE_UG_2_5) + "," + 
           String(data.PM_AE_UG_10_0);
     msg.toCharArray(buf, MAX_MSG_LEN);
     client.publish(airData, buf);
@@ -117,7 +127,7 @@ void loop()
     Serial1.println("No data.");
   }
 
-  Serial1.println("Going to sleep for 60 seconds.");
+  Serial1.println("Going to sleep for 30 seconds.");
   pms.sleep();
-  delay(60000);
+  delay(30000);
 }

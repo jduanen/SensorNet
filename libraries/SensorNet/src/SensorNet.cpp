@@ -21,14 +21,28 @@ void SensorNet::serialStart(HardwareSerial *portPtr, uint16 baud, bool console) 
 	}
 }
 
+// Print on console (if one is enabled)
+void SensorNet::consolePrint(String str) {
+  if (consolePtr != NULL) {
+  	consolePtr->print(str);
+	}
+}
+
+// Println on console (if one is enabled)
+void SensorNet::consolePrintln(String str) {
+  if (consolePtr != NULL) {
+  	consolePtr->println(str);
+	}
+}
+
 // Initialize the WiFi connection
 void SensorNet::wifiStart(String ssid, String password) {
   WiFi.begin(ssid, password);
-	condPrint("Starting WIFI...");
+	consolePrint("Starting WIFI...");
   delay(1000);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    condPrintln("Connecting to WiFi.." + String(WiFi.status()));
+    consolePrintln("Connecting to WiFi.." + String(WiFi.status()));
   }
 
   _ipAddr = WiFi.localIP();
@@ -39,7 +53,9 @@ void SensorNet::wifiStart(String ssid, String password) {
              String(_mac[3], HEX) + ":" +
              String(_mac[4], HEX) + ":" +
              String(_mac[5], HEX);
-  condPrintln("Connected to the WiFi network: " + _macAddr + " @ " + _ipAddr.toString());
+	String(appName + "_" + _macAddr).toCharArray(_clientName, BUF_SIZE);
+
+  consolePrintln("Connected to the WiFi network: " + _macAddr + " @ " + _ipAddr.toString());
 }
 
 // Get state of WiFi connection
@@ -52,25 +68,14 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
 	return status;
 }
 
-// Make connection to an MQTT server
-void SensorNet::mqttStart(String server, int port, String prefix) {
+// Setup connection to MQTT server and make initial connection
+void SensorNet::mqttSetup(String server, int port, String prefix) {
 	//// TODO assert that WiFi.status() == WL_CONNECTED
-	char clientName[64];
-	String(appName + "_" + _macAddr).toCharArray(clientName, 64);
-
 	server.toCharArray(mqttServer, BUF_SIZE);
 	mqttPort = port;
   mqttClient.setServer(mqttServer, mqttPort);
-
-  while (!mqttClient.connected()) {
-    condPrint("Connecting to MQTT...");
-    if (mqttClient.connect(clientName)) {
-      condPrintln("connected");
-    } else {
-      condPrintln("ERROR: failed with state " + mqttClient.state());
-      delay(2000);
-    }
-  }
+//  mqttClient.setSocketTimeout(?);
+//  mqttClient.setKeepalive(?);
 
 //  String topic = prefix + "/" + _macAddr + "/cmd";
   String topic = prefix + "/#";
@@ -81,11 +86,26 @@ void SensorNet::mqttStart(String server, int port, String prefix) {
   mqttClient.publish(dataTopic, "ESP8266 Startup");
 }
 
+// Connect to the MQTT server
+void SensorNet::mqttRun() {
+	//// TODO assert that MQTT has been set up
+  while (!mqttClient.connected()) {
+    consolePrint("Connecting to MQTT...");
+    if (mqttClient.connect(_clientName)) {
+      consolePrintln("connected");
+    } else {
+      consolePrintln("ERROR: failed with state " + mqttClient.state());
+      delay(2000);
+    }
+  }
+  mqttClient.loop();
+}
+
 // Publish message to the defined topic
 void SensorNet::mqttPub(String msg) {
 	msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
 	mqttClient.publish(dataTopic, pubMsg);
-//	condPrintln("ZZZZ");
+//	consolePrintln("ZZZZ");
 //	mqttClient.publish(dataTopic, "YYYY");
 }
 
@@ -93,11 +113,11 @@ void SensorNet::mqttPub(String msg) {
 void SensorNet::mqttSub(void (*callback)(char *, byte *, unsigned int)) {
   mqttClient.setCallback(callback);
   if (mqttClient.subscribe(cmdTopic) == false) {
-  	condPrint("ERROR: failed to subscribe to topic -- ");
-  	condPrintln(cmdTopic);
+  	consolePrint("ERROR: failed to subscribe to topic -- ");
+  	consolePrintln(cmdTopic);
   	//// TODO handle error
   } else {
-	  condPrintln(String("Subscribed to: ") + String(cmdTopic));
+	  consolePrintln(String("Subscribed to: ") + String(cmdTopic));
 	}
 }
 
@@ -109,18 +129,4 @@ SensorNet::MQTT_STATE SensorNet::mqttState() {
 		String(cmdTopic)
 	};
 	return state;
-}
-
-// Conditional print string
-void SensorNet::condPrint(String str) {
-  if (consolePtr) {
-  	consolePtr->print(str);
-	}
-}
-
-// Conditional println string
-void SensorNet::condPrintln(String str) {
-  if (consolePtr) {
-  	consolePtr->println(str);
-	}
 }

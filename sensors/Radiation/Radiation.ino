@@ -1,92 +1,47 @@
+#include "SensorNet.h"
 #include "wifi.h"
-#include "mqtt.h"
-#include <ESP8266WiFi.h>
+#include "PMS.h"
 
-const char *ssid = WLAN_SSID;
-const char *password =  WLAN_PASS;
-const char *mqttServer = MQTT_SERVER;
-const int mqttPort = MQTT_PORT;
-String RAD_TOPIC = "/sensors/radiation/";
-const int MAX_MSG_LEN = 128;
-byte mac[6];
-String macAddr;
-const int MAX_TOPIC_LEN = 80;
-char radData[MAX_TOPIC_LEN];
-char radCmd[MAX_TOPIC_LEN];
+#define APP_NAME        "Radiation"
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+#define TOPIC_PREFIX    "/sensors/Radiation"
 
-void setup() {
-  delay(30);
-  Serial.begin(9600); /* 115200 */
-  Serial.println("Radiation");
+#define REPORT_INTERVAL 60000  // one report every 60 secs
 
-  WiFi.begin(ssid, password);
-  Serial.println("Starting WIFI");
-  delay(1000);
+#define MQTT_SERVER     "192.168.166.113"
+#define MQTT_PORT       1883
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("Connecting to WiFi.." + String(WiFi.status()));
-  }
-
-  WiFi.macAddress(mac);
-  macAddr = String(mac[0], HEX) + ":" + 
-            String(mac[1], HEX) + ":" +
-            String(mac[2], HEX) + ":" +
-            String(mac[3], HEX) + ":" +
-            String(mac[4], HEX) + ":" +
-            String(mac[5], HEX);
-  Serial.println("Connected to the WiFi network: " + macAddr);
-
-  client.setServer(mqttServer, mqttPort);
-  client.setCallback(callback);
-
-  while (!client.connected()) {
-    Serial.print("Connecting to MQTT...");
-    if (client.connect("ESP8266Client")) {
-      Serial.println("connected");
-    } else {
-      Serial.println("ERROR: failed with state " + client.state());
-      delay(2000);
-    }
-  }
-
-  /* TODO: add unique id -- e.g., MAC address */
-  String rad = RAD_TOPIC + macAddr;
-  String radStr;
-  radStr = rad + "/data";
-  radStr.toCharArray(radData, MAX_TOPIC_LEN);
-  radStr = rad + "/cmd";
-  radStr.toCharArray(radCmd, MAX_TOPIC_LEN);
-  client.publish(radData, "ESP8266 Startup");
-  client.subscribe(radCmd);
-}
+SensorNet sn(APP_NAME);
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.println("Message arrived in topic: " + String(topic));
+  sn.consolePrintln("Message arrived in topic: " + String(topic));
 
-  Serial.print("Message: ");
+  sn.consolePrint("Message: ");
   for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    sn.consolePrint(String(payload[i]));
   }
+  sn.consolePrintln("");
+}
 
-  Serial.println();
-  Serial.println("-----------------------");
+void setup() {
+  sn.serialStart(&Serial, 9600, false);
+  sn.serialStart(&Serial1, 9600, true);
+  sn.consolePrintln(APP_NAME);
+
+  sn.wifiStart(WLAN_SSID, WLAN_PASS);
+
+  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
+  ////sn.mqttSub(callback);
 }
 
 void loop() {
   String inMsg;
-  char buf[MAX_MSG_LEN];
 
-  client.loop();
+  sn.mqttRun();
 
   if (Serial.available() > 0) {
     inMsg = Serial.readStringUntil('\n');
     Serial.println("> " + inMsg);
-    inMsg.toCharArray(buf, MAX_MSG_LEN);
-    buf[strlen(buf) - 1] = '\0';
-    client.publish(radData, buf);
-  }    
+    sn.mqttPub(inMsg);
+  }
 }

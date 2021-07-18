@@ -17,3 +17,13 @@ SensorNet
         + /sensors/radiation/<WifiMAC>
             * /sensors/radiation/<WifiMAC>/data
             * /sensors/radiation/<WifiMAC>/cmd
+
+## TODO
+
+* write test scripts
+* document code
+* make SensorNet a proper library
+  - create kewords.txt and library.properties
+  - add a README.md and LICENSE
+  - create tests in examples/
+  - document interface

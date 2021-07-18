@@ -52,7 +52,7 @@ void loop() {
   if ((now - lastReport) > REPORT_INTERVAL) {
     sn.consolePrintln("Waking up PMS");
     pms.wakeUp();
-    delay(3000);  //// TMP TMP TMP    // wait 30 seconds for stable reading
+    delay(30000); // wait 30 seconds for stable reading
 
     sn.consolePrintln("Reading PMS");
     pms.requestRead();

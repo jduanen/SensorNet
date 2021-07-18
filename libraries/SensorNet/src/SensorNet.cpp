@@ -77,12 +77,13 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
 //  mqttClient.setSocketTimeout(?);
 //  mqttClient.setKeepalive(?);
 
-//  String topic = prefix + "/" + _macAddr + "/cmd";
-  String topic = prefix + "/#";
+  String topic = prefix + "/" + _macAddr + "/cmd";
   topic.toCharArray(cmdTopic, MAX_MQTT_TOPIC_LEN);
 
   topic = prefix + "/" + _macAddr + "/data";
   topic.toCharArray(dataTopic, MAX_MQTT_TOPIC_LEN);
+
+  mqttRun();
   mqttClient.publish(dataTopic, "ESP8266 Startup");
 }
 

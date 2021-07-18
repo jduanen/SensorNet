@@ -22,6 +22,7 @@ SensorNet
 
 * write test scripts
 * document code
+* make callbacks work for subs in SensorNet library
 * make SensorNet a proper library
   - create kewords.txt and library.properties
   - add a README.md and LICENSE

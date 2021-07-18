@@ -4,7 +4,7 @@
 
 #define APP_NAME        "AirQuality"
 
-#define TOPIC_PREFIX    "/sensors/airQuality/"
+#define TOPIC_PREFIX    "/sensors/airQuality"
 
 #define REPORT_INTERVAL 60000  // one report every 60 secs
 
@@ -14,6 +14,7 @@
 #define VERBOSE         0
 
 unsigned long lastReport = 0;
+boolean wakingUp = false;
 
 SensorNet sn(APP_NAME);
 
@@ -38,7 +39,7 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  ////sn.mqttSub(callback);
 
   pms.passiveMode();    // Switch to passive mode
 }
@@ -46,14 +47,17 @@ void setup() {
 void loop() {
   String msg;
   unsigned long now = millis();
+  unsigned long deltaT = now - lastReport;
 
   sn.mqttRun();
 
-  if ((now - lastReport) > REPORT_INTERVAL) {
+  if ((wakingUp == false) && (deltaT > (REPORT_INTERVAL - 30000))) {
+    // start up sensor 30 seconds before reading it to get stead-state reading
     sn.consolePrintln("Waking up PMS");
     pms.wakeUp();
-    delay(30000); // wait 30 seconds for stable reading
-
+    wakingUp = true;
+  }
+  if ((wakingUp == true) && (deltaT > REPORT_INTERVAL)) {
     sn.consolePrintln("Reading PMS");
     pms.requestRead();
 
@@ -70,6 +74,7 @@ void loop() {
             String(data.PM_AE_UG_10_0);
       sn.mqttPub(msg);
       sn.consolePrintln(msg);
+      wakingUp = false;
     } else {
       sn.consolePrintln("No data from PMS");
     }

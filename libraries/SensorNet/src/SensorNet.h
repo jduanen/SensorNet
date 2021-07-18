@@ -33,11 +33,14 @@ class SensorNet {
 	  SensorNet(String);
 
 	  void serialStart(HardwareSerial *portPtr, uint16 baud, bool console);
+	  void consolePrint(String str);
+	  void consolePrintln(String str);
 
     void wifiStart(String ssid, String password);
 	  WIFI_STATE wifiState();
 
-	  void mqttStart(String server, int port, String prefix);
+	  void mqttSetup(String server, int port, String prefix);
+	  void mqttRun();
 	  void mqttPub(String msg);
 	  void mqttSub(void (*callback)(char *, byte *, unsigned int));
 		MQTT_STATE mqttState();
@@ -46,6 +49,7 @@ class SensorNet {
   	byte _mac[6];
   	String _macAddr;
   	IPAddress _ipAddr;
+		char _clientName[BUF_SIZE];
 
   	char mqttServer[BUF_SIZE];
 	  int mqttPort;
@@ -55,9 +59,6 @@ class SensorNet {
 
  		WiFiClient espClient;
   	PubSubClient mqttClient = PubSubClient(espClient);
-
-    void condPrint(String str);
-    void condPrintln(String str);
 };
 
 #endif /*SENSOR_NET_H*/

@@ -1,3 +1,7 @@
+/*
+* Air Quality Sensor: using PMS7003 sensor
+*/
+
 #include "SensorNet.h"
 #include "wifi.h"
 #include "PMS.h"

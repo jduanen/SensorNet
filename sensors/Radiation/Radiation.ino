@@ -1,4 +1,7 @@
-#include "SensorNet.h"
+/*
+* Radiation Sensor: using GeigerKit with SBT-11(A) sensor
+*/
+
 #include "wifi.h"
 #include "PMS.h"
 

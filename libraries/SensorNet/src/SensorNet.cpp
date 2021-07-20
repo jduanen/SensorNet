@@ -1,3 +1,7 @@
+/*
+* Library that handles serial connections, WiFi, and MQTT for ESP8266-12e modules
+*/
+
 #include "Arduino.h"
 #include "SensorNet.h"
 

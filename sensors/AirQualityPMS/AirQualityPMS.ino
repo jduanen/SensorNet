@@ -6,9 +6,9 @@
 #include "wifi.h"
 #include "PMS.h"
 
-#define APP_NAME        "AirQuality"
+#define APP_NAME        "AirQualityPMS"
 
-#define TOPIC_PREFIX    "/sensors/airQuality"
+#define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
 
 #define REPORT_INTERVAL 60000  // one report every 60 secs
 

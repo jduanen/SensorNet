@@ -2,3 +2,4 @@ include/*
 mqtt.h
 wifi.h
 hold
+__pycache__

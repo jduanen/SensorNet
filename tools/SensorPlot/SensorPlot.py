@@ -25,11 +25,15 @@ def run(options):
     values = []
     for sample in samples:
         parts = sample.split(" ")
+        if len(parts) != 3:
+            continue
         if parts[1].startswith(options.plotter.topicPrefix):
             timestamps.append(parts[0])
             values.append(parts[2].strip().split(','))
     options.plotter.plot(timestamps, values)
 
+
+#### TODO add optional list of MAC addresses to enable/disable of the selected device type
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \

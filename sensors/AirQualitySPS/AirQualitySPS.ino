@@ -19,6 +19,9 @@
 
 #define VERBOSE         0
 
+unsigned long lastReport = 0;
+boolean wakingUp = false;
+
 SensorNet sn(APP_NAME);
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -68,31 +71,52 @@ void loop() {
   uint16_t dataReady;
   int16_t ret;
   String msg;
+  unsigned long now = millis();
+  unsigned long deltaT = now - lastReport;
 
   sn.mqttRun();
 
-  while (1) {
-    ret = sps30_read_data_ready(&dataReady);
-    if (ret < 0) {
-      sn.consolePrintln("ERROR: reading data-ready flag: " + String(ret));
-    } else if (!dataReady)
-      sn.consolePrintln("data not ready");
-    else
-      break;
-    delay(100); /* retry in 100ms */
+  if ((wakingUp == false) && (deltaT >= (REPORT_INTERVAL - 30000))) {
+    // start up sensor 30 seconds before reading it to get steady-state reading
+    //// TODO assert REPORT_INTERVAL > 30000
+    sn.consolePrintln("Waking up sensor");
+    if (sps30_wake_up() != 0) {
+        sn.consolePrintln("ERROR: failed to wake up sensor");
+    } else {
+      wakingUp = true;
+    }
   }
+  if ((wakingUp == true) && (deltaT >= REPORT_INTERVAL)) {
+    sn.consolePrintln("Reading sensor");
+    while (1) {
+      ret = sps30_read_data_ready(&dataReady);
+      if (ret < 0) {
+        sn.consolePrintln("ERROR: reading data-ready flag: " + String(ret));
+      } else if (!dataReady)
+        sn.consolePrintln("data not ready");
+      else
+        break;
+      delay(100); /* retry in 100ms */
+    }
 
-  if (sps30_read_measurement(&m) < 0) {
-    sn.consolePrintln("error reading SPS30 sensor");
-  } else {
-    // PM1.0, PM2.5, PM4.0, PM10, NC0.5, NC1.0, NC2.5, NC4.0, NC10.0, typicalParticleSize
-    msg = String(m.mc_1p0) + "," + String(m.mc_2p5) + "," + String(m.mc_4p0) + "," +
-          String(m.mc_10p0)  + "," + String(m.nc_0p5)  + "," + String(m.nc_1p0)  + "," +
-          String(m.nc_2p5)  + "," + String(m.nc_4p0) + "," + String(m.nc_10p0)  + "," +
-          String(m.typical_particle_size);
-    sn.mqttPub(msg);
-    sn.consolePrintln(msg);
+    if (sps30_read_measurement(&m) >= 0) {
+      // PM1.0, PM2.5, PM4.0, PM10, NC0.5, NC1.0, NC2.5, NC4.0, NC10.0, typicalParticleSize
+      msg = String(m.mc_1p0) + "," + String(m.mc_2p5) + "," + String(m.mc_4p0) + "," +
+            String(m.mc_10p0)  + "," + String(m.nc_0p5)  + "," + String(m.nc_1p0)  + "," +
+            String(m.nc_2p5)  + "," + String(m.nc_4p0) + "," + String(m.nc_10p0)  + "," +
+            String(m.typical_particle_size);
+      sn.mqttPub(msg);
+      sn.consolePrintln(msg);
+      wakingUp = false;
+    } else {
+      sn.consolePrintln("error reading SPS30 sensor");
+    }
+
+    sn.consolePrintln("Sleep until next report");
+    if (sps30_sleep() != 0) {
+      sn.consolePrintln("ERROR: failed to put sensor to sleep");
+    }
+
+    lastReport = now;
   }
-
-  delay(REPORT_INTERVAL);
 }

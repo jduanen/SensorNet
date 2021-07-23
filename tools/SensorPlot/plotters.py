@@ -30,6 +30,10 @@ class RadPlotter(Plotter):
         super().__init__("/sensors/Radiation/", "Radiation sensor (SBT-11A)")
 
     def plot(self, timestamps, values, window=60):
+        indices = [i for i, x in enumerate(values) if x == ['CPM', 'uSv/h', 'Vcc']]
+        for index in sorted(indices, reverse=True):
+            del timestamps[index]
+            del values[index]
         cpm, uSv, volts = zip(*values)
 
         cpm = list(map(int, cpm))

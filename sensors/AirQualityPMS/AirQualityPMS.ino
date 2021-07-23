@@ -55,14 +55,15 @@ void loop() {
 
   sn.mqttRun();
 
-  if ((wakingUp == false) && (deltaT > (REPORT_INTERVAL - 30000))) {
-    // start up sensor 30 seconds before reading it to get stead-state reading
-    sn.consolePrintln("Waking up PMS");
+  if ((wakingUp == false) && (deltaT >= (REPORT_INTERVAL - 30000))) {
+    // start up sensor 30 seconds before reading it to get steady-state reading
+    //// TODO assert REPORT_INTERVAL > 30000
+    sn.consolePrintln("Waking up sensor");
     pms.wakeUp();
     wakingUp = true;
   }
-  if ((wakingUp == true) && (deltaT > REPORT_INTERVAL)) {
-    sn.consolePrintln("Reading PMS");
+  if ((wakingUp == true) && (deltaT >= REPORT_INTERVAL)) {
+    sn.consolePrintln("Reading sensor");
     pms.requestRead();
 
     // wait less than one sec for read to complete
@@ -80,7 +81,7 @@ void loop() {
       sn.consolePrintln(msg);
       wakingUp = false;
     } else {
-      sn.consolePrintln("No data from PMS");
+      sn.consolePrintln("No data from sensor");
     }
 
     sn.consolePrintln("Sleep until next report");

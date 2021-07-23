@@ -32,16 +32,18 @@ class RadPlotter(Plotter):
     def plot(self, timestamps, values, window=60):
         cpm, uSv, volts = zip(*values)
 
+        cpm = list(map(int, cpm))
         uSv = list(map(float, uSv))
+        volts = list(map(float, cpm))
         fig, ax = plt.subplots()
         plt.xlabel("Sample Time")
-        plt.ylabel("uSv per hour")
-        ax.plot(timestamps, uSv, color='b')
-        ax.tick_params(axis='y', labelcolor='black')
+        plt.ylabel("Counts per Minute")
+        ax.plot(timestamps, cpm, color='b')
+        ax.tick_params(axis='y', labelcolor='black', labelright=True)
 
         if window:
-            assert window <= len(uSv), "Window too large for data size"
-            avg = [sum(uSv[i:i+window])/window for i in range(len(uSv) - window)]
+            assert window <= len(cpm), "Window too large for data size"
+            avg = [sum(cpm[i:i+window])/window for i in range(len(cpm) - window)]
             ax.plot(avg, color='r')
 
         ticks = round(len(values) / (NUM_TICKS * 60)) * 60

@@ -4,9 +4,11 @@ SensorPlot: Gather and plot data from SensorNet log files
 '''
 
 import argparse
+from datetime import datetime
 import json
 import logging
 import os
+import pytz
 import sys
 
 from plotters import PLOTTERS
@@ -16,6 +18,9 @@ DEFAULTS = {
     'logLevel': "INFO",  #"DEBUG"  #"WARNING",
     'samplesFile': "/home/jdn/Data/SensorNet/sensornet.log"
 }
+
+
+utc = pytz.UTC
 
 
 def run(options):
@@ -28,17 +33,50 @@ def run(options):
         if len(parts) != 3:
             continue
         if parts[1].startswith(options.plotter.topicPrefix):
-            timestamps.append(parts[0])
+            timestamps.append(parts[0][:-2] + ":" + parts[0][-2:])
             values.append(parts[2].strip().split(','))
+
+    firstDate = datetime.fromisoformat(timestamps[0])
+    lastDate = datetime.fromisoformat(timestamps[-1])
+    print(firstDate, lastDate)
+    print(options.startDate, options.endDate)
+    if options.startDate:
+        if options.startDate < firstDate or options.startDate > lastDate:
+            logging.error(f"Invalid start date: {options.startDate} not between {firstDate} and {lastDate}")
+            sys.exit(1)
+    else:
+        options.startDate = firstDate
+    if options.endDate:
+        if options.endDate < firstDate or options.endDate > lastDate:
+            logging.error(f"Invalid end date: {options.endDate} not between {firstDate} and {lastDate}")
+            sys.exit(1)
+        if options.endDate < options.startDate:
+            logging.error(f"Invalid end date: {options.endDate} not after {options.startDate}")
+            sys.exit(1)
+    else:
+        options.endDate = lastDate
+    if options.verbose:
+        print(f"    Start date:   {options.startDate}")
+        print(f"    End date:     {options.endDate}")
+
     options.plotter.plot(timestamps, values)
 
+
+def validDate(dateStr):
+    try:
+        return utc.localize(datetime.fromisoformat(dateStr))
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Invalid date: {dateStr}")
 
 #### TODO add optional list of MAC addresses to enable/disable of the selected device type
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \
-      "[-s <samplesFile>] sensor"
+      "[-s <samplesFile>] [-S <isodate>] [-E <isodate>] sensor"
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-E", "--endDate", action="store", type=validDate,
+        help="End date (in ISO8016 format) -- defaults to last date in data log")
     ap.add_argument(
         "-L", "--logLevel", action="store", type=str,
         default=DEFAULTS['logLevel'],
@@ -47,6 +85,9 @@ def getOpts():
     ap.add_argument(
         "-l", "--logFile", action="store", type=str,
         help="Path to location of logfile (create it if it doesn't exist)")
+    ap.add_argument(
+        "-S", "--startDate", action="store", type=validDate,
+        help="Start date (in ISO8016 format) -- defaults to first date in data log")
     ap.add_argument(
         "-s", "--samplesFile", action="store", type=str,
         default=DEFAULTS['samplesFile'],

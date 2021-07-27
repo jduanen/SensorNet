@@ -2,6 +2,7 @@
 * Radiation Sensor: using GeigerKit with SBT-11(A) sensor
 */
 
+#include "SensorNet.h"
 #include "wifi.h"
 #include "PMS.h"
 

@@ -4,12 +4,14 @@ MqttLogger
 '''
 
 import argparse
+from datetime import datetime
 import logging
 import os
 import sys
 import time
 
 import paho.mqtt.client as mqtt
+from queue import Queue
 
 from RotatingFile import RotatingFile
 
@@ -19,17 +21,55 @@ DEFAULTS = {
     'samplesPath': "/home/jdn/Data/SensorNet",
     'samplesFilename': "sensornet.csv",
     'maxNumFiles': 10,
-    'maxFileSize': 10000000
+    'maxFileSize': 10000000,
+    'mqttBroker': "localhost",
+    'mqttTopic': "/sensors/#"
 }
+
+running = True
+msgQ = Queue()
+
+def onMessage(client, userData, message):
+    #### TMP TMP TMP
+    msg = str(message.payload.decode("utf-8"))
+    logging.debug(f"msg: {message}")
+    #### TODO figure out how to deal with TZ properly
+    msgQ.put(f"{datetime.now().isoformat()},{message.topic},{msg}")
 
 
 def run(options):
-    pass
+    client = mqtt.Client("SensorNet listener")
+    client.enable_logger(logging.getLogger(__name__))
+    if client.connect(options.mqttBroker):
+        logging.error(f"Failed to connect to MQTT broker '{options.mqttBroker}'")
+        sys.exit(1)
+    client.on_message = onMessage
+    result, msgId = client.subscribe(options.mqttTopic)
+    if result:
+        logging.error(f"Failed to subscribe to topic '{options.mqttTopic}'")
+        sys.exit(1)
+    client.loop_start()
+
+    logging.info("Starting")
+    with RotatingFile(options.samplesPath,
+                      os.path.basename(options.samplesFile),
+                      options.maxNumFiles,
+                      options.maxFileSize,
+                      os.path.join(options.samplesPath, "archive")) as f:
+        while running:
+            msg = msgQ.get(block=True)
+            f.write(msg + "\n")
+    client.loop_stop()
+    logging.info("Exiting")
+
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \
-      "<samplesPath>"
+      "[-f] <samplesPath>"
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-f", "--force", action="store_true", default=False,
+        help="Force overwrite of samples file")
     ap.add_argument(
         "-L", "--logLevel", action="store", type=str,
         default=DEFAULTS['logLevel'],
@@ -62,9 +102,24 @@ def getOpts():
         sys.exit(1)
 
     opts.samplesFile = os.path.join(opts.samplesPath, DEFAULTS['samplesFilename'])
+    if os.path.exists(opts.samplesFile):
+        if opts.force:
+            logging.warning("Overwriting samples file '{opts.samplesFile}'")
+        else:
+            logging.error("Samples file '{opts.samplesFile}' exists, use '-f' to overwrite")
+            sys.exit(1)
+
+
+    opts.maxFileSize = DEFAULTS['maxFileSize']
+    opts.maxNumFiles = DEFAULTS['maxNumFiles']
+
+    opts.mqttBroker = DEFAULTS['mqttBroker']
+    opts.mqttTopic = DEFAULTS['mqttTopic']
 
     if opts.verbose:
         print(f"    Samples File: {opts.samplesFile}")
+        print(f"    MQTT Broker:  {opts.mqttBroker}")
+        print(f"    MQTT Topic:   {opts.mqttTopic}")
     return opts
 
 
@@ -90,7 +145,6 @@ client.subscribe("/sensors/#")
  client.is_connected()
 True
 >>> client.loop_forever()
-import paho.mqtt.client as mqtt 
 from random import randrange, uniform
 import time
 

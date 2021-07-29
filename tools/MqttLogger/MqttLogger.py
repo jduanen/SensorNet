@@ -30,10 +30,9 @@ running = True
 msgQ = Queue()
 
 def onMessage(client, userData, message):
-    #### TMP TMP TMP
-    msg = str(message.payload.decode("utf-8"))
     logging.debug(f"msg: {message}")
     #### TODO figure out how to deal with TZ properly
+    msg = str(message.payload.decode("utf-8"))
     msgQ.put(f"{datetime.now().isoformat()},{message.topic},{msg}")
 
 

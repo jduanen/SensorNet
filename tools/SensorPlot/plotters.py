@@ -19,7 +19,7 @@ class Plotter(ABC):
         self.description = description
 
     @abstractmethod
-    def plot(self, timestamps, values):
+    def plot(self, timestamps, sources, values):
         pass
 
 '''
@@ -29,7 +29,7 @@ class RadPlotter(Plotter):
     def __init__(self):
         super().__init__("/sensors/Radiation/", "Radiation sensor (SBT-11A)")
 
-    def plot(self, timestamps, values, window=60):
+    def plot(self, timestamps, sources, values, window=60):
         indices = [i for i, x in enumerate(values) if x == ['CPM', 'uSv/h', 'Vcc']]
         for index in sorted(indices, reverse=True):
             del timestamps[index]
@@ -63,7 +63,7 @@ class PmsPlotter(Plotter):
     def __init__(self):
         super().__init__("/sensors/AirQuality/PMS/", "Air quality sensor (PMS7003)")
 
-    def plot(self, timestamps, values):
+    def plot(self, timestamps, sources, values):
         pms1, pms2_5, pms10 = zip(*values)
 
         pms1 = list(map(int, pms1))
@@ -90,7 +90,7 @@ class SpsPlotter(Plotter):
     def __init__(self):
         super().__init__("/sensors/AirQuality/SPS/", "Air quality sensor (SPS30)")
 
-    def plot(self, timestamps, values, TPS=True):
+    def plot(self, timestamps, sources, values, TPS=True):
         pm1, pm2_5, pm4, pm10, nc0_5, nc1, nc2_5, nc4, nc10, tps = zip(*values)
 
         pm1 = list(map(float, pm1))
@@ -105,11 +105,11 @@ class SpsPlotter(Plotter):
         tps = list(map(float, tps))
 
         fig, ax = plt.subplots()
-        ax.plot(pm2_5, color='blue', label="pm2.5", linewidth=1.0)
-        ax.plot(pm10, color='cyan', label="pm10", linewidth=1.0)
-        ax.plot(nc0_5, color='orange', label="nc0.5", linewidth=1.0)
-        ax.plot(nc2_5, color='brown', label="nc2.5", linewidth=1.0)
-        ax.plot(nc10, color='magenta', label="nc10", linewidth=1.0)
+        ax.plot(timestamps, pm2_5, color='yellow', label="pm2.5", linewidth=1.0)
+        ax.plot(timestamps, pm10, color='orange', label="pm10", linewidth=1.0)
+        ax.plot(timestamps, nc0_5, color='cyan', label="nc0.5", linewidth=1.0)
+        ax.plot(timestamps, nc2_5, color='blue', label="nc2.5", linewidth=1.0)
+        ax.plot(timestamps, nc10, color='purple', label="nc10", linewidth=1.0)
         ax.tick_params(axis='y', labelcolor='black')
         ax.set_xlabel("Sample Time")
         ax.set_ylabel("Particulate Concentration")
@@ -117,15 +117,15 @@ class SpsPlotter(Plotter):
 
         if TPS:
             ax2 = ax.twinx()
-            ax2.plot(tps, color='r', label="avg particle size", linewidth=1.0)
+            ax2.plot(timestamps, tps, color='r', label="avg particle size", linewidth=1.0)
             ax2.tick_params(axis='y', labelcolor='r')
             ax.set_ylabel("Typical Particle Size")
             ax2.legend(loc="upper right")
 
         ticks = round(len(values) / (NUM_TICKS * 60)) * 60
-#        plt.xlabel("Sample Time")
-#        plt.xticks(timestamps[::ticks], rotation='vertical')
-#        plt.gcf().autofmt_xdate()
+        plt.xlabel("Sample Time")
+        plt.xticks(timestamps[::ticks], rotation='vertical')
+        plt.gcf().autofmt_xdate()
         plt.show()
 
 

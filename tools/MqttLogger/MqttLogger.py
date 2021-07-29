@@ -103,9 +103,9 @@ def getOpts():
     opts.samplesFile = os.path.join(opts.samplesPath, DEFAULTS['samplesFilename'])
     if os.path.exists(opts.samplesFile):
         if opts.force:
-            logging.warning("Overwriting samples file '{opts.samplesFile}'")
+            logging.warning(f"Overwriting samples file '{opts.samplesFile}'")
         else:
-            logging.error("Samples file '{opts.samplesFile}' exists, use '-f' to overwrite")
+            logging.error(f"Samples file '{opts.samplesFile}' exists, use '-f' to overwrite")
             sys.exit(1)
 
 

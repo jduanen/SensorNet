@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 '''
 SensorPlot: Gather and plot data from SensorNet log files
+
+Example data:
+  - 2021-07-27T20:45:38.401164,/sensors/AirQuality/PMS/c8:2b:96:29:f8:9e/data,1,2,2
+  - 2021-07-27T20:17:38.470971,/sensors/AirQuality/SPS/c8:2b:96:2a:7a:77/data,2.16,2.23,2.23,2.26,15.36,17.63,17.68,17.68,17.68,0.53
+
 '''
 
 import argparse
+from collections import Counter
+import csv
 from datetime import datetime
 import json
 import logging
@@ -16,7 +23,7 @@ from plotters import PLOTTERS
 
 DEFAULTS = {
     'logLevel': "INFO",  #"DEBUG"  #"WARNING",
-    'samplesFile': "/home/jdn/Data/SensorNet/sensornet.log"
+    'samplesFile': "/home/jdn/Data/SensorNet/sensornet.csv"
 }
 
 
@@ -24,22 +31,24 @@ utc = pytz.UTC
 
 
 def run(options):
+    options.sampleCounts = Counter()
+    timestamps, sources, values = [], [], []
     with open(options.samplesFile, 'r') as f:
-        samples = f.readlines()
-    timestamps = []
-    values = []
-    for sample in samples:
-        parts = sample.split(" ")
-        if len(parts) != 3:
-            continue
-        if parts[1].startswith(options.plotter.topicPrefix):
-            timestamps.append(parts[0][:-2] + ":" + parts[0][-2:])
-            values.append(parts[2].strip().split(','))
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 3:
+                logging.warning(f"Bad line in csv file: {row}")
+                continue
+            topicParts = row[1].split('/')
+            if row[1].startswith(options.plotter.topicPrefix) and topicParts[5] == "data":
+                timestamps.append(row[0])
+                sources.append(topicParts[4])
+                values.append(row[2:])
+                options.sampleCounts.update([topicParts[4]])
 
     firstDate = datetime.fromisoformat(timestamps[0])
     lastDate = datetime.fromisoformat(timestamps[-1])
     print(firstDate, lastDate)
-    print(options.startDate, options.endDate)
     if options.startDate:
         if options.startDate < firstDate or options.startDate > lastDate:
             logging.error(f"Invalid start date: {options.startDate} not between {firstDate} and {lastDate}")
@@ -55,11 +64,19 @@ def run(options):
             sys.exit(1)
     else:
         options.endDate = lastDate
-    if options.verbose:
-        print(f"    Start date:   {options.startDate}")
-        print(f"    End date:     {options.endDate}")
+    print(options.startDate, options.endDate, type(options.startDate), type(options.endDate))
+    options.duration = options.endDate - options.startDate
 
-    options.plotter.plot(timestamps, values)
+    avgCounts = {k: (v / options.duration.seconds) * 60 for k, v in options.sampleCounts.items()}
+
+    if options.verbose:
+        print(f"    Start date:    {options.startDate}")
+        print(f"    End date:      {options.endDate}")
+        print(f"    Duration:      {options.duration}")
+        print(f"    Sample Counts: {options.sampleCounts}")
+        print(f"    Samples/min:   {avgCounts}")
+
+    options.plotter.plot(timestamps, sources, values)
 
 
 def validDate(dateStr):

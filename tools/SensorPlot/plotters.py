@@ -119,7 +119,7 @@ class SpsPlotter(Plotter):
             ax2 = ax.twinx()
             ax2.plot(timestamps, tps, color='r', label="avg particle size", linewidth=1.0)
             ax2.tick_params(axis='y', labelcolor='r')
-            ax.set_ylabel("Typical Particle Size")
+            ax2.set_ylabel("Typical Particle Size")
             ax2.legend(loc="upper right")
 
         ticks = round(len(values) / (NUM_TICKS * 60)) * 60

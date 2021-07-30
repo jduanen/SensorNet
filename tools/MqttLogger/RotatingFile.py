@@ -11,7 +11,7 @@ from subprocess import check_call
 
 
 class RotatingFile():
-    def __init__(self, dir, filename, maxNumFiles, maxFileSize, compressDir=None):
+    def __init__(self, dir, filename, maxNumFiles, maxFileSize, compressDir=None, append=False):
         self.indx = 0
         self.directory = dir
         self.fileName = filename
@@ -25,6 +25,8 @@ class RotatingFile():
                 logging.info(f"Directory for storing compressed files doesn't exist, creating {compressDir}")
                 os.mkdir(compressDir, 0o755)
         self.compressDir = compressDir
+        self.append = append
+
         self.lastFilePath = f"{self.fileBasePath}_{maxNumFiles:06d}{self.fileExtension}"
 
         self.fd = None
@@ -39,7 +41,6 @@ class RotatingFile():
             logging.error(f"Exception message: {execValue}")
             return True
 
-    #### TODO always right to the base name, on rotate, move all existing files to next larger index
     def _rotate(self, force=False):
         """
           Always write the the named base file, when that gets full, push all
@@ -78,7 +79,11 @@ class RotatingFile():
             self.open()
 
     def open(self):
-        self.fd = open(self.filePath, 'w')
+        if self.append:
+            mode = 'a'
+        else:
+            mode = 'w'
+        self.fd = open(self.filePath, mode)
 
     def write(self, msg):
         """

@@ -54,7 +54,8 @@ def run(options):
                       os.path.basename(options.samplesFile),
                       options.maxNumFiles,
                       options.maxFileSize,
-                      os.path.join(options.samplesPath, "archive")) as f:
+                      os.path.join(options.samplesPath, "archive"),
+                      options.append) as f:
         while running:
             msg = msgQ.get(block=True)
             f.write(msg + "\n")
@@ -67,8 +68,8 @@ def getOpts():
       "[-f] <samplesPath>"
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "-f", "--force", action="store_true", default=False,
-        help="Force overwrite of samples file")
+        "-a", "--append", action="store_true", default=False,
+        help="Append to existing samples file")
     ap.add_argument(
         "-L", "--logLevel", action="store", type=str,
         default=DEFAULTS['logLevel'],
@@ -102,10 +103,10 @@ def getOpts():
 
     opts.samplesFile = os.path.join(opts.samplesPath, DEFAULTS['samplesFilename'])
     if os.path.exists(opts.samplesFile):
-        if opts.force:
-            logging.warning(f"Overwriting samples file '{opts.samplesFile}'")
+        if opts.append:
+            logging.warning(f"Appending to existing samples file '{opts.samplesFile}'")
         else:
-            logging.error(f"Samples file '{opts.samplesFile}' exists, use '-f' to overwrite")
+            logging.error(f"Samples file '{opts.samplesFile}' exists, use '-a' to append to it")
             sys.exit(1)
 
 
@@ -126,51 +127,3 @@ if __name__ == '__main__':
     opts = getOpts()
     r = run(opts)
     sys.exit(r)
-
-
-
-
-
-
-
-
-
-'''
-def on_message(client, userdata, msg):
-...     print(msg.topic+" "+str(msg.payload))
-client = mqtt.Client()
-client.subscribe("/sensors/#")
->>> client.on_message = on_message
- client.is_connected()
-True
->>> client.loop_forever()
-from random import randrange, uniform
-import time
-
-mqttBroker ="mqtt.eclipseprojects.io" 
-
-client = mqtt.Client("Temperature_Inside")
-client.connect(mqttBroker) 
-
-while True:
-    randNumber = uniform(20.0, 21.0)
-    client.publish("TEMPERATURE", randNumber)
-    print("Just published " + str(randNumber) + " to topic TEMPERATURE")
-    time.sleep(1)
-
-def on_message(client, userdata, message):
-    print("received message: " ,str(message.payload.decode("utf-8")))
-
-mqttBroker ="mqtt.eclipseprojects.io"
-
-client = mqtt.Client("Smartphone")
-client.connect(mqttBroker) 
-
-client.loop_start()
-
-client.subscribe("TEMPERATURE")
-client.on_message=on_message 
-
-time.sleep(30)
-client.loop_stop()
-'''

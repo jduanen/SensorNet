@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Run logger on startup by ~/.config/autostart/sensornet.desktop
+#
 
 workon SensorNet
 

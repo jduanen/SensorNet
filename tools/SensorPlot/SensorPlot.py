@@ -40,11 +40,11 @@ def run(options):
                 logging.warning(f"Bad line in csv file: {row}")
                 continue
             topicParts = row[1].split('/')
-            if row[1].startswith(options.plotter.topicPrefix) and topicParts[5] == "data":
+            if row[1].startswith(options.plotter.topicPrefix) and topicParts[-1] == "data":
                 timestamps.append(row[0])
-                sources.append(topicParts[4])
+                sources.append(topicParts[-2])
                 values.append(row[2:])
-                options.sampleCounts.update([topicParts[4]])
+                options.sampleCounts.update([topicParts[-2]])
 
     firstDate = datetime.fromisoformat(timestamps[0])
     lastDate = datetime.fromisoformat(timestamps[-1])

@@ -129,8 +129,45 @@ class SpsPlotter(Plotter):
         plt.show()
 
 
+'''
+SensorPlot Plotter for BirdyNumNum sensor
+'''
+class BnnPlotter(Plotter):
+    def __init__(self):
+        super().__init__("/sensors/BNN/", "BirdyNumNum sensor")
+
+    def plot(self, timestamps, sources, values):
+        #### FIXME clean values
+        START = 20
+        timestamps = timestamps[START:]
+        sources = sources[START:]
+        values = values[START:]
+        tempC, light = zip(*values)
+        tempC = list(map(float, tempC))
+        light = list(map(int, light))
+
+        fig, ax = plt.subplots()
+        ax.plot(timestamps, tempC, color='b', label="tempC", linewidth=1.0)
+        ax.tick_params(axis='y', labelcolor='b')
+        ax.set_xlabel("Sample Time")
+        ax.set_ylabel("Temperature in C")
+        ax.legend(loc="upper left")
+
+        ax2 = ax.twinx()
+        ax2.plot(timestamps, light, color='g', label="light", linewidth=1.0)
+        ax2.tick_params(axis='y', labelcolor='g')
+        ax2.set_ylabel("Light Intensity")
+        ax2.legend(loc="upper right")
+
+        ticks = round(len(values) / (NUM_TICKS * 60)) * 60
+        plt.xticks(timestamps[::ticks if ticks > 0 else NUM_TICKS], rotation='vertical')
+        plt.gcf().autofmt_xdate()
+        plt.legend()
+        plt.show()
+
 PLOTTERS = {
   "rad": RadPlotter(),
   "pms": PmsPlotter(),
-  "sps": SpsPlotter()
+  "sps": SpsPlotter(),
+  "bnn": BnnPlotter()
 }

@@ -138,13 +138,10 @@ class BnnPlotter(Plotter):
 
     def plot(self, timestamps, sources, values):
         #### FIXME clean values
-        START = 20
-        timestamps = timestamps[START:]
-        sources = sources[START:]
-        values = values[START:]
-        tempC, light = zip(*values)
+        tempC, light, grams = zip(*values)
         tempC = list(map(float, tempC))
         light = list(map(int, light))
+        grams = list(map(float, grams))
 
         fig, ax = plt.subplots()
         ax.plot(timestamps, tempC, color='b', label="tempC", linewidth=1.0)
@@ -154,9 +151,9 @@ class BnnPlotter(Plotter):
         ax.legend(loc="upper left")
 
         ax2 = ax.twinx()
-        ax2.plot(timestamps, light, color='g', label="light", linewidth=1.0)
+        ax2.plot(timestamps, grams, color='g', label="grams", linewidth=1.0)
         ax2.tick_params(axis='y', labelcolor='g')
-        ax2.set_ylabel("Light Intensity")
+        ax2.set_ylabel("Weight (grams)")
         ax2.legend(loc="upper right")
 
         ticks = round(len(values) / (NUM_TICKS * 60)) * 60

@@ -15,7 +15,6 @@ from datetime import datetime
 import json
 import logging
 import os
-import pytz
 import sys
 
 from plotters import PLOTTERS
@@ -25,9 +24,6 @@ DEFAULTS = {
     'logLevel': "INFO",  #"DEBUG"  #"WARNING",
     'samplesFile': "/home/jdn/Data/SensorNet/sensornet.csv"
 }
-
-
-utc = pytz.UTC
 
 
 def run(options):
@@ -49,6 +45,7 @@ def run(options):
     firstDate = datetime.fromisoformat(timestamps[0])
     lastDate = datetime.fromisoformat(timestamps[-1])
     print(firstDate, lastDate)
+    print(options.startDate)
     if options.startDate:
         if options.startDate < firstDate or options.startDate > lastDate:
             logging.error(f"Invalid start date: {options.startDate} not between {firstDate} and {lastDate}")
@@ -64,7 +61,6 @@ def run(options):
             sys.exit(1)
     else:
         options.endDate = lastDate
-    print(options.startDate, options.endDate, type(options.startDate), type(options.endDate))
     options.duration = options.endDate - options.startDate
 
     avgCounts = {k: (v / options.duration.seconds) * 60 for k, v in options.sampleCounts.items()}
@@ -76,12 +72,17 @@ def run(options):
         print(f"    Sample Counts: {options.sampleCounts}")
         print(f"    Samples/min:   {avgCounts}")
 
-    options.plotter.plot(timestamps, sources, values)
+    startIndx = list(map(lambda d: datetime.fromisoformat(d) > options.startDate, timestamps)).index(True)
+    indx = list(map(lambda d: datetime.fromisoformat(d) > options.endDate, timestamps)).index(True)
+    endIndx = indx if indx > 0 else -1
+    options.plotter.plot(timestamps[startIndx:endIndx],
+                         sources[startIndx:endIndx],
+                         values[startIndx:endIndx])
 
 
 def validDate(dateStr):
     try:
-        return utc.localize(datetime.fromisoformat(dateStr))
+        return datetime.fromisoformat(dateStr)
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid date: {dateStr}")
 

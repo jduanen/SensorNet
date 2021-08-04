@@ -105,7 +105,7 @@ class SpsPlotter(Plotter):
         tps = list(map(float, tps))
 
         fig, ax = plt.subplots()
-        ax.plot(timestamps, pm2_5, color='yellow', label="pm2.5", linewidth=1.0)
+        ax.plot(timestamps, pm2_5, color='magenta', label="pm2.5", linewidth=1.0)
         ax.plot(timestamps, pm10, color='orange', label="pm10", linewidth=1.0)
         ax.plot(timestamps, nc0_5, color='cyan', label="nc0.5", linewidth=1.0)
         ax.plot(timestamps, nc2_5, color='blue', label="nc2.5", linewidth=1.0)
@@ -138,13 +138,15 @@ class BnnPlotter(Plotter):
 
     def plot(self, timestamps, sources, values):
         #### FIXME clean values
-        tempC, light, grams = zip(*values)
-        tempC = list(map(float, tempC))
+        intDegC, extDegC, light, grams = zip(*values)
+        intDegC = list(map(float, intDegC))
+        extDegC = list(map(float, extDegC))
         light = list(map(int, light))
         grams = list(map(float, grams))
 
         fig, ax = plt.subplots()
-        ax.plot(timestamps, tempC, color='b', label="tempC", linewidth=1.0)
+        ax.plot(timestamps, intDegC, color='b', label="intDegC", linewidth=1.0)
+        ax.plot(timestamps, extDegC, color='cyan', label="extDegC", linewidth=1.0)
         ax.tick_params(axis='y', labelcolor='b')
         ax.set_xlabel("Sample Time")
         ax.set_ylabel("Temperature in C")

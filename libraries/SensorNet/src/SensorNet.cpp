@@ -5,7 +5,6 @@
 #include "Arduino.h"
 #include "SensorNet.h"
 
-
 SensorNet::SensorNet() {
 	consolePtr = NULL;
 }
@@ -13,6 +12,19 @@ SensorNet::SensorNet() {
 SensorNet::SensorNet(String name) {
 	consolePtr = NULL;
 	appName = name;
+}
+
+SensorNet::SensorNet(String name, String version) {
+	consolePtr = NULL;
+	appName = name;
+	appVersion = version;
+}
+
+SensorNet::SensorNet(String name, String version, String schema) {
+	consolePtr = NULL;
+	appName = name;
+	appVersion = version;
+	reportSchema = schema;
 }
 
 // Initialize a serial port
@@ -36,6 +48,14 @@ void SensorNet::consolePrint(String str) {
 void SensorNet::consolePrintln(String str) {
   if (consolePtr != NULL) {
   	consolePtr->println(str);
+	}
+}
+
+// Wait for input on console (if one is enabled)
+void SensorNet::consoleWaitForInput() {
+  if (consolePtr != NULL) {
+    while (!consolePtr->available());
+    while (consolePtr->available()) Serial.read();
 	}
 }
 
@@ -88,7 +108,9 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
   topic.toCharArray(dataTopic, MAX_MQTT_TOPIC_LEN);
 
   mqttRun();
-  mqttClient.publish(dataTopic, "ESP8266 Startup");
+  String startupMsg = "Startup,ESP8266," + appName + "," + appVersion + "," + reportSchema;
+  startupMsg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+  mqttClient.publish(cmdTopic, pubMsg);
 }
 
 // Connect to the MQTT server

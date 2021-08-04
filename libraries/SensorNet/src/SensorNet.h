@@ -17,28 +17,33 @@
 
 class SensorNet {
 	public:
-		String appName = "UNKNOWN";
+		String appName = "n/a";
+		String appVersion = "n/a";
+		String reportSchema = "n/a";
 		HardwareSerial *consolePtr;
 
 		struct WIFI_STATE {
-			wl_status_t state;
-			String macAddr;
-			IPAddress ipAddr;
+		  wl_status_t state;
+		  String macAddr;
+		  IPAddress ipAddr;
 		};
 
 		struct MQTT_STATE {
-			String server;
-			int port;
-			String dataTopic;
-			String cmdTopic;
+		  String server;
+		  int port;
+		  String dataTopic;
+		  String cmdTopic;
 		};
 
 	  SensorNet();
-	  SensorNet(String);
+	  SensorNet(String name);
+	  SensorNet(String name, String version);
+	  SensorNet(String name, String version, String schema);
 
 	  void serialStart(HardwareSerial *portPtr, uint16 baud, bool console);
 	  void consolePrint(String str);
 	  void consolePrintln(String str);
+	  void consoleWaitForInput();
 
     void wifiStart(String ssid, String password);
 	  WIFI_STATE wifiState();
@@ -47,21 +52,21 @@ class SensorNet {
 	  void mqttRun();
 	  void mqttPub(String msg);
 	  void mqttSub(void (*callback)(char *, byte *, unsigned int));
-		MQTT_STATE mqttState();
+	  MQTT_STATE mqttState();
 
 	private:
   	byte _mac[6];
   	String _macAddr;
   	IPAddress _ipAddr;
-		char _clientName[BUF_SIZE];
+	char _clientName[BUF_SIZE];
 
   	char mqttServer[BUF_SIZE];
-	  int mqttPort;
+	int mqttPort;
     char dataTopic[MAX_MQTT_TOPIC_LEN];
     char cmdTopic[MAX_MQTT_TOPIC_LEN];
-		char pubMsg[MAX_MQTT_PUB_MSG_LEN];
+	char pubMsg[MAX_MQTT_PUB_MSG_LEN];
 
- 		WiFiClient espClient;
+ 	WiFiClient espClient;
   	PubSubClient mqttClient = PubSubClient(espClient);
 };
 

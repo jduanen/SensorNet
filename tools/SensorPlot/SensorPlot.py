@@ -73,7 +73,7 @@ def run(options):
         print(f"    Samples/min:   {avgCounts}")
 
     startIndx = list(map(lambda d: datetime.fromisoformat(d) > options.startDate, timestamps)).index(True)
-    indx = list(map(lambda d: datetime.fromisoformat(d) > options.endDate, timestamps)).index(True)
+    indx = list(map(lambda d: datetime.fromisoformat(d) >= options.endDate, timestamps)).index(True)
     endIndx = indx if indx > 0 else -1
     options.plotter.plot(timestamps[startIndx:endIndx],
                          sources[startIndx:endIndx],

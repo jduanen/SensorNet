@@ -10,16 +10,18 @@
 #include "SensorNet.h"
 #include "wifi.h"
 
+#define APP_NAME        "BirdyNumNum"
+#define APP_VERSION     "1.0.0"
+#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,light4d,grams:4.2f"
 
 #define HX711_CLK     5
 #define HX711_DOUT    4
 #define ONE_WIRE_BUS  2
 #define CALIBRATE_PIN 16
 
-#define THERM_DEV_NUM 0
-
-#define APP_NAME        "BirdyNumNum"
-#define REPORT_SCHEMA   "degC:3.2f,light4d"
+// N.B. must correspond to how sensors are wired
+#define BAT_TEMP_DEV_NUM  0
+#define LC_TEMP_DEV_NUM   1
 
 #define TOPIC_PREFIX    "/sensors/BNN"
 
@@ -34,7 +36,7 @@
 
 unsigned long lastReport = 0;
 
-SensorNet sn(APP_NAME);
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 DeviceAddress thermDevAddr;
 
@@ -44,6 +46,7 @@ DallasTemperature sensors(&oneWire);
 HX711 scale;
 
 void setup() {
+  int deviceCount = 0;
   pinMode(CALIBRATE_PIN, INPUT);
   sn.serialStart(&Serial, 9600, true);
   sn.consolePrintln(APP_NAME);
@@ -53,10 +56,12 @@ void setup() {
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
   ////sn.mqttSub(callback);
 
-  sn.consolePrintln("Init temp sensor");
+  sn.consolePrintln("Init temp sensors");
   sensors.begin();
-  if (!sensors.getAddress(thermDevAddr, THERM_DEV_NUM)) {
-    sn.consolePrintln("ERROR: Unable to find address of thermometer device");
+  deviceCount = sensors.getDeviceCount();
+  sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
+  if (deviceCount != 2) {
+    sn.consolePrintln("ERROR: Unable to find both temp sensors");
   }
 
   sn.consolePrintln("Init scale");
@@ -66,25 +71,22 @@ void setup() {
     sn.consolePrintln("Scale not ready");
     delay(1000);
   }
-  sn.consolePrintln("Calibrating");
+  //// TODO switch to median
   scale.tare();
   if (digitalRead(CALIBRATE_PIN) == 0) {
+    sn.consolePrintln("Calibrating");
     sn.consolePrintln("Empty scale, then hit enter");
-    //// TODO add this idiom to the SensorNet library
-    while (!Serial.available());
-    while (Serial.available()) Serial.read();
+    sn.consoleWaitForInput();
     sn.consolePrintln("Units: " + String(scale.get_units(10)) + ", Tare: " + String(scale.get_tare()));
     sn.consolePrintln("Put 50g weight on scale, then hit enter");
-    //// TODO add this idiom to the SensorNet library
-    while (!Serial.available());
-    while (Serial.available()) Serial.read();
+    sn.consoleWaitForInput();
     scale.calibrate_scale(50, 5);
-    sn.consolePrintln("Calibrated");
     sn.consolePrintln("Scale: " + String(scale.get_scale()) + ", Units: " + String(scale.get_units(10)) + ", Tare: " + String(scale.get_tare()));
   } else {
     scale.set_scale(SCALE);
     sn.consolePrintln("Set Scale=" + String(SCALE) + ", Units: " + String(scale.get_units(10)) + ", Tare: " + String(scale.get_tare()));
   }
+  sn.consolePrintln("Scale calibrated");
 }
 
 void loop() {
@@ -104,11 +106,17 @@ void loop() {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();
-    tempC = sensors.getTempCByIndex(0);
+    tempC = sensors.getTempCByIndex(BAT_TEMP_DEV_NUM);
     if (tempC != DEVICE_DISCONNECTED_C) {
       msg = String(tempC);
     } else {
       msg = "N/A";
+    }
+    tempC = sensors.getTempCByIndex(LC_TEMP_DEV_NUM);
+    if (tempC != DEVICE_DISCONNECTED_C) {
+      msg += "," + String(tempC);
+    } else {
+      msg += ",N/A";
     }
 
     light = analogRead(A0);

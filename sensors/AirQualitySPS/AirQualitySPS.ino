@@ -7,6 +7,8 @@
 #include <sps30.h>
 
 #define APP_NAME        "AirQualitySPS"
+#define APP_VERSION     "1.0.0"
+#define REPORT_SCHEMA   "pm1_0:.2f,pm2_5:.2f,pm4_0:.2f,pm10_0:.2f,nc0_5:.2f,nc1_0:.2f,nc2_5:.2f,nc4_0:.2f,nc10_0:.2f,tps:.2f"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/SPS"
 
@@ -22,7 +24,7 @@
 unsigned long lastReport = 0;
 boolean wakingUp = false;
 
-SensorNet sn(APP_NAME);
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 void callback(char* topic, byte* payload, unsigned int length) {
   sn.consolePrintln("Message arrived in topic: " + String(topic));

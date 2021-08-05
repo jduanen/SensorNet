@@ -76,7 +76,7 @@ class PmsPlotter(Plotter):
         plt.plot(timestamps, pms2_5, color='g', label="pms2.5", linewidth=1.0)
         plt.plot(timestamps, pms10, color='r', label="pms10", linewidth=1.0)
         plt.tick_params(axis='y', labelcolor='black')
-        ticks = round(len(values) / (NUM_TICKS * 60)) * 60
+        ticks = max(round(len(values) / (NUM_TICKS * 60)) * 60, 1)
         plt.xticks(timestamps[::ticks], rotation='vertical')
         plt.gcf().autofmt_xdate()
         plt.legend()
@@ -122,7 +122,7 @@ class SpsPlotter(Plotter):
             ax2.set_ylabel("Typical Particle Size")
             ax2.legend(loc="upper right")
 
-        ticks = round(len(values) / (NUM_TICKS * 60)) * 60
+        ticks = max(round(len(values) / (NUM_TICKS * 60)) * 60, 1)
         plt.xlabel("Sample Time")
         plt.xticks(timestamps[::ticks], rotation='vertical')
         plt.gcf().autofmt_xdate()
@@ -158,7 +158,7 @@ class BnnPlotter(Plotter):
         ax2.set_ylabel("Weight (grams)")
         ax2.legend(loc="upper right")
 
-        ticks = round(len(values) / (NUM_TICKS * 60)) * 60
+        ticks = max(round(len(values) / (NUM_TICKS * 60)) * 60, 1)
         plt.xticks(timestamps[::ticks if ticks > 0 else NUM_TICKS], rotation='vertical')
         plt.gcf().autofmt_xdate()
         plt.legend()

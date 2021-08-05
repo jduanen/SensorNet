@@ -42,6 +42,9 @@ def run(options):
                 values.append(row[2:])
                 options.sampleCounts.update([topicParts[-2]])
 
+    if len(timestamps) < 1:
+        logging.error("No samples")
+        sys.exit(1)
     firstDate = datetime.fromisoformat(timestamps[0])
     lastDate = datetime.fromisoformat(timestamps[-1])
     print(firstDate, lastDate)

@@ -7,6 +7,8 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
+#define APP_VERSION     "1.0.0"
+#define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
 
@@ -20,7 +22,7 @@
 unsigned long lastReport = 0;
 boolean wakingUp = false;
 
-SensorNet sn(APP_NAME);
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 PMS pms(Serial);
 PMS::DATA data;

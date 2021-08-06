@@ -138,11 +138,13 @@ class BnnPlotter(Plotter):
 
     def plot(self, timestamps, sources, values):
         #### FIXME clean values
-        intDegC, extDegC, light, grams = zip(*values)
+        intDegC, extDegC, volts, grams = zip(*values)
         intDegC = list(map(float, intDegC))
         extDegC = list(map(float, extDegC))
-        light = list(map(int, light))
+        volts = list(map(int, volts))
         grams = list(map(float, grams))
+
+        #### TODO convert ADC counts to volts -- calibrate against resistor divider
 
         fig, ax = plt.subplots()
         ax.plot(timestamps, intDegC, color='b', label="intDegC", linewidth=1.0)
@@ -153,9 +155,11 @@ class BnnPlotter(Plotter):
         ax.legend(loc="upper left")
 
         ax2 = ax.twinx()
-        ax2.plot(timestamps, grams, color='g', label="grams", linewidth=1.0)
+        ##ax2.plot(timestamps, grams, color='g', label="grams", linewidth=1.0)
+        ax2.plot(timestamps, volts, color='g', label="volts", linewidth=1.0)
         ax2.tick_params(axis='y', labelcolor='g')
-        ax2.set_ylabel("Weight (grams)")
+        ##ax2.set_ylabel("Weight (grams)")
+        ax2.set_ylabel("Solar Volts")
         ax2.legend(loc="upper right")
 
         ticks = max(round(len(values) / (NUM_TICKS * 60)) * 60, 1)

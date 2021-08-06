@@ -11,8 +11,8 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.0.0"
-#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,light4d,grams:4.2f"
+#define APP_VERSION     "1.0.1"
+#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts4d,grams:4.2f"
 
 #define HX711_CLK     5
 #define HX711_DOUT    4
@@ -93,7 +93,7 @@ void loop() {
   String inMsg;
   String msg;
   float tempC;
-  int light;
+  int volts;
   float units;
   unsigned long now = millis();
   unsigned long deltaT = now - lastReport;
@@ -119,8 +119,8 @@ void loop() {
       msg += ",N/A";
     }
 
-    light = analogRead(A0);
-    msg += "," + String(light);
+    volts = analogRead(A0);
+    msg += "," + String(volts);
 
     units = scale.get_units(5);
     msg += "," + String(units);

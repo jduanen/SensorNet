@@ -138,13 +138,18 @@ class BnnPlotter(Plotter):
 
     def plot(self, timestamps, sources, values):
         #### FIXME clean values
-        intDegC, extDegC, volts, grams = zip(*values)
+        intDegC, extDegC, counts, grams = zip(*values)
         intDegC = list(map(float, intDegC))
         extDegC = list(map(float, extDegC))
-        volts = list(map(int, volts))
+        counts = list(map(int, counts))
         grams = list(map(float, grams))
 
         #### TODO convert ADC counts to volts -- calibrate against resistor divider
+        ## 4.31V ~ 762
+        ## 0V = 0
+        x = 0.00570813
+        b = 0.01317974
+        volts = [(c * x) + b for c in counts]
 
         fig, ax = plt.subplots()
         ax.plot(timestamps, intDegC, color='b', label="intDegC", linewidth=1.0)

@@ -4,9 +4,11 @@
 
 #include "SensorNet.h"
 #include "wifi.h"
-#include "PMS.h"
+//#include "PMS.h"
 
 #define APP_NAME        "Radiation"
+#define APP_VERSION     "1.0.0"
+#define REPORT_SCHEMA   "CPM:d,uSv/h:.4f,Vcc:.2f"
 
 #define TOPIC_PREFIX    "/sensors/Radiation"
 
@@ -15,7 +17,7 @@
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
 
-SensorNet sn(APP_NAME);
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 void callback(char* topic, byte* payload, unsigned int length) {
   sn.consolePrintln("Message arrived in topic: " + String(topic));

@@ -12,7 +12,7 @@
 
 #define APP_NAME        "BirdyNumNum"
 #define APP_VERSION     "1.0.1"
-#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts4d,grams:4.2f"
+#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
 #define HX711_DOUT    4

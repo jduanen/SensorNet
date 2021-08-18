@@ -2,8 +2,13 @@
 SensorPlot SensorNet Data Plotting Package
 '''
 
-import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+#### TODO use Pandas, allow plotting of multiple sensors, add averaging feature
+#### TODO make a subclass of each sensor type for each version
 
 
 NUM_TICKS = 20
@@ -19,7 +24,7 @@ class Plotter(ABC):
         self.description = description
 
     @abstractmethod
-    def plot(self, timestamps, sources, values):
+    def plot(self, df):
         pass
 
 '''
@@ -173,9 +178,39 @@ class BnnPlotter(Plotter):
         plt.legend()
         plt.show()
 
+
 PLOTTERS = {
-  "rad": RadPlotter(),
-  "pms": PmsPlotter(),
-  "sps": SpsPlotter(),
-  "bnn": BnnPlotter()
+    'RAD': {
+        'appName': "Radiation",
+        'topic': "/sensors/Radiation/",
+        'description': "Radiation sensor (SBT-11A)",
+        'plotters': {
+            '1.0.0': RadPlotter()
+        }
+    },
+    'PMS': {
+        'appName': "AirQualityPMS",
+        'topic': "/sensors/AirQuality/PMS/",
+        'description': "Air quality sensor (PMS7003)",
+        'plotters': {
+            '1.0.0': PmsPlotter()
+        }
+    },
+    'SPS': {
+        'appName': "AirQualitySPS",
+        'topic': "/sensors/AirQuality/SPS/",
+        'description': "Air quality sensor (SPS30)",
+        'plotters': {
+            '1.0.0': SpsPlotter()
+        }
+    },
+    'BNN': {
+        'appName': "BirdyNumNum",
+        'topic': "/sensors/BNN",
+        'description': "Hummingbird feeder sensor",
+        'plotters': {
+            '1.0.0': BnnPlotter()
+        }
+    }
 }
+

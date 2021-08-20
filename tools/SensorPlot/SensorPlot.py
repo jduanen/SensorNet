@@ -19,9 +19,8 @@ import logging
 import os
 import sys
 
+import matplotlib.pylab as plt
 import pandas as pd
-
-from plotters import PLOTTERS
 
 
 DEFAULTS = {
@@ -30,11 +29,60 @@ DEFAULTS = {
 }
 
 
+def radPlotter(df):
+    print("TBD")
+
+
+def spsPlotter(df):
+    print("SPS")
+    return df.plot(secondary_y='tps')
+
+
+def pmsPlotter(df):
+    print("PMS")
+    return df.plot.line()
+
+
+def bnnPlotter(df):
+    print("TBD")
+
+
+SENSORS = {
+    'Radiation': {
+        'topic': "/sensors/Radiation/",
+        'description': "Radiation sensor (SBT-11A)",
+        'plotters': {
+            '1.0.0': radPlotter
+        }
+    },
+    'AirQualityPMS': {
+        'topic': "/sensors/AirQuality/PMS/",
+        'description': "Air quality sensor (PMS7003)",
+        'plotters': {
+            '1.0.0': pmsPlotter
+        }
+    },
+    'AirQualitySPS': {
+        'topic': "/sensors/AirQuality/SPS/",
+        'description': "Air quality sensor (SPS30)",
+        'plotters': {
+            '1.0.0': spsPlotter
+        }
+    },
+    'BirdyNumNum': {
+        'topic': "/sensors/BNN",
+        'description': "Hummingbird feeder sensor",
+        'plotters': {
+            '1.0.0': bnnPlotter
+        }
+    }
+}
+
+
 #### TODO do filtering/data-prep/stats with Pandas, pass off DFs to plotters
 #### TODO create separate DFs for each sensor/device/schema and handle each separately
 def run(options):
     def _convDtype(str):
-        print(str)
         if str.endswith('d'):
             typ = "int"
         elif str.endswith('f'):
@@ -58,7 +106,6 @@ def run(options):
             if row[1].endswith("/cmd"):
                 if streamName not in streams:
                     dataTypes = {'time': "str", 'topic': "str"}
-                    print("ZZZ", [h for h in row[6:]])
                     dataTypes.update({h.split(':')[0]: _convDtype(h.split(':')[1]) for h in row[6:]})
                     streams[streamName] = {
                         'sensor': row[1].split('/')[2],
@@ -75,11 +122,10 @@ def run(options):
             streams[streamName]['file'].write(",".join(row) + "\n")
 
     logging.info(f"Read data streams: {[k + '_' + v['version'] for k, v in streams.items()]}")
-    sensors = [PLOTTERS[s]['appName'] for s in options.sensors]
     for name in list(streams.keys()):
         streams[name]['file'].flush()
         streams[name]['file'].seek(0)
-        if (streams[name]['appName'] not in sensors) or (options.devices and streams[name]['device'] not in options.devices):
+        if (streams[name]['appName'] not in options.sensors) or (options.devices and streams[name]['device'] not in options.devices):
             streams[name]['file'].close()
             del streams[name]
 
@@ -88,29 +134,64 @@ def run(options):
         sys.exit(1)
     logging.info(f"Remaining data streams: {[k + '_' + v['version'] for k, v in streams.items()]}")
 
+    axs = []
     for name in streams.keys():
-        header = streams[name]['header']
-        print("XXXXX", header)
-        print("YYYYY", streams[name]['dataTypes'])
-        df = pd.read_csv(streams[name]['file'],
+        stream = streams[name]
+        header = stream['header']
+        df = pd.read_csv(stream['file'],
                          sep=',',
                          names=header,
-                         dtype=streams[name]['dataTypes'],
+                         dtype=stream['dataTypes'],
                          index_col=0,
                          parse_dates=[0])
         if options.verbose:
-            df.info(True, sys.stdout, max_cols=len(header), show_counts=True)
-        df.to_csv(f"/tmp/{streamName}.csv", index=False)
+            buf = StringIO()
+            df.info(options.verbose > 1, buf=buf, max_cols=len(header), show_counts=True)
+            print(buf.getvalue())
+        if True:  #### TMP TMP TMP
+            df.to_csv(f"/tmp/{name}.csv", index=False)
+
+        '''
+        firstDatetime = datetime.fromisoformat(?)
+        lastDatetime = datetime.fromisoformat(?)
+        startDatetime = firstDatetime
+        if options.startDate:
+            if options.startDate < firstDatetime or options.startDate > lastDatetime:
+                logging.error(f"Invalid start date: {options.startDate} not between {firstDatetime} and {lastDatetime}")
+                sys.exit(1)
+            startDatetime = options.startDate
+        endDatetime = lastDatetime
+        if options.endDate:
+            if options.endDate < firstDate or options.endDate > lastDate:
+                logging.error(f"Invalid end date: {options.endDate} not between {firstDate} and {lastDate}")
+                sys.exit(1)
+            if options.endDate < options.startDate:
+                logging.error(f"Invalid end date: {options.endDate} not after {options.startDate}")
+                sys.exit(1)
+            endDatetime = options.endDate
+        duration = endDatetime - startDatetime
+        numSamples = ?
+        samplesPerMin = numSamples / duration
+
+        if options.verbose:
+            print(f"    Sensor:  {name}")
+            print(f"        Start date:  {startDatetime}")
+            print(f"        End date:    {endDatetime}")
+            print(f"        Duration:    {duration}")
+            print(f"        # samples:   {numSamples}")
+            print(f"        Samples/min: {samplesPerMin}")
+        '''
+
+        #### TODO slice df based on start/end times
+        axs.append(SENSORS[stream['appName']]['plotters'][stream['version']](df))
+    plt.show()
 
     sys.exit(1)
 
-    if len(timestamps) < 1:
-        logging.error("No samples")
-        sys.exit(1)
+
+
     firstDate = datetime.fromisoformat(timestamps[0])
     lastDate = datetime.fromisoformat(timestamps[-1])
-    print(firstDate, lastDate)
-    print(options.startDate)
     if options.startDate:
         if options.startDate < firstDate or options.startDate > lastDate:
             logging.error(f"Invalid start date: {options.startDate} not between {firstDate} and {lastDate}")
@@ -129,13 +210,6 @@ def run(options):
     options.duration = options.endDate - options.startDate
 
     avgCounts = {k: (v / options.duration.seconds) * 60 for k, v in options.sampleCounts.items()}
-
-    if options.verbose:
-        print(f"    Start date:    {options.startDate}")
-        print(f"    End date:      {options.endDate}")
-        print(f"    Duration:      {options.duration}")
-        print(f"    Sample Counts: {options.sampleCounts}")
-        print(f"    Samples/min:   {avgCounts}")
 
     startIndx = list(map(lambda d: datetime.fromisoformat(d) > options.startDate, timestamps)).index(True)
     indx = list(map(lambda d: datetime.fromisoformat(d) >= options.endDate, timestamps)).index(True)
@@ -183,8 +257,7 @@ def getOpts():
         "-v", "--verbose", action="count", default=0,
         help="Enable printing of debug info")
     ap.add_argument(
-        #### FIXME allow a list
-        "sensors", nargs="+", type=str, choices=PLOTTERS.keys(),
+        "sensors", nargs="+", type=str, choices=SENSORS.keys(),
         help="Type of sensor to explore")
     opts = ap.parse_args()
 
@@ -209,7 +282,7 @@ def getOpts():
                 sys.exit(1)
 
     if opts.verbose:
-        print(f"    Sensor Type(s): {[s + ': ' + PLOTTERS[s]['description'] for s in opts.sensors]}")
+        print(f"    Sensor Type(s): {[s + ': ' + SENSORS[s]['description'] for s in opts.sensors]}")
         if opts.devices:
             print(f"    Devices:        {opts.devices}")
         print(f"    Samples File:   {opts.samplesFile}")

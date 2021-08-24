@@ -214,7 +214,7 @@ def getOpts():
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "-r", "--resample", action="store", choices=RESAMPLE_FREQS.keys(),
-        default="T", help="Resample to the given frequency")
+        default="minutes", help="Resample to the given frequency")
     ap.add_argument(
         "-d", "--devices", action="append", type=str,
         help="MAC address of device to explore")
@@ -269,7 +269,7 @@ def getOpts():
         if opts.devices:
             print(f"    Devices:        {opts.devices}")
         print(f"    Samples File:   {opts.samplesFile}")
-        print(f"    Resample Freq.: {RESAMPLE_FREQS[opts.resample]}")
+        print(f"    Resample Freq.: {opts.resample}")
     return opts
 
 

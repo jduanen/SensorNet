@@ -20,12 +20,21 @@ import os
 import sys
 
 import matplotlib.pylab as plt
+import numpy as np
 import pandas as pd
 
 
 DEFAULTS = {
     'logLevel': "INFO",  #"DEBUG"  #"WARNING",
     'samplesFile': "/home/jdn/Data/SensorNet/sensornet.csv"
+}
+
+RESAMPLE_FREQS = {
+    'minutes': "T",
+    'hours': "H",
+    'days': "D",
+    'weeks': "W",
+    'months': "M"
 }
 
 
@@ -95,6 +104,7 @@ def run(options):
         return typ
 
     #### TODO read the *.csv file and then read all the archived *gzip files in sequence and concatenate them
+    #### FIXME don't create/read into buffers for streams that aren't selected
     streams = {}
     with open(options.samplesFile, 'r') as f:
         reader = csv.reader(f)
@@ -102,7 +112,11 @@ def run(options):
             if len(row) < 3:
                 logging.warning(f"Bad line in csv file: {row}")
                 continue
-            streamName = "_".join(row[1].split('/')[2:-1])
+            parts = row[1].split('/')
+            appName = parts[2] if len(parts) == 5 else "".join(parts[2:-2])
+            if (appName not in options.sensors) or (options.devices and device not in options.devices):
+                continue
+            streamName = "_".join(parts[2:-1])
             if row[1].endswith("/cmd"):
                 if streamName not in streams:
                     dataTypes = {'time': "str", 'topic': "str"}
@@ -121,6 +135,9 @@ def run(options):
                 continue
             streams[streamName]['file'].write(",".join(row) + "\n")
 
+    if not streams:
+        logging.error("No data streams matching the given sensor/device specs")
+        sys.exit(1)
     logging.info(f"Read data streams: {[k + '_' + v['version'] for k, v in streams.items()]}")
     for name in list(streams.keys()):
         streams[name]['file'].flush()
@@ -128,11 +145,6 @@ def run(options):
         if (streams[name]['appName'] not in options.sensors) or (options.devices and streams[name]['device'] not in options.devices):
             streams[name]['file'].close()
             del streams[name]
-
-    if not streams:
-        logging.error("No data streams matching the given sensor/device specs")
-        sys.exit(1)
-    logging.info(f"Remaining data streams: {[k + '_' + v['version'] for k, v in streams.items()]}")
 
     axs = []
     for name in streams.keys():
@@ -148,12 +160,11 @@ def run(options):
             buf = StringIO()
             df.info(options.verbose > 1, buf=buf, max_cols=len(header), show_counts=True)
             print(buf.getvalue())
-        if True:  #### TMP TMP TMP
+        if False:  #### TMP TMP TMP
             df.to_csv(f"/tmp/{name}.csv", index=False)
 
-        '''
-        firstDatetime = datetime.fromisoformat(?)
-        lastDatetime = datetime.fromisoformat(?)
+        firstDatetime = df.first_valid_index().to_pydatetime()
+        lastDatetime = df.last_valid_index().to_pydatetime()
         startDatetime = firstDatetime
         if options.startDate:
             if options.startDate < firstDatetime or options.startDate > lastDatetime:
@@ -162,61 +173,32 @@ def run(options):
             startDatetime = options.startDate
         endDatetime = lastDatetime
         if options.endDate:
-            if options.endDate < firstDate or options.endDate > lastDate:
-                logging.error(f"Invalid end date: {options.endDate} not between {firstDate} and {lastDate}")
+            if options.endDate < firstDatetime or options.endDate > lastDatetime:
+                logging.error(f"Invalid end date: {options.endDate} not between {firstDatetime} and {lastDatetime}")
                 sys.exit(1)
             if options.endDate < options.startDate:
                 logging.error(f"Invalid end date: {options.endDate} not after {options.startDate}")
                 sys.exit(1)
             endDatetime = options.endDate
         duration = endDatetime - startDatetime
-        numSamples = ?
-        samplesPerMin = numSamples / duration
+        samples = df[startDatetime:endDatetime]
+        if options.resample:
+#            samples = samples.rolling(options.avgSamples).mean()
+            samples = samples.resample(RESAMPLE_FREQS[options.resample]).mean()
+        numSamples = len(samples)
+        samplesPerMin = (numSamples / duration.total_seconds()) * 60.0
 
         if options.verbose:
             print(f"    Sensor:  {name}")
-            print(f"        Start date:  {startDatetime}")
-            print(f"        End date:    {endDatetime}")
-            print(f"        Duration:    {duration}")
-            print(f"        # samples:   {numSamples}")
-            print(f"        Samples/min: {samplesPerMin}")
-        '''
+            print(f"        Start date:        {startDatetime}")
+            print(f"        End date:          {endDatetime}")
+            print(f"        Duration:          {duration}")
+            print(f"        Number of samples: {numSamples}")
+            print(f"        Samples/min:       {samplesPerMin:.6f}")
 
         #### TODO slice df based on start/end times
-        axs.append(SENSORS[stream['appName']]['plotters'][stream['version']](df))
+        axs.append(SENSORS[stream['appName']]['plotters'][stream['version']](samples))
     plt.show()
-
-    sys.exit(1)
-
-
-
-    firstDate = datetime.fromisoformat(timestamps[0])
-    lastDate = datetime.fromisoformat(timestamps[-1])
-    if options.startDate:
-        if options.startDate < firstDate or options.startDate > lastDate:
-            logging.error(f"Invalid start date: {options.startDate} not between {firstDate} and {lastDate}")
-            sys.exit(1)
-    else:
-        options.startDate = firstDate
-    if options.endDate:
-        if options.endDate < firstDate or options.endDate > lastDate:
-            logging.error(f"Invalid end date: {options.endDate} not between {firstDate} and {lastDate}")
-            sys.exit(1)
-        if options.endDate < options.startDate:
-            logging.error(f"Invalid end date: {options.endDate} not after {options.startDate}")
-            sys.exit(1)
-    else:
-        options.endDate = lastDate
-    options.duration = options.endDate - options.startDate
-
-    avgCounts = {k: (v / options.duration.seconds) * 60 for k, v in options.sampleCounts.items()}
-
-    startIndx = list(map(lambda d: datetime.fromisoformat(d) > options.startDate, timestamps)).index(True)
-    indx = list(map(lambda d: datetime.fromisoformat(d) >= options.endDate, timestamps)).index(True)
-    endIndx = indx if indx > 0 else -1
-    options.plotter.plot(timestamps[startIndx:endIndx],
-                         sources[startIndx:endIndx],
-                         values[startIndx:endIndx])
 
 
 def validDate(dateStr):
@@ -225,13 +207,14 @@ def validDate(dateStr):
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid date: {dateStr}")
 
-#### TODO take list of one or more sensor types
-#### TODO add optional list of MAC addresses to enable/disable of the selected device type
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \
-      "[-s <samplesFile>] [-S <isodate>] [-E <isodate>] [-d <device>]* {<sensor>}+"
+      "[-s <samplesFile>] [-r <resample>] [-S <isodate>] [-E <isodate>] [-d <device>]* {<sensor>}+"
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-r", "--resample", action="store", choices=RESAMPLE_FREQS.keys(),
+        default="T", help="Resample to the given frequency")
     ap.add_argument(
         "-d", "--devices", action="append", type=str,
         help="MAC address of device to explore")
@@ -286,6 +269,7 @@ def getOpts():
         if opts.devices:
             print(f"    Devices:        {opts.devices}")
         print(f"    Samples File:   {opts.samplesFile}")
+        print(f"    Resample Freq.: {RESAMPLE_FREQS[opts.resample]}")
     return opts
 
 

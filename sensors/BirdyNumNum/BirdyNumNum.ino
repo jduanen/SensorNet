@@ -11,7 +11,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.0.1"
+#define APP_VERSION     "1.0.2"
 #define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
@@ -23,7 +23,7 @@
 #define BAT_TEMP_DEV_NUM  0
 #define LC_TEMP_DEV_NUM   1
 
-#define TOPIC_PREFIX    "/sensors/BNN"
+#define TOPIC_PREFIX    "/sensors/BirdyNumNum"
 
 #define REPORT_INTERVAL 60000  // one report every 60 secs  #### TODO ????
 

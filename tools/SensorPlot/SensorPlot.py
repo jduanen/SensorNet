@@ -53,7 +53,8 @@ def pmsPlotter(df):
 
 
 def bnnPlotter(df):
-    print("TBD")
+    print("BNN")
+    return df.plot(secondary_y='grams')
 
 
 SENSORS = {
@@ -79,10 +80,10 @@ SENSORS = {
         }
     },
     'BirdyNumNum': {
-        'topic': "/sensors/BNN",
+        'topic': "/sensors/BirdyNumNum",
         'description': "Hummingbird feeder sensor",
         'plotters': {
-            '1.0.0': bnnPlotter
+            '1.0.2': bnnPlotter
         }
     }
 }

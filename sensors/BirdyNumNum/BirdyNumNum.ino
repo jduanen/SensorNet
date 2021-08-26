@@ -38,7 +38,7 @@ unsigned long lastReport = 0;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
-DeviceAddress thermDevAddr;
+//DeviceAddress thermDevAddr;
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -60,8 +60,11 @@ void setup() {
   sensors.begin();
   deviceCount = sensors.getDeviceCount();
   sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
-  if (deviceCount != 2) {
+  while (deviceCount != 2) {
     sn.consolePrintln("ERROR: Unable to find both temp sensors");
+    sensors = DallasTemperature(&oneWire);
+    sensors.begin();
+    deviceCount = sensors.getDeviceCount();
   }
 
   sn.consolePrintln("Init scale");

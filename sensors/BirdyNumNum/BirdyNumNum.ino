@@ -20,8 +20,8 @@
 #define CALIBRATE_PIN 16
 
 // N.B. must correspond to how sensors are wired
-#define BAT_TEMP_DEV_NUM  0
-#define LC_TEMP_DEV_NUM   1
+#define LC_TEMP_DEV_NUM   0
+#define BAT_TEMP_DEV_NUM  1
 
 #define TOPIC_PREFIX    "/sensors/BirdyNumNum"
 

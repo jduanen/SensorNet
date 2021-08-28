@@ -5,6 +5,9 @@
  * Modified by JDN 15Jul21 for use with SensorNet
  *  - switched output format back to "CPM, <doseUnit>, Vcc"
  *  - default to backlight off and no sound on powerup
+ * Modified by JDN 27Aug21 for use with SensorNet
+ *  - removed startup message on serial port
+ *  - set both SEC_RATIO to be the same as PRI_RATIO -- only one sensor type
  *
  **Adapted by impexeris on http://www.ebay.com/usr/impexeris on 11/04/16 to work with the SMD based counter DiY-GDC-v2.0.1woTBUSB (can be found here http://www.ebay.com/sch/impexeris/m.html?_nkw=&_armrs=1&_from=&_ipg=&_trksid=p3686 ) Hence new subversion (Ver v.11.0.2)
  *
@@ -83,7 +86,6 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include <PinChangeInt.h>
 #include "GeigerKit.h"
 #include "IR.h"
 #include "OneButton.h"                   //use multiple functions on push-buttons
@@ -293,11 +295,13 @@ button2.attachLongPressStart(ToggleRate);
 #else
   lcd.print(F("CPM? "));                // display beginning "CPM"
 #endif
-  if (!radLogger){                      // no header if Radiation Logger is used
+#if (!JDN)
+  if (!radLogger){                      // no header if Radiation Logger is used or if JDN mode
     Serial.print(F("CPM,"));            // print header for CSV output to serial
     serialprint_P((const char *)pgm_read_word(&(unit_table[doseUnit])));  // print dose unit (uSv/h, uR/h, or mR/h) to serial
     Serial.print(F(",Vcc\r\n"));
   }
+#endif
 
   if (doseUnit == 0) {
     globalBgRadAvg = AVGBGRAD_uSv;      // global average background radiation in uSv/h

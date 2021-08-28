@@ -115,7 +115,7 @@ def run(options):
                 continue
             parts = row[1].split('/')
             appName = parts[2] if len(parts) == 5 else "".join(parts[2:-2])
-            if (appName not in options.sensors) or (options.devices and device not in options.devices):
+            if (appName not in options.sensors) or ((options.devices != None) and (parts[3] not in options.devices)):
                 continue
             streamName = "_".join(parts[2:-1])
             if row[1].endswith("/cmd"):

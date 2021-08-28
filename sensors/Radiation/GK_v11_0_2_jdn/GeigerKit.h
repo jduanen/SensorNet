@@ -76,7 +76,7 @@
 #define DISP_PERIOD     5000            // defaults to 5 sec sample & display
 #define LOGGING_PERIOD    60            // defaults a 60 sec logging period
 #define PRI_RATIO        318            // defaults to SBT-11 ratio
-#define SEC_RATIO        220            // TUBE_SEL jumper to GND - SET FOR LND712
+#define SEC_RATIO        318            // TUBE_SEL jumper to GND - SET FOR LND712
 #define ALARM_POINT      500            // CPM for Alarm defaults to
 #define SCALER_PERIOD     10            // default scaler period
 #define FULL_SCALE      1000            // max CPM for all 6 bars 

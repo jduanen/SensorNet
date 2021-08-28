@@ -86,6 +86,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <PinChangeInt.h>
 #include "GeigerKit.h"
 #include "IR.h"
 #include "OneButton.h"                   //use multiple functions on push-buttons

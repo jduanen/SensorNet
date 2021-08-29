@@ -39,21 +39,17 @@ RESAMPLE_FREQS = {
 
 
 def radPlotter(df):
-    print("TBD")
-
+    return df.plot(secondary_y='Vcc')
 
 def spsPlotter(df):
-    print("SPS")
     return df.plot(secondary_y='tps')
 
 
 def pmsPlotter(df):
-    print("PMS")
     return df.plot.line()
 
 
 def bnnPlotter(df):
-    print("BNN")
     return df.plot(secondary_y='grams')
 
 
@@ -104,8 +100,6 @@ def run(options):
             typ = "str"
         return typ
 
-    #### TODO read the *.csv file and then read all the archived *gzip files in sequence and concatenate them
-    #### FIXME don't create/read into buffers for streams that aren't selected
     streams = {}
     with open(options.samplesFile, 'r') as f:
         reader = csv.reader(f)

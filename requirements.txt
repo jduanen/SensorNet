@@ -1,0 +1,15 @@
+cycler
+kiwisolver
+matplotlib
+numpy
+paho-mqtt
+pandas
+Pillow
+pip
+pkg-resources
+pyparsing
+python-dateutil
+pytz
+setuptools
+six
+wheel

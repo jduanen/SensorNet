@@ -157,6 +157,9 @@ def run(options):
             print(buf.getvalue())
         if False:  #### TMP TMP TMP
             df.to_csv(f"/tmp/{name}.csv", index=False)
+        if len(df.index) < 1:
+            logging.warning(f"No data for stream '{name}', skipping it")
+            continue
 
         firstDatetime = df.first_valid_index().to_pydatetime()
         lastDatetime = df.last_valid_index().to_pydatetime()

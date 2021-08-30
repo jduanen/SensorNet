@@ -41,6 +41,7 @@ RESAMPLE_FREQS = {
 def radPlotter(df):
     return df.plot(secondary_y='Vcc')
 
+
 def spsPlotter(df):
     return df.plot(secondary_y='tps')
 
@@ -51,6 +52,10 @@ def pmsPlotter(df):
 
 def bnnPlotter(df):
     return df.plot(secondary_y='grams')
+
+
+def whPlotter(df):
+    return df.plot.line()
 
 
 SENSORS = {
@@ -80,6 +85,13 @@ SENSORS = {
         'description': "Hummingbird feeder sensor",
         'plotters': {
             '1.0.2': bnnPlotter
+        }
+    },
+    'WaterHeater': {
+        'topic': "/sensors/WaterHeater",
+        'description': "Water heater temperature sensor",
+        'plotters': {
+            '0.0.0': whPlotter
         }
     }
 }

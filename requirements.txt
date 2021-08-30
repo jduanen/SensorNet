@@ -10,6 +10,7 @@ pkg-resources
 pyparsing
 python-dateutil
 pytz
+pyyaml
 setuptools
 six
 wheel

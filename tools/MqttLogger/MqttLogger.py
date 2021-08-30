@@ -65,7 +65,7 @@ def run(options):
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \
-      "[-f] <samplesPath>"
+      "[-s <samplesPath>]"
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "-a", "--append", action="store_true", default=False,

@@ -39,6 +39,7 @@ RESAMPLE_FREQS = {
 
 
 def radPlotter(df):
+    ## consider dropping CPM and just go with uSv/h
     return df.plot(secondary_y='Vcc')
 
 
@@ -51,6 +52,7 @@ def pmsPlotter(df):
 
 
 def bnnPlotter(df):
+    ## consider dropping volts
     return df.plot(secondary_y='grams')
 
 
@@ -178,8 +180,8 @@ def run(options):
         startDatetime = firstDatetime
         if options.startDate:
             if options.startDate < firstDatetime or options.startDate > lastDatetime:
-                logging.error(f"Invalid start date: {options.startDate} not between {firstDatetime} and {lastDatetime}")
-                sys.exit(1)
+                logging.error(f"Invalid start date: {options.startDate} not between {firstDatetime} and {lastDatetime}, skipping {name}")
+                continue
             startDatetime = options.startDate
         endDatetime = lastDatetime
         if options.endDate:

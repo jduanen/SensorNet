@@ -1,0 +1,3 @@
+'''
+SensorMonitor package
+'''

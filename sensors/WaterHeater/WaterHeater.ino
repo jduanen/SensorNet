@@ -2,7 +2,12 @@
 *
 * WaterHeater: WiFi, MQTT-based, temperature logging application
 *
+* Attach water temperature sensor to the output pipe of the water heater (after the recirculation pump)
+*  - the ambient temperature sensor is to sense the temperature around the device
+*
 */
+
+#### TODO consider using ADC to monitor Vcc
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -11,13 +16,13 @@
 
 #define APP_NAME        "WaterHeater"
 #define APP_VERSION     "0.0.0"
-#define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f"
+#define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2
 
 // N.B. must correspond to how sensors are wired
-#define INT_TEMP_DEV_NUM  0
-#define EXT_TEMP_DEV_NUM  1
+#define WATER_TEMP_DEV_NUM    0
+#define AMBIENT_TEMP_DEV_NUM  1
 
 #define TOPIC_PREFIX    "/sensors/WaterHeater"
 
@@ -74,13 +79,13 @@ void loop() {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();
-    tempC = sensors.getTempCByIndex(INT_TEMP_DEV_NUM);
+    tempC = sensors.getTempCByIndex(WATER_TEMP_DEV_NUM);
     if (tempC != DEVICE_DISCONNECTED_C) {
       msg = String(tempC);
     } else {
       msg = "N/A";
     }
-    tempC = sensors.getTempCByIndex(EXT_TEMP_DEV_NUM);
+    tempC = sensors.getTempCByIndex(AMBIENT_TEMP_DEV_NUM);
     if (tempC != DEVICE_DISCONNECTED_C) {
       msg += "," + String(tempC);
     } else {

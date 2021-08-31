@@ -83,7 +83,10 @@ void loop() {
       sn.consolePrintln(msg);
       wakingUp = false;
     } else {
-      sn.consolePrintln("No data from sensor");
+      sn.consolePrintln("No data from sensor, restarting");
+      pms = PMS(Serial);
+      pms.passiveMode();
+      return;
     }
 
     sn.consolePrintln("Sleep until next report");

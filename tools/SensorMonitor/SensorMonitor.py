@@ -3,14 +3,20 @@
 SensorMonitor -- tool for monitoring SensorNet sensors
 '''
 
+#### TODO add events for late devices or values out of range
+#### TODO add feature to allow executing script on events
+
 import argparse
 from datetime import datetime
+import json
 import logging
 import os
-from queue import Queue
-import re
+import signal
+import subprocess
 import sys
 import time
+import yaml
+from yaml import Loader
 
 import paho.mqtt.client as mqtt
 
@@ -18,10 +24,12 @@ import paho.mqtt.client as mqtt
 DEFAULTS = {
     'logLevel': "INFO",  #"DEBUG"  #"WARNING",
     'mqttBroker': "localhost",
+    'reportInterval': 60*60  # one report per hour
 }
 
 MQTT_TOPIC_BASE = "/sensors/#"
 
+running = True
 
 class SensorMonitor():
     """
@@ -39,34 +47,24 @@ class SensorMonitor():
             raise Exception("Failed to subscribe to MQTT topic")
         self.devices = {}
         self.appls = {}
-        self.msgQ = Queue()
-        self.running = True
         self.client.loop_start()
 
     def _onMessage(self, client, userData, message):
-        logging.debug(f"msg: {message}")
-        msg = str(message.payload.decode("utf-8"))
-        self.msgQ.put(message.topic)
-
-    def run(self):
-        #### TODO make this run in a separate thread
-        logging.info("Starting")
-        while self.running:
-            msg = self.msgQ.get(block=True)
-            now = datetime.now().isoformat()
-            logging.info(msg)
-            parts = msg.split('/')
-            if len(parts) < 5 or len(parts) > 6 or parts[1] != 'sensors' or parts[-1] not in ('cmd', 'data'):
-                logging.warning(f"Unrecognized message: {msg}")
-                continue
+        now = datetime.now().isoformat()
+        print(message.topic)
+        parts = message.topic.split('/')
+        if len(parts) < 5 or len(parts) > 6 or parts[1] != 'sensors' or parts[-1] not in ('cmd', 'data'):
+            logging.warning(f"Unrecognized message: {message}")
+        else:
             self.appls[parts[2]] = now
             self.devices[parts[-2]] = now
-            print("APPLS:", self.appls)
-            print("DEVS:", self.devices)
-        logging.info("Stopped")
+        print("APPLS:", self.appls)
+        print("DEVS:", self.devices)
 
-    def stop(self):
-        logging.info("Exiting")
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.client.loop_stop()
 
     def lastDeviceReports(self):
@@ -83,21 +81,35 @@ class SensorMonitor():
 
 
 def run(options):
-    mon = SensorMonitor(options.mqttBroker)
-    mon.run()
-    input()
-    mon.lastDeviceReports()
-    mon.lastApplicationReports()
-    mon.stop()
+    if options.status:
+        lastSeen = {d['MACaddress']: None for d in options.devs}
+        proc = subprocess.Popen(['tac', options.status], stdout=subprocess.PIPE)
+        for line in proc.stdout.readlines():
+            parts = line.decode('utf-8').split(',')
+            timestamp = parts[0]
+            macAddr = parts[1].split('/')[-2]
+            if macAddr in lastSeen.keys() and not lastSeen[macAddr]:
+                lastSeen[macAddr] = timestamp
+            if all([t for t in lastSeen.values()]):
+                break
+        if options.verbose:
+            print("    Last sample time:")
+        json.dump(lastSeen, sys.stdout, indent=4)
+        print("")
+    else:
+        with SensorMonitor(options.mqttBroker) as mon:
+            def signalHandler(sig, frame):
+                print("SIG", mon.lastDeviceReports())
+            signal.signal(signal.SIGUSR1, signalHandler)
+            while running:
+                print("BBBB", mon.lastApplicationReports())
+                time.sleep(options.reportInterval)
 
 
 def getOpts():
     usage = f"Usage: {sys.argv[0]} [-v] [-L <logLevel>] [-l <logFile>] " + \
-      "[-m <mqttHost>]"
+      "[-m <mqttHost>] [-r <reportInterval>] [-s <samplesFile>] <deviceFile>"
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "-a", "--append", action="store_true", default=False,
-        help="Append to existing samples file")
     ap.add_argument(
         "-L", "--logLevel", action="store", type=str,
         default=DEFAULTS['logLevel'],
@@ -107,12 +119,22 @@ def getOpts():
         "-l", "--logFile", action="store", type=str,
         help="Path to location of logfile (create it if it doesn't exist)")
     ap.add_argument(
-        "-m", "--mqttHost", action="store", type=str,
+        "-m", "--mqttBroker", action="store", type=str,
         default=DEFAULTS['mqttBroker'],
         help="Hostname for where the MQTT broker is running")
     ap.add_argument(
+        "-r", "--reportInterval", action="store", type=int,
+        default=DEFAULTS['reportInterval'],
+        help="Number of seconds in between reports")
+    ap.add_argument(
         "-v", "--verbose", action="count", default=0,
         help="Enable printing of debug info")
+    ap.add_argument(
+        "-s", "--status", action="store", type=str,
+        help="Print time of last sample for each device found in the given samples file")
+    ap.add_argument(
+        "deviceFile", action="store", type=str,
+        help="Path to YAML file containing the devices to monitor (tuples with MAC address and sample interval in seconds)")
     opts = ap.parse_args()
 
     if opts.logFile:
@@ -125,10 +147,23 @@ def getOpts():
                             format='%(asctime)s %(levelname)-8s %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
 
-    opts.mqttBroker = DEFAULTS['mqttBroker']
+    with open(opts.deviceFile, "r") as f:
+        opts.devs = yaml.load(f, Loader=Loader)
+        #### TODO validate file contents
+
+    if opts.status and not os.path.exists(opts.status):
+        logging.error("Invalid path to samples file: {opts.status}")
+        sys.exit(1)
 
     if opts.verbose:
-        print(f"    MQTT Broker:     {opts.mqttBroker}")
+        if opts.status:
+            print(f"    Report last sample time for each device")
+            print(f"    Samples file: {opts.status}")
+        else:
+            print(f"    Monitor devices")
+            print(f"    MQTT Broker:       {opts.mqttBroker}")
+            print(f"    Report Interval:   {opts.reportInterval}")
+        print(f"    Monitored Devices: {[d['MACaddress'] for d in opts.devs]}")
     return opts
 
 

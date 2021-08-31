@@ -87,7 +87,8 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
 	SensorNet::WIFI_STATE status = {
 		WiFi.status(),
 		_macAddr,
-		_ipAddr
+		_ipAddr,
+		WiFi.RSSI()
 	};
 	return status;
 }
@@ -108,7 +109,7 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
   topic.toCharArray(dataTopic, MAX_MQTT_TOPIC_LEN);
 
   mqttRun();
-  String startupMsg = "Startup,ESP8266," + appName + "," + appVersion + "," + reportSchema;
+  String startupMsg = "Startup,ESP8266," + appName + "," + appVersion + "," + reportSchema + "," + wifiState().rssi;
   startupMsg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
   mqttClient.publish(cmdTopic, pubMsg);
 }

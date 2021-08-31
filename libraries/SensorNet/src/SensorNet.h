@@ -26,6 +26,7 @@ class SensorNet {
 		  wl_status_t state;
 		  String macAddr;
 		  IPAddress ipAddr;
+		  long rssi;
 		};
 
 		struct MQTT_STATE {

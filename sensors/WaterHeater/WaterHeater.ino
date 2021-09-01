@@ -15,7 +15,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "WaterHeater"
-#define APP_VERSION     "0.0.0"
+#define APP_VERSION     "1.0.0"
 #define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2
@@ -26,7 +26,7 @@
 
 #define TOPIC_PREFIX    "/sensors/WaterHeater"
 
-#define DEF_REPORT_INTERVAL 60000  // one report every 60 secs  #### TODO ????
+#define DEF_REPORT_INTERVAL 60000  // one report every minute
 
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
@@ -41,8 +41,6 @@ unsigned long lastReport = 0;
 unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
-
-//DeviceAddress thermDevAddr;
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -64,7 +62,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   cmd = String((char *)cmdPtr);
   val = String((char *)valPtr);
 
-  // TMP TMP TMP
   sn.consolePrintln(top + ", " + cmd + ", " + val);
 
   String msg;
@@ -83,7 +80,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
       reportInterval = val.toInt();
     }
   } else {
-    //// FIXME make this call a user function if one was given instead
     sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
   }
 }

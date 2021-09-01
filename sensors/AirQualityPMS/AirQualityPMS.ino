@@ -7,19 +7,21 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
-#define APP_VERSION     "1.0.0"
+#define APP_VERSION     "1.0.1"
 #define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
 
-#define REPORT_INTERVAL 60000  // one report every 60 secs
+#define DEF_REPORT_INTERVAL 60000  // one report every minute
 
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
 
 #define VERBOSE         0
 
+
 unsigned long lastReport = 0;
+unsigned int reportInterval = DEF_REPORT_INTERVAL;
 boolean wakingUp = false;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
@@ -27,15 +29,45 @@ SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 PMS pms(Serial);
 PMS::DATA data;
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  sn.consolePrintln("Message arrived in topic: " + String(topic));
 
-  sn.consolePrint("Message: ");
+void callback(char* topic, byte* payload, unsigned int length) {
+  byte *cmdPtr = payload;
+  byte *valPtr = NULL;
+  String top, cmd, val;
+
+  payload[length] = '\0';
   for (int i = 0; i < length; i++) {
-    sn.consolePrint(String(payload[i]));
+    if (payload[i] == '=') {
+      cmdPtr[i] = '\0';
+      valPtr = &payload[i + 1];
+    }
   }
-  sn.consolePrintln("");
+  top = String(topic);
+  cmd = String((char *)cmdPtr);
+  val = String((char *)valPtr);
+
+  sn.consolePrintln(top + ", " + cmd + ", " + val);
+
+  String msg;
+  if (cmd.equals("RSSI")) {
+    SensorNet::WIFI_STATE wifiState = sn.wifiState();
+    msg = "RSSI=" + String(wifiState.rssi);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
+  } else if (cmd.equals("rate")) {
+    if (val == NULL) {
+      msg = "rate=" + String(reportInterval);
+      sn.consolePrintln(msg);
+      sn.mqttPub(msg);
+    } else {
+      sn.consolePrintln("Set rate to " + val);
+      reportInterval = val.toInt();
+    }
+  } else {
+    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+  }
 }
+
 
 void setup() {
   sn.serialStart(&Serial, 9600, false);
@@ -57,14 +89,14 @@ void loop() {
 
   sn.mqttRun();
 
-  if ((wakingUp == false) && (deltaT >= (REPORT_INTERVAL - 30000))) {
-    // start up sensor 30 seconds before reading it to get steady-state reading
+  if ((wakingUp == false) && (deltaT >= (reportInterval / 2))) {
+    // start up sensor half an interval before reading it to get steady-state reading
     //// TODO assert REPORT_INTERVAL > 30000
     sn.consolePrintln("Waking up sensor");
     pms.wakeUp();
     wakingUp = true;
   }
-  if ((wakingUp == true) && (deltaT >= REPORT_INTERVAL)) {
+  if ((wakingUp == true) && (deltaT >= reportInterval)) {
     sn.consolePrintln("Reading sensor");
     pms.requestRead();
 

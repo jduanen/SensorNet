@@ -7,7 +7,7 @@
 *
 */
 
-#### TODO consider using ADC to monitor Vcc
+//// TODO consider using ADC to monitor Vcc
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -26,14 +26,19 @@
 
 #define TOPIC_PREFIX    "/sensors/WaterHeater"
 
-#define REPORT_INTERVAL 60000  // one report every 60 secs  #### TODO ????
+#define DEF_REPORT_INTERVAL 60000  // one report every 60 secs  #### TODO ????
 
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
 
 #define VERBOSE         0
 
+#define MAX_CMD_LEN     16
+#define MAX_VAL_LEN     16
+
+
 unsigned long lastReport = 0;
+unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
@@ -41,6 +46,48 @@ SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  byte *cmdPtr = payload;
+  byte *valPtr = NULL;
+  String top, cmd, val;
+
+  payload[length] = '\0';
+  for (int i = 0; i < length; i++) {
+    if (payload[i] == '=') {
+      cmdPtr[i] = '\0';
+      valPtr = &payload[i + 1];
+    }
+  }
+  top = String(topic);
+  cmd = String((char *)cmdPtr);
+  val = String((char *)valPtr);
+
+  // TMP TMP TMP
+  sn.consolePrintln(top + ", " + cmd + ", " + val);
+
+  String msg;
+  if (cmd.equals("RSSI")) {
+    SensorNet::WIFI_STATE wifiState = sn.wifiState();
+    msg = "RSSI=" + String(wifiState.rssi);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
+  } else if (cmd.equals("rate")) {
+    if (val == NULL) {
+      msg = "rate=" + String(reportInterval);
+      sn.consolePrintln(msg);
+      sn.mqttPub(msg);
+    } else {
+      sn.consolePrintln("Set rate to " + val);
+      reportInterval = val.toInt();
+    }
+  } else {
+    //// FIXME make this call a user function if one was given instead
+    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+  }
+}
+
 
 void setup() {
   int deviceCount = 0;
@@ -50,7 +97,7 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  ////sn.mqttSub(callback);
+  sn.mqttSub(callback);
 
   sn.consolePrintln("Init temp sensors");
   sensors.begin();
@@ -73,9 +120,7 @@ void loop() {
 
   sn.mqttRun();
 
-  //// TODO add conditionals to power up/down the scale
-
-  if (deltaT >= REPORT_INTERVAL) {
+  if (deltaT >= reportInterval) {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();

@@ -11,7 +11,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.0.2"
+#define APP_VERSION     "1.0.3"
 #define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
@@ -25,7 +25,7 @@
 
 #define TOPIC_PREFIX    "/sensors/BirdyNumNum"
 
-#define REPORT_INTERVAL 60000  // one report every 60 secs  #### TODO ????
+#define DEF_REPORT_INTERVAL 60000  // one report every minute
 
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
@@ -34,16 +34,55 @@
 
 #define VERBOSE         0
 
+
 unsigned long lastReport = 0;
+unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
-
-//DeviceAddress thermDevAddr;
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 HX711 scale;
+
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  byte *cmdPtr = payload;
+  byte *valPtr = NULL;
+  String top, cmd, val;
+
+  payload[length] = '\0';
+  for (int i = 0; i < length; i++) {
+    if (payload[i] == '=') {
+      cmdPtr[i] = '\0';
+      valPtr = &payload[i + 1];
+    }
+  }
+  top = String(topic);
+  cmd = String((char *)cmdPtr);
+  val = String((char *)valPtr);
+
+  sn.consolePrintln(top + ", " + cmd + ", " + val);
+
+  String msg;
+  if (cmd.equals("RSSI")) {
+    SensorNet::WIFI_STATE wifiState = sn.wifiState();
+    msg = "RSSI=" + String(wifiState.rssi);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
+  } else if (cmd.equals("rate")) {
+    if (val == NULL) {
+      msg = "rate=" + String(reportInterval);
+      sn.consolePrintln(msg);
+      sn.mqttPub(msg);
+    } else {
+      sn.consolePrintln("Set rate to " + val);
+      reportInterval = val.toInt();
+    }
+  } else {
+    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+  }
+}
 
 void setup() {
   int deviceCount = 0;
@@ -105,7 +144,7 @@ void loop() {
 
   //// TODO add conditionals to power up/down the scale
 
-  if (deltaT >= REPORT_INTERVAL) {
+  if (deltaT >= reportInterval) {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();

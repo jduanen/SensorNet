@@ -68,7 +68,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-
 void setup() {
   sn.serialStart(&Serial, 9600, false);
   sn.serialStart(&Serial1, 9600, true);
@@ -77,7 +76,7 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  ////sn.mqttSub(callback);
+  sn.mqttSub(callback);
 
   pms.passiveMode();    // Switch to passive mode
 }

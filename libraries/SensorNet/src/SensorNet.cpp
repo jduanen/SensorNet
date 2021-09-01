@@ -139,8 +139,8 @@ void SensorNet::mqttPub(String msg) {
 }
 
 // Add a callback function to the subscribed "cmd" topic
-void SensorNet::mqttSub(void (*callback)(char *topic, byte *payload, unsigned int length) {
-    mqttClient.setCallback(_callback);
+void SensorNet::mqttSub(void (*callback)(char *topic, byte *payload, unsigned int length)) {
+    mqttClient.setCallback(callback);
     if (mqttClient.subscribe(cmdTopic) == false) {
          consolePrint("ERROR: failed to subscribe to topic -- ");
          consolePrintln(cmdTopic);

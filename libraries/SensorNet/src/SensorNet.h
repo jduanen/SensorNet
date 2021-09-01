@@ -52,7 +52,7 @@ class SensorNet {
       void mqttSetup(String server, int port, String prefix);
       void mqttRun();
       void mqttPub(String msg);
-      void mqttSub(void (*callback)(String topic, String msg));
+      void mqttSub(void (*callback)(char *topic, byte *payload, unsigned int length));
       MQTT_STATE mqttState();
 
     private:
@@ -69,8 +69,6 @@ class SensorNet {
 
         WiFiClient espClient;
         PubSubClient mqttClient = PubSubClient(espClient);
-
-		void _callback(char *topic, byte *payload, unsigned int length);
 };
 
 #endif /*SENSOR_NET_H*/

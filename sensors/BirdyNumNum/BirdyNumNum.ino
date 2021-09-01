@@ -93,7 +93,7 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  ////sn.mqttSub(callback);
+  sn.mqttSub(callback);
 
   sn.consolePrintln("Init temp sensors");
   sensors.begin();

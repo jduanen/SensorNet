@@ -7,12 +7,12 @@
 #include <sps30.h>
 
 #define APP_NAME        "AirQualitySPS"
-#define APP_VERSION     "1.0.0"
+#define APP_VERSION     "1.0.1"
 #define REPORT_SCHEMA   "pm1_0:.2f,pm2_5:.2f,pm4_0:.2f,pm10_0:.2f,nc0_5:.2f,nc1_0:.2f,nc2_5:.2f,nc4_0:.2f,nc10_0:.2f,tps:.2f"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/SPS"
 
-#define REPORT_INTERVAL 60000   // one report every 60 secs
+#define DEF_REPORT_INTERVAL 60000   // one report every minute
 
 #define AUTO_CLEAN_DAYS 4       // auto-clean every four days
 
@@ -21,19 +21,50 @@
 
 #define VERBOSE         0
 
+
 unsigned long lastReport = 0;
+unsigned int reportInterval = DEF_REPORT_INTERVAL;
 boolean wakingUp = false;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  sn.consolePrintln("Message arrived in topic: " + String(topic));
 
-  sn.consolePrint("Message: ");
+void callback(char* topic, byte* payload, unsigned int length) {
+  byte *cmdPtr = payload;
+  byte *valPtr = NULL;
+  String top, cmd, val;
+
+  payload[length] = '\0';
   for (int i = 0; i < length; i++) {
-    sn.consolePrint(String(payload[i]));
+    if (payload[i] == '=') {
+      cmdPtr[i] = '\0';
+      valPtr = &payload[i + 1];
+    }
   }
-  sn.consolePrintln("");
+  top = String(topic);
+  cmd = String((char *)cmdPtr);
+  val = String((char *)valPtr);
+
+  sn.consolePrintln(top + ", " + cmd + ", " + val);
+
+  String msg;
+  if (cmd.equals("RSSI")) {
+    SensorNet::WIFI_STATE wifiState = sn.wifiState();
+    msg = "RSSI=" + String(wifiState.rssi);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
+  } else if (cmd.equals("rate")) {
+    if (val == NULL) {
+      msg = "rate=" + String(reportInterval);
+      sn.consolePrintln(msg);
+      sn.mqttPub(msg);
+    } else {
+      sn.consolePrintln("Set rate to " + val);
+      reportInterval = val.toInt();
+    }
+  } else {
+    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+  }
 }
 
 void setup() {
@@ -78,8 +109,8 @@ void loop() {
 
   sn.mqttRun();
 
-  if ((wakingUp == false) && (deltaT >= (REPORT_INTERVAL - 30000))) {
-    // start up sensor 30 seconds before reading it to get steady-state reading
+  if ((wakingUp == false) && (deltaT >= (reportInterval / 2))) {
+    // start up sensor half an interval before reading it to get steady-state reading
     //// TODO assert REPORT_INTERVAL > 30000
     sn.consolePrintln("Waking up sensor");
     if (sps30_wake_up() != 0) {
@@ -88,7 +119,7 @@ void loop() {
       wakingUp = true;
     }
   }
-  if ((wakingUp == true) && (deltaT >= REPORT_INTERVAL)) {
+  if ((wakingUp == true) && (deltaT >= reportInterval)) {
     sn.consolePrintln("Reading sensor");
     while (1) {
       ret = sps30_read_data_ready(&dataReady);

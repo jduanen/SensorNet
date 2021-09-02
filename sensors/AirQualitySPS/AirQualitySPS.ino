@@ -7,7 +7,7 @@
 #include <sps30.h>
 
 #define APP_NAME        "AirQualitySPS"
-#define APP_VERSION     "1.0.1"
+#define APP_VERSION     "1.0.2"
 #define REPORT_SCHEMA   "pm1_0:.2f,pm2_5:.2f,pm4_0:.2f,pm10_0:.2f,nc0_5:.2f,nc1_0:.2f,nc2_5:.2f,nc4_0:.2f,nc10_0:.2f,tps:.2f"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/SPS"
@@ -62,6 +62,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+  } else if (cmd.equals("version")) {
+    msg = "Version=" + String(APP_VERSION);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
   } else {
     sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
   }

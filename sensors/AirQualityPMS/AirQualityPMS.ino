@@ -7,7 +7,7 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
-#define APP_VERSION     "1.0.1"
+#define APP_VERSION     "1.0.2"
 #define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
@@ -63,6 +63,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+  } else if (cmd.equals("version")) {
+    msg = "Version=" + String(APP_VERSION);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
   } else {
     sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
   }
@@ -117,6 +121,7 @@ void loop() {
       sn.consolePrintln("No data from sensor, restarting");
       pms = PMS(Serial);
       pms.passiveMode();
+      pms.wakeUp();
       return;
     }
 

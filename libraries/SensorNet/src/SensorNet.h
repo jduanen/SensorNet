@@ -8,10 +8,10 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define NUM_SERIALS               2
+#define NUM_SERIALS             2
 #define MAX_MQTT_PUB_MSG_LEN    180
-#define MAX_MQTT_TOPIC_LEN        128
-#define BUF_SIZE                  64
+#define MAX_MQTT_TOPIC_LEN      128
+#define BUF_SIZE                64
 
 #define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
 

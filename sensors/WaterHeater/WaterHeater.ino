@@ -15,14 +15,14 @@
 #include "wifi.h"
 
 #define APP_NAME        "WaterHeater"
-#define APP_VERSION     "1.0.0"
+#define APP_VERSION     "1.0.1"
 #define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2
 
 // N.B. must correspond to how sensors are wired
-#define WATER_TEMP_DEV_NUM    0
-#define AMBIENT_TEMP_DEV_NUM  1
+#define AMBIENT_TEMP_DEV_NUM  0
+#define WATER_TEMP_DEV_NUM    1
 
 #define TOPIC_PREFIX    "/sensors/WaterHeater"
 

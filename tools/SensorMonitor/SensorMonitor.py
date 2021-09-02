@@ -102,7 +102,10 @@ def run(options):
                 print("SIG", mon.lastDeviceReports())
             signal.signal(signal.SIGUSR1, signalHandler)
             while running:
-                print("BBBB", mon.lastApplicationReports())
+                now = datetime.now().isoformat()
+                lastSamples = mon.lastDeviceReports()
+                for devArgs in options.devs:
+                    print(lastSamples[devArgs['MACaddress']], now)
                 time.sleep(options.reportInterval)
 
 

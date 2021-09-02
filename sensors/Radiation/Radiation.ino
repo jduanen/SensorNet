@@ -6,7 +6,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "Radiation"
-#define APP_VERSION     "1.0.1"
+#define APP_VERSION     "1.0.2"
 #define REPORT_SCHEMA   "CPM:d,uSv/h:.4f,Vcc:.2f"
 
 #define TOPIC_PREFIX    "/sensors/Radiation"
@@ -17,7 +17,7 @@
 #define MQTT_PORT       1883
 
 
-unsigned int reportInterval = DEF_REPORT_INTERVAL;
+unsigned int reportInterval = REPORT_INTERVAL;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
@@ -48,12 +48,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
     sn.mqttPub(msg);
   } else if (cmd.equals("rate")) {
     if (val == NULL) {
-      msg = "rate=" + String(DEF_REPORT_INTERVAL);
+      msg = "rate=" + String(REPORT_INTERVAL);
       sn.consolePrintln(msg);
       sn.mqttPub(msg);
     } else {
       sn.consolePrintln("ERROR: unable to set rate");
     }
+  } else if (cmd.equals("version")) {
+    msg = "Version=" + String(APP_VERSION);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
   } else {
     sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
   }

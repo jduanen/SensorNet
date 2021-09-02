@@ -11,7 +11,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.0.3"
+#define APP_VERSION     "1.0.4"
 #define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
@@ -79,6 +79,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+  } else if (cmd.equals("version")) {
+    msg = "Version=" + String(APP_VERSION);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
   } else {
     sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
   }

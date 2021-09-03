@@ -17,7 +17,7 @@ b1:
   application: sensorB
   MACaddress: 12:34:56:78:9a:de
   location: livingroom
-b1:
+b2:
   application: sensorB
   MACaddress: 12:34:56:78:9a:f0
   location: diningroom

@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=MqttLogger
-GenericName=Data logger
-Comment=Logging for SensorNet sensors
-Exec=/home/jdn/Code/SensorNet/tools/MqttLogger/logger.sh
-Terminal=false
-Type=Application
-StartupNotify=true
-NoDisplay=true

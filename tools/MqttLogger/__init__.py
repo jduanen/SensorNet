@@ -1,3 +1,0 @@
-'''
-MqttLogger package
-'''

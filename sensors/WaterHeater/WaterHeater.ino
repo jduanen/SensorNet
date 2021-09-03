@@ -15,7 +15,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "WaterHeater"
-#define APP_VERSION     "1.0.2"
+#define APP_VERSION     "1.0.4"
 #define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2
@@ -23,6 +23,8 @@
 // N.B. must correspond to how sensors are wired
 #define AMBIENT_TEMP_DEV_NUM  0
 #define WATER_TEMP_DEV_NUM    1
+
+#define DEF_TEMPERATURE_PRECISION 12
 
 #define TOPIC_PREFIX    "/sensors/WaterHeater"
 
@@ -43,7 +45,8 @@ unsigned int reportInterval = DEF_REPORT_INTERVAL;
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
+DallasTemperature sensors;
+DeviceAddress waterThermometer, ambientThermometer;
 
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -71,16 +74,38 @@ void callback(char* topic, byte* payload, unsigned int length) {
     sn.consolePrintln(msg);
     sn.mqttPub(msg);
   } else if (cmd.equals("rate")) {
-    if (val == NULL) {
-      msg = "rate=" + String(reportInterval);
-      sn.consolePrintln(msg);
-      sn.mqttPub(msg);
-    } else {
+    if (val != NULL) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+    msg = "rate=" + String(reportInterval);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
+    sn.consolePrintln(msg);
+    sn.mqttPub(msg);
+  } else if (cmd.equals("precision")) {
+    uint8_t precision;
+    if (val != NULL) {
+      precision = val.toInt();
+      if ((precision < 9) || (precision > 12)) {
+        sn.consolePrintln("ERROR: Invalid precision value: " + val);
+      } else {
+        sn.consolePrintln("Set precision to: " + val);
+        sensors.setResolution(ambientThermometer, precision);
+        sensors.setResolution(waterThermometer, precision);
+      }
+    }
+    uint8_t ambPrec = sensors.getResolution(ambientThermometer);
+    uint8_t watPrec = sensors.getResolution(waterThermometer);
+    if (ambPrec != watPrec) {
+      sn.consolePrintln("ERROR: precision mismatch: " + String(ambPrec) + ", " + String(watPrec));
+      //// TODO emit error
+    } else {
+      precision = watPrec;
+    }
+    msg = "precision=" + String(precision);
     sn.consolePrintln(msg);
     sn.mqttPub(msg);
   } else {
@@ -100,14 +125,29 @@ void setup() {
   sn.mqttSub(callback);
 
   sn.consolePrintln("Init temp sensors");
-  sensors.begin();
-  deviceCount = sensors.getDeviceCount();
-  sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
-  while (deviceCount != 2) {
-    sn.consolePrintln("ERROR: Unable to find both temp sensors");
+  while (true) {
     sensors = DallasTemperature(&oneWire);
     sensors.begin();
     deviceCount = sensors.getDeviceCount();
+    sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
+    if (deviceCount != 2) {
+      sn.consolePrintln("ERROR: Unable to find both temp sensors");
+      delay(5000);
+      continue;
+    }
+    if (!sensors.getAddress(ambientThermometer, AMBIENT_TEMP_DEV_NUM) ||
+        !sensors.getAddress(waterThermometer, WATER_TEMP_DEV_NUM)) {
+      sn.consolePrintln("ERROR: Unable to get both temp sensor addresses");
+      delay(5000);
+      continue;
+    }
+    if (!sensors.setResolution(ambientThermometer, DEF_TEMPERATURE_PRECISION) ||
+        !sensors.setResolution(waterThermometer, DEF_TEMPERATURE_PRECISION)) {
+      sn.consolePrintln("ERROR: Failed to set temperature precision");
+      delay(5000);
+      continue;
+    }
+    break;
   }
 }
 
@@ -124,13 +164,13 @@ void loop() {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();
-    tempC = sensors.getTempCByIndex(WATER_TEMP_DEV_NUM);
+    tempC = sensors.getTempC(waterThermometer);
     if (tempC != DEVICE_DISCONNECTED_C) {
       msg = String(tempC);
     } else {
       msg = "N/A";
     }
-    tempC = sensors.getTempCByIndex(AMBIENT_TEMP_DEV_NUM);
+    tempC = sensors.getTempC(ambientThermometer);
     if (tempC != DEVICE_DISCONNECTED_C) {
       msg += "," + String(tempC);
     } else {

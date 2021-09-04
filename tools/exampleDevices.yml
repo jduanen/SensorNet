@@ -3,25 +3,27 @@
 # This file consists of a dict whose keys are device nicknames and whose values
 #  are objects of the form:
 #  {"application": <appName>,
+#   "description": <descriptiveText>,
 #   "MACaddress": <deviceAddress>,
 #   "location": <location>}
-#  where <appName> is the name of the type of application, <deviceAddress> is
-#  the device's MAC address, and <location> is a description of where the
-#  device is currently located.
 ---
 a:
   application: sensorA
+  description: Sensor of type A
   MACaddress: 12:34:56:78:9a:bc
   location: bedroom
 b1:
   application: sensorB
+  description: Sensor of type B
   MACaddress: 12:34:56:78:9a:de
   location: livingroom
 b2:
   application: sensorB
+  description: Sensor of type B
   MACaddress: 12:34:56:78:9a:f0
   location: diningroom
 c:
   application: sensorC
+  description: Sensor of type C
   MACaddress: 12:34:56:78:9a:12
   location: garage

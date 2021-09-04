@@ -4,6 +4,7 @@ SensorNet Utilities Library
 """
 
 import re
+import sys
 import yaml
 from yaml import Loader
 
@@ -20,6 +21,14 @@ class SensorNet():
             self.devices = yaml.load(f, Loader=Loader)
             #### TODO validate file contents
 
+        '''
+        for addr in opts.deviceAddrs:
+            if not re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", addr.lower()):
+                logging.error(f"Invalid device address: {addr}")
+                sys.exit(1)
+        '''
+        self.nicknames = {info['MACaddress']: name for name, info in self.devices.items()}
+
     def getDevices(self):
         """????
         """
@@ -29,6 +38,11 @@ class SensorNet():
         """????
         """
         return self.devices[nickname]
+
+    def getNickname(self, macAddr):
+        """????
+        """
+        return self.nicknames[macAddr]
 
     def buildDataTopic(self, nickname):
         """????
@@ -45,17 +59,52 @@ class SensorNet():
         val = f"{command}={value}" if value else f"{command}"
         return (f"{PREFIX}/{applName}/{macAddr}/cmd", val)
 
-    def parseEvent(self, event):
+    def parseSample(self, sampleParts):
         """????
         """
-        #### FIXME
+        timestamp = sampleParts[0]
+        topic = sampleParts[1]
+        subparts = topic.split('/')
+        if subparts[0] != "" or subparts[1] != PREFIX.strip('/'):
+            logging.error(f"Unrecognized topic: {sampleParts}")
+            raise Exception("Unrecognized topic")
+        macAddr = subparts[-2]
+        appl = "/".join(subparts[2:-2])
+        values = None
+        if subparts[-1] == "data":
+            sampleType = "data"
+            subType = None
+            values = sampleParts[2:]
+        elif subparts[-1] == "cmd":
+            sampleType = "cmd"
+            if sampleParts[2] == "Startup":
+                subType = "startup"
+                values = {
+                    'HW': sampleParts[3],
+                    'applName': sampleParts[4],
+                    'version': sampleParts[5],
+                    'schema': sampleParts[6:-1],
+                    'RSSI': sampleParts[-1]
+                }
+            elif sampleParts[2].find('=') > 1:
+                subType = "setCmd"
+                assignment = sampleParts[2].split('=')
+                values = {'cmd': assignment[0], 'value': assignment[1]}
+            else:
+                subType = "getCmd"
+                values = {'cmd': sampleParts[2]}
+        else:
+            logging.error(f"Unrecognized sample type: {sampleParts}")
+            raise Exception("Unrecognized sample type")
         return {
-            'timestamp': None,
-            'topic': None,
-            'application': None,
-            'macAddr': None,
-            'type': None,
-            'values': None
+            'timestamp': timestamp,
+            'topic': topic,
+            'application': appl,
+            'macAddr': macAddr,
+            'nickname': self.nicknames[macAddr],
+            'type': sampleType,
+            'subtype': subType,
+            'values': values
         }
 
 #

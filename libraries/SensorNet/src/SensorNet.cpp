@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include "SensorNet.h"
 
+
 SensorNet::SensorNet() {
     consolePtr = NULL;
 }
@@ -101,11 +102,15 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
 //    mqttClient.setSocketTimeout(?);
 //    mqttClient.setKeepalive(?);
 
-    String topic = prefix + "/" + _macAddr + "/cmd";
-    topic.toCharArray(cmdTopic, MAX_MQTT_TOPIC_LEN);
-
-    topic = prefix + "/" + _macAddr + "/data";
-    topic.toCharArray(dataTopic, MAX_MQTT_TOPIC_LEN);
+    baseTopic = prefix + "/" + _macAddr;
+    String t = baseTopic + "/data";
+    t.toCharArray(topics[DATA], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/cmd";
+    t.toCharArray(topics[COMMAND], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/response";
+    t.toCharArray(topics[RESPONSE], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/error";
+    t.toCharArray(topics[ERROR], MAX_MQTT_TOPIC_LEN);
 
     mqttRun();
     String startupMsg = "Startup,ESP8266," +
@@ -114,48 +119,66 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
                         reportSchema + "," +
                         wifiState().rssi;
     startupMsg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-    mqttClient.publish(cmdTopic, pubMsg);
+    mqttClient.publish(topics[COMMAND], pubMsg);
 }
 
 // Connect to the MQTT server
-void SensorNet::mqttRun() {
+bool SensorNet::mqttRun() {
     //// TODO assert that MQTT has been set up
-    while (!mqttClient.connected()) {
+    bool result = true;
+    if (!mqttClient.connected()) {
         consolePrint("Connecting to MQTT...");
         if (mqttClient.connect(_clientName)) {
             consolePrintln("connected");
         } else {
-            consolePrintln("ERROR: failed with state " + mqttClient.state());
-            delay(2000);
+            String msg = "ERROR: failed with state " + mqttClient.state();
+            consolePrintln(msg);
+            msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+            mqttClient.publish(topics[ERROR], pubMsg);
+            result = false;
         }
     }
     mqttClient.loop();
+    return result;
 }
 
-// Publish message to the defined topic
-void SensorNet::mqttPub(String msg) {
+// Publish message to the given subtopic of the defined topic
+bool SensorNet::mqttPub(pubType type, String msg) {
+    //// TODO assert that MQTT has been set up
+    bool result = true;
+    if ((type < 0) || (type >= NUM_SUB_TOPICS)) {
+        msg = "ERROR: bad sub-topic: " + String(type);
+        type = ERROR;
+        consolePrintln(msg);
+        result = false;
+    }
     msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-    mqttClient.publish(dataTopic, pubMsg);
+    mqttClient.publish(topics[type], pubMsg);
+    return result;
 }
 
 // Add a callback function to the subscribed "cmd" topic
-void SensorNet::mqttSub(void (*callback)(char *topic, byte *payload, unsigned int length)) {
+bool SensorNet::mqttSub(pubType type, void (*callback)(char *topic, byte *payload, unsigned int length)) {
+    //// TODO assert that MQTT has been set up
+    bool result = true;
     mqttClient.setCallback(callback);
-    if (mqttClient.subscribe(cmdTopic) == false) {
-         consolePrint("ERROR: failed to subscribe to topic -- ");
-         consolePrintln(cmdTopic);
-         //// TODO handle error
+    if (mqttClient.subscribe(topics[COMMAND]) == false) {
+        String msg = "ERROR: failed to subscribe to topic";
+        consolePrintln(msg);
+        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+        mqttClient.publish(topics[ERROR], pubMsg);
+        result = false;
     } else {
-        consolePrintln(String("Subscribed to: ") + String(cmdTopic));
+        consolePrintln(String("Subscribed to: ") + String(topics[COMMAND]));
     }
+    return result;
 }
 
 SensorNet::MQTT_STATE SensorNet::mqttState() {
     SensorNet::MQTT_STATE state = {
         String(mqttServer),
         mqttPort,
-        String(dataTopic),
-        String(cmdTopic)
+        String(baseTopic)
     };
     return state;
 }

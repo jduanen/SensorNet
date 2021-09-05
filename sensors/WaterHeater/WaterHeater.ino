@@ -72,7 +72,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     SensorNet::WIFI_STATE wifiState = sn.wifiState();
     msg = "RSSI=" + String(wifiState.rssi);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("rate")) {
     if (val != NULL) {
       sn.consolePrintln("Set rate to " + val);
@@ -80,11 +80,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     msg = "rate=" + String(reportInterval);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("precision")) {
     uint8_t precision;
     if (val != NULL) {
@@ -100,16 +100,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
     uint8_t ambPrec = sensors.getResolution(ambientThermometer);
     uint8_t watPrec = sensors.getResolution(waterThermometer);
     if (ambPrec != watPrec) {
-      sn.consolePrintln("ERROR: precision mismatch: " + String(ambPrec) + ", " + String(watPrec));
-      //// TODO emit error
+      msg = "ERROR: precision mismatch: " + String(ambPrec) + ", " + String(watPrec);
+      sn.consolePrintln(msg);
+      sn.mqttPub(SensorNet::ERROR, msg);
     } else {
       precision = watPrec;
     }
     msg = "precision=" + String(precision);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
+  } else if (cmd.equals("reset")) {
+    sn.consolePrintln("Resetting");
+    sn.systemReset();
   } else {
-    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+    msg = "ERROR: unknown command (" + cmd + ")";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 }
 
@@ -122,32 +128,40 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  if (!sn.mqttSub(SensorNet::DATA, callback)) {
+    sn.consolePrintln("Resetting");
+    delay(60000);
+    sn.systemReset();
+  }
 
   sn.consolePrintln("Init temp sensors");
-  while (true) {
-    sensors = DallasTemperature(&oneWire);
-    sensors.begin();
-    deviceCount = sensors.getDeviceCount();
-    sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
-    if (deviceCount != 2) {
-      sn.consolePrintln("ERROR: Unable to find both temp sensors");
-      delay(5000);
-      continue;
-    }
-    if (!sensors.getAddress(ambientThermometer, AMBIENT_TEMP_DEV_NUM) ||
-        !sensors.getAddress(waterThermometer, WATER_TEMP_DEV_NUM)) {
-      sn.consolePrintln("ERROR: Unable to get both temp sensor addresses");
-      delay(5000);
-      continue;
-    }
-    if (!sensors.setResolution(ambientThermometer, DEF_TEMPERATURE_PRECISION) ||
-        !sensors.setResolution(waterThermometer, DEF_TEMPERATURE_PRECISION)) {
-      sn.consolePrintln("ERROR: Failed to set temperature precision");
-      delay(5000);
-      continue;
-    }
-    break;
+  sensors = DallasTemperature(&oneWire);
+  sensors.begin();
+  deviceCount = sensors.getDeviceCount();
+  sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
+  String msg;
+  if (deviceCount != 2) {
+    msg = "ERROR: Unable to find both temp sensors";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
+    delay(60000);
+    sn.systemReset();
+  }
+  if (!sensors.getAddress(ambientThermometer, AMBIENT_TEMP_DEV_NUM) ||
+      !sensors.getAddress(waterThermometer, WATER_TEMP_DEV_NUM)) {
+    msg = "ERROR: Unable to get both temp sensor addresses";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
+    delay(60000);
+    sn.systemReset();
+  }
+  if (!sensors.setResolution(ambientThermometer, DEF_TEMPERATURE_PRECISION) ||
+      !sensors.setResolution(waterThermometer, DEF_TEMPERATURE_PRECISION)) {
+    msg = "ERROR: Failed to set temperature precision";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
+    delay(60000);
+    sn.systemReset();
   }
 }
 
@@ -177,9 +191,8 @@ void loop() {
       msg += ",N/A";
     }
 
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::DATA, msg);
     sn.consolePrintln(msg);
-
     sn.consolePrintln("Sleep until next report");
 
     lastReport = now;

@@ -12,8 +12,6 @@ from yaml import Loader
 
 PREFIX = "/sensors"
 
-SUB_TOPICS = ('data', 'cmd', 'response', 'error', 'startup')
-
 
 class PubType(Enum):
     DATA = 0
@@ -21,6 +19,15 @@ class PubType(Enum):
     RESPONSE = 2
     ERROR = 3
     STARTUP = 4
+
+
+SUB_TOPICS = {
+    PubType.DATA: "data",
+    PubType.COMMAND: "cmd",
+    PubType.RESPONSE: "response",
+    PubType.ERROR: "error",
+    PubType.STARTUP: "startup",
+}
 
 
 class SensorNet():
@@ -39,13 +46,6 @@ class SensorNet():
                 sys.exit(1)
         '''
         self.nicknames = {info['MACaddress']: name for name, info in self.devices.items()}
-        self.pubTypes = {
-            PubType.DATA: "data",
-            PubType.COMMAND: "cmd",
-            PubType.RESPONSE: "response",
-            PubType.ERROR: "error",
-            PubType.STARTUP: "startup",
-        }
 
     def getDevices(self):
         """Return ????
@@ -84,7 +84,7 @@ class SensorNet():
         assert isinstance(pubType, PubType), "pubType arg must be a member of the PubType enum class"
         applName = self.devices[nickname]['application']
         macAddr = self.devices[nickname]['MACaddress']
-        return f"{PREFIX}/{applName}/{macAddr}/{self.pubTypes[pubType]}"
+        return f"{PREFIX}/{applName}/{macAddr}/{SUB_TOPICS[pubType]}"
 
     def parseSample(self, sampleParts):
         """Parse an sample/event string logged by a SensorNet device

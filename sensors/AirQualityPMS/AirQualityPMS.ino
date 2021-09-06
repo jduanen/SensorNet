@@ -7,7 +7,7 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
-#define APP_VERSION     "1.0.2"
+#define APP_VERSION     "1.1.0"
 #define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
@@ -53,24 +53,29 @@ void callback(char* topic, byte* payload, unsigned int length) {
     SensorNet::WIFI_STATE wifiState = sn.wifiState();
     msg = "RSSI=" + String(wifiState.rssi);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("rate")) {
-    if (val == NULL) {
-      msg = "rate=" + String(reportInterval);
-      sn.consolePrintln(msg);
-      sn.mqttPub(msg);
-    } else {
+    if (val != NULL) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+    msg = "rate=" + String(reportInterval);
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
+  } else if (cmd.equals("reset")) {
+    sn.consolePrintln("Resetting");
+    sn.systemReset();
   } else {
-    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+    msg = "ERROR: unknown command (" + cmd + ")";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 }
+
 
 void setup() {
   sn.serialStart(&Serial, 9600, false);
@@ -80,7 +85,11 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
+    sn.consolePrintln("Resetting");
+    delay(60000);
+    sn.systemReset();
+  }
 
   pms.passiveMode();    // Switch to passive mode
 }
@@ -114,15 +123,15 @@ void loop() {
       msg = String(data.PM_AE_UG_1_0) + "," + 
             String(data.PM_AE_UG_2_5) + "," + 
             String(data.PM_AE_UG_10_0);
-      sn.mqttPub(msg);
+      sn.mqttPub(SensorNet::DATA, msg);
       sn.consolePrintln(msg);
       wakingUp = false;
     } else {
-      sn.consolePrintln("No data from sensor, restarting");
-      pms = PMS(Serial);
-      pms.passiveMode();
-      pms.wakeUp();
-      return;
+      msg = "No data from sensor, resetting";
+      sn.consolePrintln(msg);
+      sn.mqttPub(SensorNet::ERROR, msg);
+      delay(60000);
+      sn.systemReset();
     }
 
     sn.consolePrintln("Sleep until next report");

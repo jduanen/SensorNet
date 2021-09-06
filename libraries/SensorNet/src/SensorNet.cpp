@@ -111,6 +111,8 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
     t.toCharArray(topics[RESPONSE], MAX_MQTT_TOPIC_LEN);
     t = baseTopic + "/error";
     t.toCharArray(topics[ERROR], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/startup";
+    t.toCharArray(topics[STARTUP], MAX_MQTT_TOPIC_LEN);
 
     mqttRun();
     String startupMsg = "Startup,ESP8266," +
@@ -119,7 +121,7 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
                         reportSchema + "," +
                         wifiState().rssi;
     startupMsg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-    mqttClient.publish(topics[COMMAND], pubMsg);
+    mqttClient.publish(topics[STARTUP], pubMsg);
 }
 
 // Connect to the MQTT server

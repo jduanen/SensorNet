@@ -15,7 +15,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "WaterHeater"
-#define APP_VERSION     "1.0.4"
+#define APP_VERSION     "1.1.0"
 #define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2

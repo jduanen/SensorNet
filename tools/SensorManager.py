@@ -23,16 +23,20 @@ DEFAULTS = {
     'deviceFile': "./devices.yml"
 }
 
-COMMANDS = ('version', 'RSSI', 'rate')
+COMMANDS = ('rate', 'reset', 'RSSI', 'version')
 
 MQTT_TOPIC_BASE = "/sensors/#"
 
 running = True
 
 class SensorManager():
-    """????
+    """Provides method to issue commands to a SensorNet device and get its
+        response.
+
+      This can be used as a context manager.
     """
     def __init__(self, mqttBroker):
+        self.responseWaitTime = 3  # if response not immediately available, wait for up to three seconds
         self.mqttBroker = mqttBroker
         self.msgQ = Queue()
         self.client = mqtt.Client("SensorMonitor listener")
@@ -45,7 +49,7 @@ class SensorManager():
 
     def _onMessage(self, client, userData, message):
         parts = message.topic.split('/')
-        if len(parts) < 5 or len(parts) > 6 or parts[1] != 'sensors' or parts[-1] not in SUB_TOPICS:
+        if len(parts) < 5 or len(parts) > 6 or parts[1] != 'sensors' or parts[-1] not in SUB_TOPICS.values():
             logging.warning(f"Unrecognized message: {message}")
         topic = "/".join(parts)
         self.msgQ.put((topic, message.payload.decode("utf-8"), message.timestamp))
@@ -56,10 +60,10 @@ class SensorManager():
     def __exit__(self, exc_type, exc_value, traceback):
         self.client.loop_stop()
 
-    def _getResponse(self, topic, retries=2, timeout=3):
-        """????
+    def _getResponse(self, cmdTopic):
+        """Get the corresponding result for a given command topic.
         """
-        tmp = topic.split('/')
+        tmp = cmdTopic.split('/')
         tmp[-1] = "response"
         responseTopic = "/".join(tmp)
         result, msgId = self.client.subscribe(responseTopic)
@@ -68,25 +72,22 @@ class SensorManager():
             raise Exception("Failed to subscribe to MQTT topic")
         logging.debug(f"Subscribed to: {responseTopic}")
 
-        payload = None
-        for _ in range(retries):
-            response = None
-            if self.msgQ.empty():
-                try:
-                    response = self.msgQ.get(block=True, timeout=timeout)
-                    if response[0] != responseTopic:
-                        logging.warning(f"Response mismatch: {response}")
-                        continue
-                except:
-                    logging.warning(f"Get MQTT topic '{responseTopic}' timed out, retrying...")
-                    time.sleep(timeout)
-                    continue
-            else:
-                response = self.msgQ.get()
+        if self.msgQ.empty():
+            try:
+                response = self.msgQ.get(block=True, timeout=self.responseWaitTime)
                 if response[0] != responseTopic:
-                    logging.warning(f"Mismatched response: {response}")
-                    continue
-            payload = response[1] if response else None
+                    logging.error(f"Response mismatch: {response} != {responseTopic}")
+                    return None
+            except Exception as ex:
+                logging.error(f"Get MQTT topic '{responseTopic}' timed out")
+                return None
+        else:
+            response = self.msgQ.get()
+            if response[0] != responseTopic:
+                logging.error(f"Mismatched response: {response} != {responseTopic}")
+                return None
+        payload = response[1] if response else None
+
         result, msgId = self.client.unsubscribe(responseTopic)
         if result:
             logging.warning(f"Failed to unsubscribe to MQTT topic '{responseTopic}'")
@@ -94,16 +95,26 @@ class SensorManager():
             logging.debug(f"Unsubscribed from: {responseTopic}")
         return payload
 
-    def issueCommand(self, cmdTopic, msg, retries=3, timeout=2):
-        """????
+    def issueCommand(self, cmdTopic, msg, retries=3):
+        """Issue a given command to a device and get the response.
+
+          N.B. no response is expected when a 'reset' command is issued.
+
+          Inputs
+            cmdTopic: string with command topic for desired device
+            msg: string in either the form '<cmd>' or '<cmd>=<val>'
+          Returns
+            Response message or None if none is received after 'retries' attempts
         """
         self.client.publish(cmdTopic, payload=msg)
         response = None
-        for _ in range(retries):
-            response = self._getResponse(cmdTopic, retries, timeout)
-            if not response:
-                continue
-            break
+        if msg != "reset":
+            for _ in range(retries):
+                response = self._getResponse(cmdTopic)
+                if not response:
+                    logging.debug("No response, retrying...")
+                    continue
+                break
         return response
 
 
@@ -115,7 +126,7 @@ def run(options):
         for devName in options.deviceNames:
             results[devName] = {}
             cmdTopic = sn.buildTopic(PubType.COMMAND, devName)
-            print(f"{devName}: {cmdTopic}, {msg}")
+            logging.debug(f"{devName}: {cmdTopic}, {msg}")
             results[devName] = mgr.issueCommand(cmdTopic, msg)
     json.dump(results, sys.stdout, indent=4)
     print("")

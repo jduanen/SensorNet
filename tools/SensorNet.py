@@ -3,6 +3,7 @@
 SensorNet Utilities Library
 """
 
+from enum import Enum
 import re
 import sys
 import yaml
@@ -10,6 +11,16 @@ from yaml import Loader
 
 
 PREFIX = "/sensors"
+
+SUB_TOPICS = ('data', 'cmd', 'response', 'error', 'startup')
+
+
+class PubType(Enum):
+    DATA = 0
+    COMMAND = 1
+    RESPONSE = 2
+    ERROR = 3
+    STARTUP = 4
 
 
 class SensorNet():
@@ -28,39 +39,61 @@ class SensorNet():
                 sys.exit(1)
         '''
         self.nicknames = {info['MACaddress']: name for name, info in self.devices.items()}
+        self.pubTypes = {
+            PubType.DATA: "data",
+            PubType.COMMAND: "cmd",
+            PubType.RESPONSE: "response",
+            PubType.ERROR: "error",
+            PubType.STARTUP: "startup",
+        }
 
     def getDevices(self):
-        """????
+        """Return ????
         """
         return self.devices
 
     def getDeviceInfo(self, nickname):
-        """????
+        """Return information about a given device.
+
+        Inputs
+          nickname: short string uniquely identifying a device
+        Returns
+          dict with information about the given device
         """
         return self.devices[nickname]
 
     def getNickname(self, macAddr):
-        """????
+        """Return the device nickname associated with a given WiFi MAC address
+
+        Inputs
+          macAddr: string in form of six hex bytes separated by colons
+        Returns
+          short string identifier for the device with the given MAC address
         """
         return self.nicknames[macAddr]
 
-    def buildDataTopic(self, nickname):
-        """????
-        """
-        applName = self.devices[nickname]['application']
-        macAddr = self.devices[nickname]['MACaddress']
-        return f"{PREFIX}/{applName}/{macAddr}/data"
+    def buildTopic(self, pubType, nickname):
+        """Create a topic of a given type for a given device
 
-    def buildCommandTopic(self, nickname, command, value=None):
-        """????
+        Inputs
+          pubType: member of PubType enum class
+          nickname: short string uniquely identifying a device
+        Returns
+          string containing desired topic
         """
+        assert isinstance(pubType, PubType), "pubType arg must be a member of the PubType enum class"
         applName = self.devices[nickname]['application']
         macAddr = self.devices[nickname]['MACaddress']
-        val = f"{command}={value}" if value else f"{command}"
-        return (f"{PREFIX}/{applName}/{macAddr}/cmd", val)
+        return f"{PREFIX}/{applName}/{macAddr}/{self.pubTypes[pubType]}"
 
     def parseSample(self, sampleParts):
-        """????
+        """Parse an sample/event string logged by a SensorNet device
+
+        Inputs
+          sampleParts: list of the comma-separated parts of a sample line
+           (i.e., timestamp, topic, payload)
+        Returns
+          dict with each of the components of the given sample broken out
         """
         timestamp = sampleParts[0]
         topic = sampleParts[1]
@@ -116,10 +149,8 @@ if __name__ == '__main__':
     assert len(devs) == 4, f"Wrong number of devices"
     b2 = sn.getDeviceInfo('b2')
     assert set(b2.keys()) == set(['application', 'MACaddress', 'location']), f"Mismatched device fields"
-    dataTopic = sn.buildDataTopic('b1')
+    dataTopic = sn.buildTopic(PubType.DATA, 'b1')
     assert dataTopic == "/sensors/sensorB/12:34:56:78:9a:de/data", f"Incorrect data topic: {dataTopic}"
-    cmdTopic = sn.buildCommandTopic('c', "RSSI")
-    assert cmdTopic == ("/sensors/sensorC/12:34:56:78:9a:12/cmd", "RSSI"), f"Incorrect command topic: {cmdTopic}"
-    cmdTopic = sn.buildCommandTopic('a', "rate=12345")
-    assert cmdTopic == ("/sensors/sensorA/12:34:56:78:9a:bc/cmd", "rate=12345"), f"Incorrect command topic: {cmdTopic}"
+    cmdTopic = sn.buildTopic(PubType.COMMAND, 'c')
+    assert cmdTopic == "/sensors/sensorC/12:34:56:78:9a:12/cmd", f"Incorrect command topic: {cmdTopic}"
     print("All tests: PASSED")

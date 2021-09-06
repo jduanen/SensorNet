@@ -6,7 +6,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "Radiation"
-#define APP_VERSION     "1.0.2"
+#define APP_VERSION     "1.1.0"
 #define REPORT_SCHEMA   "CPM:d,uSv/h:.4f,Vcc:.2f"
 
 #define TOPIC_PREFIX    "/sensors/Radiation"
@@ -45,21 +45,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
     SensorNet::WIFI_STATE wifiState = sn.wifiState();
     msg = "RSSI=" + String(wifiState.rssi);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("rate")) {
     if (val == NULL) {
       msg = "rate=" + String(REPORT_INTERVAL);
       sn.consolePrintln(msg);
-      sn.mqttPub(msg);
+      sn.mqttPub(SensorNet::RESPONSE, msg);
     } else {
       sn.consolePrintln("ERROR: unable to set rate");
     }
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
+  } else if (cmd.equals("reset")) {
+    sn.consolePrintln("Resetting");
+    sn.systemReset();
   } else {
-    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+    msg = "ERROR: unknown command (" + cmd + ")";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 }
 
@@ -71,18 +76,29 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
+    sn.consolePrintln("Resetting");
+    delay(60000);
+    sn.systemReset();
+  }
 }
 
 void loop() {
-  String inMsg;
+  String msg, inMsg;
 
   sn.mqttRun();
 
   // N.B. the sensor dictates the sample rate
   if (Serial.available() > 0) {
     inMsg = Serial.readStringUntil('\n');
-    Serial.println("> " + inMsg);
-    sn.mqttPub(inMsg);
+    if (inMsg.length() < 1) {
+      msg = "ERROR: read sensor timed out, resetting...";
+      sn.consolePrintln(msg);
+      sn.mqttPub(SensorNet::ERROR, msg);
+      delay(60000);
+      sn.systemReset();
+    }
+    sn.consolePrintln(inMsg);
+    sn.mqttPub(SensorNet::DATA, inMsg);
   }
 }

@@ -7,7 +7,7 @@
 #include <sps30.h>
 
 #define APP_NAME        "AirQualitySPS"
-#define APP_VERSION     "1.0.2"
+#define APP_VERSION     "1.1.0"
 #define REPORT_SCHEMA   "pm1_0:.2f,pm2_5:.2f,pm4_0:.2f,pm10_0:.2f,nc0_5:.2f,nc1_0:.2f,nc2_5:.2f,nc4_0:.2f,nc10_0:.2f,tps:.2f"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/SPS"
@@ -52,27 +52,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
     SensorNet::WIFI_STATE wifiState = sn.wifiState();
     msg = "RSSI=" + String(wifiState.rssi);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("rate")) {
-    if (val == NULL) {
-      msg = "rate=" + String(reportInterval);
-      sn.consolePrintln(msg);
-      sn.mqttPub(msg);
-    } else {
+    if (val != NULL) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+    msg = "rate=" + String(reportInterval);
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
+  } else if (cmd.equals("reset")) {
+    sn.consolePrintln("Resetting");
+    sn.systemReset();
   } else {
-    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+    msg = "ERROR: unknown command (" + cmd + ")";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 }
 
+
 void setup() {
   int16_t ret;
+  String msg;
 
   sn.serialStart(&Serial, 9600, true);
   sn.consolePrintln(APP_NAME);
@@ -80,22 +86,34 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
+    sn.consolePrintln("Resetting");
+    delay(60000);
+    sn.systemReset();
+  }
 
   sensirion_i2c_init();
 
-  while (sps30_probe() != 0) {
-    sn.consolePrintln("ERROR: SPS sensor probe failed");
-    delay(500);
+  if (sps30_probe() != 0) {
+    msg = "ERROR: SPS sensor probe failed";
+    sn.consolePrintln(msg);
+    delay(60000);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 
   ret = sps30_set_fan_auto_cleaning_interval_days(AUTO_CLEAN_DAYS);
   if (ret) {
-    sn.consolePrintln("ERROR: failed to set auto-clean interval -- " + String(ret));
+    msg = "ERROR: failed to set auto-clean interval -- " + String(ret);
+    sn.consolePrintln(msg);
+    delay(60000);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 
   if (sps30_start_measurement() < 0) {
-    sn.consolePrintln("ERROR: failed to start measurement");
+    msg = "ERROR: failed to start measurement";
+    sn.consolePrintln(msg);
+    delay(60000);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 
   sn.consolePrintln("measurements started");
@@ -118,7 +136,10 @@ void loop() {
     //// TODO assert REPORT_INTERVAL > 30000
     sn.consolePrintln("Waking up sensor");
     if (sps30_wake_up() != 0) {
-        sn.consolePrintln("ERROR: failed to wake up sensor");
+      msg = "ERROR: failed to wake up sensor";
+      sn.consolePrintln(msg);
+      delay(60000);
+      sn.mqttPub(SensorNet::ERROR, msg);
     } else {
       wakingUp = true;
     }
@@ -128,11 +149,17 @@ void loop() {
     while (1) {
       ret = sps30_read_data_ready(&dataReady);
       if (ret < 0) {
-        sn.consolePrintln("ERROR: reading data-ready flag: " + String(ret));
-      } else if (!dataReady)
-        sn.consolePrintln("data not ready");
-      else
+        msg = "ERROR: reading data-ready flag: " + String(ret);
+        sn.consolePrintln(msg);
+        delay(60000);
+        sn.mqttPub(SensorNet::ERROR, msg);
+      } else if (!dataReady) {
+        msg = "WARNING: data not ready";
+        sn.consolePrintln(msg);
+        sn.mqttPub(SensorNet::ERROR, msg);
+      } else {
         break;
+      }
       delay(100); /* retry in 100ms */
     }
 
@@ -142,16 +169,20 @@ void loop() {
             String(m.mc_10p0)  + "," + String(m.nc_0p5)  + "," + String(m.nc_1p0)  + "," +
             String(m.nc_2p5)  + "," + String(m.nc_4p0) + "," + String(m.nc_10p0)  + "," +
             String(m.typical_particle_size);
-      sn.mqttPub(msg);
+      sn.mqttPub(SensorNet::DATA, msg);
       sn.consolePrintln(msg);
       wakingUp = false;
     } else {
-      sn.consolePrintln("error reading SPS30 sensor");
+      msg = "error reading SPS30 sensor";
+      sn.consolePrintln(msg);
+
     }
 
     sn.consolePrintln("Sleep until next report");
     if (sps30_sleep() != 0) {
-      sn.consolePrintln("ERROR: failed to put sensor to sleep");
+      msg = "ERROR: failed to put sensor to sleep";
+      sn.consolePrintln(msg);
+
     }
 
     lastReport = now;

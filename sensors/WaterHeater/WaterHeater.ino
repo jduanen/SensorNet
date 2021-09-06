@@ -128,7 +128,7 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  if (!sn.mqttSub(SensorNet::DATA, callback)) {
+  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
     sn.consolePrintln("Resetting");
     delay(60000);
     sn.systemReset();

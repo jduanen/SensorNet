@@ -11,7 +11,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.0.4"
+#define APP_VERSION     "1.1.0"
 #define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
@@ -19,7 +19,7 @@
 #define ONE_WIRE_BUS  2
 #define CALIBRATE_PIN 16
 
-// N.B. must correspond to how sensors are wired
+// N.B. must corRESPONSE to how sensors are wired
 #define LC_TEMP_DEV_NUM   0
 #define BAT_TEMP_DEV_NUM  1
 
@@ -69,27 +69,34 @@ void callback(char* topic, byte* payload, unsigned int length) {
     SensorNet::WIFI_STATE wifiState = sn.wifiState();
     msg = "RSSI=" + String(wifiState.rssi);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("rate")) {
-    if (val == NULL) {
-      msg = "rate=" + String(reportInterval);
-      sn.consolePrintln(msg);
-      sn.mqttPub(msg);
-    } else {
+    if (val != NULL) {
       sn.consolePrintln("Set rate to " + val);
       reportInterval = val.toInt();
     }
+    msg = "rate=" + String(reportInterval);
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
   } else if (cmd.equals("version")) {
     msg = "Version=" + String(APP_VERSION);
     sn.consolePrintln(msg);
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::RESPONSE, msg);
+  } else if (cmd.equals("reset")) {
+    sn.consolePrintln("Resetting");
+    sn.systemReset();
   } else {
-    sn.consolePrintln("ERROR: unknown command (" + cmd + ")");
+    msg = "ERROR: unknown command (" + cmd + ")";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
   }
 }
 
+
 void setup() {
+  String msg;
   int deviceCount = 0;
+
   pinMode(CALIBRATE_PIN, INPUT);
   sn.serialStart(&Serial, 9600, true);
   sn.consolePrintln(APP_NAME);
@@ -97,25 +104,33 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  sn.mqttSub(callback);
+  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
+    sn.consolePrintln("Resetting");
+    delay(60000);
+    sn.systemReset();
+  }
 
   sn.consolePrintln("Init temp sensors");
   sensors.begin();
   deviceCount = sensors.getDeviceCount();
   sn.consolePrintln("Found " + String(deviceCount) + " temp sensors");
-  while (deviceCount != 2) {
-    sn.consolePrintln("ERROR: Unable to find both temp sensors");
-    sensors = DallasTemperature(&oneWire);
-    sensors.begin();
-    deviceCount = sensors.getDeviceCount();
+  if (deviceCount != 2) {
+    msg = "ERROR: Unable to find both temp sensors, resetting...";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
+    delay(60000);
+    sn.systemReset();
   }
 
   sn.consolePrintln("Init scale");
   scale.begin(HX711_DOUT, HX711_CLK);
   scale.reset();
-  while (!scale.wait_ready_retry(100, 100)) {
-    sn.consolePrintln("Scale not ready");
-    delay(1000);
+  if (!scale.wait_ready_retry(100, 100)) {
+    msg = "Scale not ready, resetting...";
+    sn.consolePrintln(msg);
+    sn.mqttPub(SensorNet::ERROR, msg);
+    delay(60000);
+    sn.systemReset();
   }
   //// TODO switch to median
   scale.tare();
@@ -171,7 +186,7 @@ void loop() {
     units = scale.get_units(5);
     msg += "," + String(units);
 
-    sn.mqttPub(msg);
+    sn.mqttPub(SensorNet::DATA, msg);
     sn.consolePrintln(msg);
 
     sn.consolePrintln("Sleep until next report");

@@ -3,7 +3,7 @@
 ## MQTT logging service (for Ubuntu)
 
 * set up 
-  - sudo cp ~/Code/SensorNet/tools/MqttLogger/mqttlogger.service /lib/systemd/system
+  - sudo cp ~/Code/SensorNet/tools/mqttlogger.service /lib/systemd/system
   - sudo ln -s /lib/systemd/system/mqttlogger.service /etc/systemd/system/
   - sudo systemctl daemon-reload
 

@@ -3,8 +3,8 @@ Description=SensorNet MQTT logging server
 
 [Service]
 User=jdn
-WorkingDirectory=/home/jdn/Code/SensorNet/tools/MqttLogger
-ExecStart=/bin/bash -c 'cd /home/jdn/Code/SensorNet/tools/MqttLogger && source /home/jdn/.virtualenvs/SENSOR_NET/bin/activate && python MqttLogger.py -v -a'
+WorkingDirectory=/home/jdn/Code/SensorNet/tools
+ExecStart=/bin/bash -c 'cd /home/jdn/Code/SensorNet/tools && source /home/jdn/.virtualenvs/SENSOR_NET/bin/activate && python MqttLogger.py -v -a'
 Restart=always
 
 [Install]

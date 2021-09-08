@@ -85,17 +85,23 @@ class RotatingFile():
             mode = 'w'
         self.fd = open(self.filePath, mode)
 
-    def write(self, msg):
-        """
+    def write(self, msg, flushOnWrite=True):
+        """Write string to file
           Test if the msg will fit before writing, and if so, rotate the file
            first -- never write a file bigger than the max size.
           Flush before checking file size to allow asynch write to happen.
+
+          Inputs
+            msg: string to be written to file
+            flushOnWrite: optional boolean that cause a flush after each write
         """
         logging.debug(f"Writing {len(msg)} bytes to {self.filePath}")
         self.fd.flush()
         if os.path.getsize(self.filePath) + len(msg) > self.maxFileSize:
             self._rotate(True)
         self.fd.write(msg)
+        if flushOnWrite:
+            self.fd.flush()
 
     def close(self):
         self.fd.close()

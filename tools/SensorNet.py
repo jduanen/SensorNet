@@ -4,6 +4,7 @@ SensorNet Utilities Library
 """
 
 from enum import Enum
+import logging
 import re
 import sys
 import yaml
@@ -13,7 +14,7 @@ from yaml import Loader
 PREFIX = "/sensors"
 
 
-class PubType(Enum):
+class SubTopic(Enum):
     DATA = 0
     COMMAND = 1
     RESPONSE = 2
@@ -22,12 +23,14 @@ class PubType(Enum):
 
 
 SUB_TOPICS = {
-    PubType.DATA: "data",
-    PubType.COMMAND: "cmd",
-    PubType.RESPONSE: "response",
-    PubType.ERROR: "error",
-    PubType.STARTUP: "startup",
+    SubTopic.DATA: "data",
+    SubTopic.COMMAND: "cmd",
+    SubTopic.RESPONSE: "response",
+    SubTopic.ERROR: "error",
+    SubTopic.STARTUP: "startup",
 }
+
+SUB_TOPICS_MAP = {v: k for k, v in SUB_TOPICS.items()}
 
 
 class SensorNet():
@@ -72,19 +75,19 @@ class SensorNet():
         """
         return self.nicknames[macAddr]
 
-    def buildTopic(self, pubType, nickname):
+    def buildTopic(self, subTopic, nickname):
         """Create a topic of a given type for a given device
 
         Inputs
-          pubType: member of PubType enum class
+          subTopic: member of SubTopic enum class
           nickname: short string uniquely identifying a device
         Returns
           string containing desired topic
         """
-        assert isinstance(pubType, PubType), "pubType arg must be a member of the PubType enum class"
+        assert isinstance(subTopic, SubTopic), "subTopic arg must be a member of the SubTopic enum class"
         applName = self.devices[nickname]['application']
         macAddr = self.devices[nickname]['MACaddress']
-        return f"{PREFIX}/{applName}/{macAddr}/{SUB_TOPICS[pubType]}"
+        return f"{PREFIX}/{applName}/{macAddr}/{SUB_TOPICS[subTopic]}"
 
     def parseSample(self, sampleParts):
         """Parse an sample/event string logged by a SensorNet device
@@ -149,8 +152,8 @@ if __name__ == '__main__':
     assert len(devs) == 4, f"Wrong number of devices"
     b2 = sn.getDeviceInfo('b2')
     assert set(b2.keys()) == set(['application', 'MACaddress', 'location']), f"Mismatched device fields"
-    dataTopic = sn.buildTopic(PubType.DATA, 'b1')
+    dataTopic = sn.buildTopic(SubTopic.DATA, 'b1')
     assert dataTopic == "/sensors/sensorB/12:34:56:78:9a:de/data", f"Incorrect data topic: {dataTopic}"
-    cmdTopic = sn.buildTopic(PubType.COMMAND, 'c')
+    cmdTopic = sn.buildTopic(SubTopic.COMMAND, 'c')
     assert cmdTopic == "/sensors/sensorC/12:34:56:78:9a:12/cmd", f"Incorrect command topic: {cmdTopic}"
     print("All tests: PASSED")

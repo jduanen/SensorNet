@@ -14,7 +14,7 @@ import time
 
 import paho.mqtt.client as mqtt
 
-from SensorNet import SensorNet, PubType, SUB_TOPICS
+from SensorNet import SensorNet, SubTopic, SUB_TOPICS
 
 
 DEFAULTS = {
@@ -125,7 +125,7 @@ def run(options):
         msg = f"{options.cmd}={options.val}" if options.val else options.cmd
         for devName in options.deviceNames:
             results[devName] = {}
-            cmdTopic = sn.buildTopic(PubType.COMMAND, devName)
+            cmdTopic = sn.buildTopic(SubTopic.COMMAND, devName)
             logging.debug(f"{devName}: {cmdTopic}, {msg}")
             results[devName] = mgr.issueCommand(cmdTopic, msg)
     json.dump(results, sys.stdout, indent=4)
@@ -183,7 +183,7 @@ def getOpts():
     sn = SensorNet(opts.deviceFile)
     missingDevices = set(opts.deviceNames) - set(sn.getDevices().keys())
     if missingDevices:
-        logging.error(f"Devices {missingDevices} not found in {opts.deviceFile}")
+        logging.error(f"Devices {list(missingDevices)} not found in {opts.deviceFile}")
         sys.exit(1)
 
     parts = opts.command.split('=')

@@ -60,7 +60,6 @@ def run(options):
         while running:
             msg = msgQ.get(block=True)
             f.write(msg + "\n")
-            f.flush()
     client.loop_stop()
     logging.info("Exiting")
 

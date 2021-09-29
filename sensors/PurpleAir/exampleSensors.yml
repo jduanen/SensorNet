@@ -1,0 +1,8 @@
+# Purple Air sensors to poll
+---
+12345:
+  location: 123, Main Street, Anywhere, CA, USA
+  notes: totally made up example
+98765:
+  location: unknown
+  notes:

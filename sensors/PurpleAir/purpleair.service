@@ -1,0 +1,11 @@
+[Unit]
+Description=SensorNet MQTT PurpleAir proxy client
+
+[Service]
+User=jdn
+WorkingDirectory=/home/jdn/Code/SensorNet/sensors/PurpleAir
+ExecStart=/bin/bash -c 'cd /home/jdn/Code/SensorNet/sensors/PurpleAir && source /home/jdn/.virtualenvs/SENSOR_NET/bin/activate && python PurpleAir.py -v'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

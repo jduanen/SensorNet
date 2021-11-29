@@ -1,11 +1,14 @@
 [Unit]
 Description=SensorNet MQTT logging server
+After=network-online.target
 
 [Service]
 User=jdn
 WorkingDirectory=/home/jdn/Code/SensorNet/tools
 ExecStart=/bin/bash -c 'cd /home/jdn/Code/SensorNet/tools && source /home/jdn/.virtualenvs/SENSOR_NET/bin/activate && python MqttLogger.py -v -a'
+StandardOutput=syslog
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
+Alias=mqttlogger.service

@@ -32,7 +32,11 @@ msgQ = Queue()
 def onMessage(client, userData, message):
     logging.debug(f"msg: {message}")
     #### TODO figure out how to deal with TZ properly
-    msg = str(message.payload.decode("utf-8"))
+    try:
+        msg = str(message.payload.decode("utf-8"))
+    except Exception as ex:
+        logging.warning(f"Message receive error: {ex}")
+        return
     #### TODO use message.timestamp instead?
     msgQ.put(f"{datetime.now().isoformat()},{message.topic},{msg}")
 

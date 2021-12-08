@@ -1,8 +1,8 @@
-SensorNet
+# SensorNet
 
-#Collection of ESP8266-based sensors that generate data via MQTT and a suite of tools for operating on the data
+Collection of ESP8266-based sensors that generate data via MQTT and a suite of tools for operating on the data
 
-##Topics
+## Topics
 
 * /sensors
     - /sensors/airQuality/

@@ -24,7 +24,7 @@ Measure alpha, beta, gamma radiation.
 
 ### WaterHeater (WaterHeater)
 
-Measure temperature at inlet and outlet of water heater.
+Measure temperature at the outlet of water heater and ambient temperature.
 
 *TBD*
 
@@ -47,23 +47,64 @@ Monitor the internal temperature and WiFi signal strength of the PZT camera cont
 * /sensors
     - /sensors/AirQuality/
         + /sensors/AirQuality/PMS/*WifiMAC*
+            * latest version: 1.1.0
             * /sensors/AirQuality/PMS/*WifiMAC*/data
+                - payload:
+                    * pm1_0:d: ????
+                    * pm2_5:d: ????
+                    * pm10_0:d: ????
             * /sensors/AirQuality/PMS/*WifiMAC*/cmd
+                - commands:
+                    + *TBD*
         + /sensors/AirQuality/SPS/*WifiMAC*
+            * latest version: 1.0.2
             * /sensors/AirQuality/SPS/*WifiMAC*/data
+                - payload:
+                    * pm1_0:.2f: ????
+                    * pm2_5:.2f: ????
+                    * pm4_0:.2f: ????
+                    * pm10_0:.2f: ????
+                    * nc0_5:.2f: ????
+                    * nc1_0:.2f: ????
+                    * nc2_5:.2f: ????
+                    * nc4_0:.2f: ????
+                    * nc10_0:.2f: ????
+                    * tps:.2f: ????
             * /sensors/AirQuality/SPS/*WifiMAC*/cmd
+                - commands:
+                    + *TBD*
     - /sensors/birdyNomNom/*WifiMAC*
         + /sensors/birdyNomNom/*WifiMAC*/data
         + /sensors/birdyNomNom/*WifiMAC*/cmd
     - /sensors/Radiation/*WifiMAC*
+        + latest version: 1.0.2
         + /sensors/Radiation/*WifiMAC*/data
+            * payload:
+                - CPM:d: ????
+                - uSv/h:.4f: ????
+                - Vcc:.2f: ????
         + /sensors/Radiation/*WifiMAC*/cmd
+            * commands:
+                - *TBD*
     - /sensors/WaterHeater/*WifiMAC*
+        + latest version: 0.0.0
         + /sensors/WaterHeater/*WifiMAC*/data
+            * payload:
+                - waterDegC:3.2f: ????
+                - ambientDegC:3.2f: ????
         + /sensors/WaterHeater/*WifiMAC*/cmd
+            * commands:
+                - *TBD*
     - /sensors/avue/*WifiMAC*
+        + latest version: 1.1.0
         + /sensors/avue/*WifiMAC*/data
+            * payload:
+                - temp:.1f: ????
+                - q:.4f: ????
+                - rssi:d: ????
         + /sensors/avue/*WifiMAC*/cmd
+            * commands:
+                - *TBD*
 
 ### Startup Lines
 

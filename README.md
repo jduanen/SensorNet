@@ -40,7 +40,9 @@ Monitor the internal temperature and WiFi signal strength of the PZT camera cont
 
 *TBD*
 
-## Topics
+## Notes
+
+### Topics
 
 * /sensors
     - /sensors/AirQuality/
@@ -67,7 +69,7 @@ Monitor the internal temperature and WiFi signal strength of the PZT camera cont
             * /sensors/avue/*WifiMAC*/data
             * /sensors/avue/*WifiMAC*/cmd
 
-## Startup Lines
+### Startup Lines
 
 * AirQuality (PMS)
     - *ISO timestamp*,/sensors/AirQuality/PMS/*WifiMAC*/cmd,Startup,ESP8266,AirQualityPMS,1.1.0,pm1_0:d,pm2_5:d,pm10_0:d,*RSSI*

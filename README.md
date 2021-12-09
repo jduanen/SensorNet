@@ -52,22 +52,18 @@ Monitor the internal temperature and WiFi signal strength of the PZT camera cont
         + /sensors/AirQuality/SPS/*WifiMAC*
             * /sensors/AirQuality/SPS/*WifiMAC*/data
             * /sensors/AirQuality/SPS/*WifiMAC*/cmd
-    - /sensors/birdyNomNom/
-        + /sensors/birdyNomNom/*WifiMAC*
-            * /sensors/birdyNomNom/*WifiMAC*/data
-            * /sensors/birdyNomNom/*WifiMAC*/cmd
-    - /sensors/Radiation/
-        + /sensors/Radiation/*WifiMAC*
-            * /sensors/Radiation/*WifiMAC*/data
-            * /sensors/Radiation/*WifiMAC*/cmd
-    - /sensors/WaterHeater/
-        + /sensors/WaterHeater/*WifiMAC*
-            * /sensors/WaterHeater/*WifiMAC*/data
-            * /sensors/WaterHeater/*WifiMAC*/cmd
-    - /sensors/avue/
-        + /sensors/avue/*WifiMAC*
-            * /sensors/avue/*WifiMAC*/data
-            * /sensors/avue/*WifiMAC*/cmd
+    - /sensors/birdyNomNom/*WifiMAC*
+        + /sensors/birdyNomNom/*WifiMAC*/data
+        + /sensors/birdyNomNom/*WifiMAC*/cmd
+    - /sensors/Radiation/*WifiMAC*
+        + /sensors/Radiation/*WifiMAC*/data
+        + /sensors/Radiation/*WifiMAC*/cmd
+    - /sensors/WaterHeater/*WifiMAC*
+        + /sensors/WaterHeater/*WifiMAC*/data
+        + /sensors/WaterHeater/*WifiMAC*/cmd
+    - /sensors/avue/*WifiMAC*
+        + /sensors/avue/*WifiMAC*/data
+        + /sensors/avue/*WifiMAC*/cmd
 
 ### Startup Lines
 

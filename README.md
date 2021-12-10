@@ -123,6 +123,7 @@ Monitor the internal temperature and WiFi signal strength of my Avue PZT camera 
 ## TODO
 
 * write test scripts
+* create schematics for all the sensors
 * document code
 * make callbacks work for subs in SensorNet library
 * make SensorNet a proper library

@@ -36,7 +36,7 @@ Measure weight of sugar water in hummingbird feeder.
 
 ### Avue PZT Camera Platform (avue)
 
-Monitor the internal temperature and WiFi signal strength of the PZT camera controller.
+Monitor the internal temperature and WiFi signal strength of my Avue PZT camera controller ([AvuePZT](https://github.com/jduanen/avuePZT)).
 
 *TBD*
 

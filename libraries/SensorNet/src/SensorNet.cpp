@@ -93,6 +93,53 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
     return status;
 }
 
+void SensorNet::mqttSetup(String server, int port, String prefix, void (*callback)(char *topic, byte *payload, unsigned int length)) {
+    server.toCharArray(mqttServer, BUF_SIZE);
+    mqttPort = port;
+    mqttClient.setServer(mqttServer, mqttPort);
+//    mqttClient.setSocketTimeout(?);
+//    mqttClient.setKeepalive(?);
+    mqttClient.setCallback(callback);
+
+    baseTopic = prefix + "/" + _macAddr;
+    String t = baseTopic + "/data";
+    t.toCharArray(topics[DATA], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/cmd";
+    t.toCharArray(topics[COMMAND], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/response";
+    t.toCharArray(topics[RESPONSE], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/error";
+    t.toCharArray(topics[ERROR], MAX_MQTT_TOPIC_LEN);
+    t = baseTopic + "/startup";
+    t.toCharArray(topics[STARTUP], MAX_MQTT_TOPIC_LEN);
+
+    consolePrint("Connecting to MQTT...");
+    if (mqttClient.connect(_clientName)) {
+        consolePrintln("connected");
+    } else {
+        String msg = "ERROR: failed with state " + mqttClient.state();
+        consolePrintln(msg);
+        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+        mqttClient.publish(topics[ERROR], pubMsg);
+    }
+    if (mqttClient.subscribe(topics[COMMAND]) == false) {
+        String msg = "ERROR: failed to subscribe to topic";
+        consolePrintln(msg);
+        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+        mqttClient.publish(topics[ERROR], pubMsg);
+    } else {
+        consolePrintln(String("Subscribed to: ") + String(topics[COMMAND]));
+    }
+
+    String startupMsg = "Startup,ESP8266," +
+                        appName + "," +
+                        appVersion + "," +
+                        reportSchema + "," +
+                        wifiState().rssi;
+    startupMsg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+    mqttClient.publish(topics[STARTUP], pubMsg);
+}
+
 // Setup connection to MQTT server and make initial connection
 void SensorNet::mqttSetup(String server, int port, String prefix) {
     //// TODO assert that WiFi.status() == WL_CONNECTED
@@ -156,23 +203,6 @@ bool SensorNet::mqttPub(pubType type, String msg) {
     }
     msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
     mqttClient.publish(topics[type], pubMsg);
-    return result;
-}
-
-// Add a callback function to the subscribed "cmd" topic
-bool SensorNet::mqttSub(pubType type, void (*callback)(char *topic, byte *payload, unsigned int length)) {
-    //// TODO assert that MQTT has been set up
-    bool result = true;
-    mqttClient.setCallback(callback);
-    if (mqttClient.subscribe(topics[COMMAND]) == false) {
-        String msg = "ERROR: failed to subscribe to topic";
-        consolePrintln(msg);
-        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-        mqttClient.publish(topics[ERROR], pubMsg);
-        result = false;
-    } else {
-        consolePrintln(String("Subscribed to: ") + String(topics[COMMAND]));
-    }
     return result;
 }
 

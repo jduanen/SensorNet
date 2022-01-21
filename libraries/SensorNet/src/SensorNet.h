@@ -61,9 +61,9 @@ class SensorNet {
         WIFI_STATE wifiState();
 
         void mqttSetup(String server, int port, String prefix);
+        void mqttSetup(String server, int port, String prefix, void (*callback)(char *topic, byte *payload, unsigned int length));
         bool mqttRun();
         bool mqttPub(pubType type, String msg);
-        bool mqttSub(pubType type, void (*callback)(char *topic, byte *payload, unsigned int length));
         MQTT_STATE mqttState();
 
     private:

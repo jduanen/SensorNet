@@ -13,8 +13,12 @@
 #define MAX_MQTT_TOPIC_LEN      128
 #define BUF_SIZE                64
 #define NUM_SUB_TOPICS			5
+#define DEF_REPORT_INTERVAL     60000  // one report every minute
 
 #define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
+
+
+typedef void (callback)(char *topic, byte *payload, unsigned int length);
 
 
 class SensorNet {
@@ -23,6 +27,9 @@ class SensorNet {
         String appVersion = "n/a";
         String reportSchema = "n/a";
         HardwareSerial *consolePtr;
+
+        unsigned long lastReport = 0;
+        unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
         // pub msg types -- 1:1 correspondance to sub-topics
         typedef char pubType;
@@ -45,6 +52,12 @@ class SensorNet {
             String baseTopic;
         };
 
+        typedef struct {
+            String cmd;
+            String val;
+            bool handled;
+        } callbackMessage;
+
         SensorNet();
         SensorNet(String name);
         SensorNet(String name, String version);
@@ -61,10 +74,12 @@ class SensorNet {
         WIFI_STATE wifiState();
 
         void mqttSetup(String server, int port, String prefix);
-        void mqttSetup(String server, int port, String prefix, void (*callback)(char *topic, byte *payload, unsigned int length));
+        void mqttSetup(String server, int port, String prefix, callback *cb);
         bool mqttRun();
         bool mqttPub(pubType type, String msg);
         MQTT_STATE mqttState();
+
+        callbackMessage baseCallback(char* topic, byte* payload, unsigned int length);
 
     private:
         byte _mac[6];

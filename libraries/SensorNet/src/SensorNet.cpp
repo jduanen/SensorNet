@@ -93,13 +93,13 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
     return status;
 }
 
-void SensorNet::mqttSetup(String server, int port, String prefix, void (*callback)(char *topic, byte *payload, unsigned int length)) {
+void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) {
     server.toCharArray(mqttServer, BUF_SIZE);
     mqttPort = port;
     mqttClient.setServer(mqttServer, mqttPort);
 //    mqttClient.setSocketTimeout(?);
 //    mqttClient.setKeepalive(?);
-    mqttClient.setCallback(callback);
+    mqttClient.setCallback(cb);
 
     baseTopic = prefix + "/" + _macAddr;
     String t = baseTopic + "/data";
@@ -214,3 +214,56 @@ SensorNet::MQTT_STATE SensorNet::mqttState() {
     };
     return state;
 }
+
+SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, unsigned int length) {
+  // commands supported:
+  //  * RSSI: wifi signal strength
+  //  * rate[=<msecs>]: get/set report interval period
+  //  * version: get version number
+  //  * reset: reset the device (stimulates startup message with schema)
+  byte *cmdPtr = payload;
+  byte *valPtr = NULL;
+  String respMsg;
+  SensorNet::callbackMessage cbMsg;
+
+  payload[length] = '\0';
+  for (int i = 0; i < length; i++) {
+    if (payload[i] == '=') {
+      cmdPtr[i] = '\0';
+      valPtr = &payload[i + 1];
+    }
+  }
+  cbMsg.cmd = String((char *)cmdPtr);
+  cbMsg.val = String((char *)valPtr);
+  cbMsg.handled = true;
+
+  if (cbMsg.cmd.equalsIgnoreCase("RSSI")) {
+    SensorNet::WIFI_STATE ws = wifiState();
+    respMsg = "RSSI=" + String(ws.rssi);
+  } else if (cbMsg.cmd.equalsIgnoreCase("rate")) {
+    if (cbMsg.val != NULL) {
+      reportInterval = cbMsg.val.toInt();
+      if (reportInterval < 0) {
+        consolePrintln("Error: reportInterval must be positive, using default value");
+        reportInterval = DEF_REPORT_INTERVAL;
+      }
+      consolePrintln("Set rate to " + cbMsg.val);
+    }
+    respMsg = "rate=" + String(reportInterval);
+  } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
+    respMsg = "Version=" + String(appVersion);
+  } else if (cbMsg.cmd.equalsIgnoreCase("reset")) {
+    consolePrintln("Resetting");
+    systemReset();
+    respMsg = "Reset";
+  } else {
+    consolePrintln("Message not handled by base handler");
+    cbMsg.handled = false;
+  }
+  if (cbMsg.handled == true) {
+    mqttPub(SensorNet::RESPONSE, respMsg);
+  }
+  return cbMsg;
+}
+
+

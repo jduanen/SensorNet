@@ -7,7 +7,7 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
-#define APP_VERSION     "1.1.0"
+#define APP_VERSION     "1.2.0"
 #define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
@@ -20,8 +20,6 @@
 #define VERBOSE         0
 
 
-unsigned long lastReport = 0;
-unsigned int reportInterval = DEF_REPORT_INTERVAL;
 boolean wakingUp = false;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
@@ -30,52 +28,16 @@ PMS pms(Serial);
 PMS::DATA data;
 
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  byte *cmdPtr = payload;
-  byte *valPtr = NULL;
-  String top, cmd, val;
-
-  payload[length] = '\0';
-  for (int i = 0; i < length; i++) {
-    if (payload[i] == '=') {
-      cmdPtr[i] = '\0';
-      valPtr = &payload[i + 1];
-    }
-  }
-  top = String(topic);
-  cmd = String((char *)cmdPtr);
-  val = String((char *)valPtr);
-
-  sn.consolePrintln(top + ", " + cmd + ", " + val);
-
-  String msg;
-  if (cmd.equals("RSSI")) {
-    SensorNet::WIFI_STATE wifiState = sn.wifiState();
-    msg = "RSSI=" + String(wifiState.rssi);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("rate")) {
-    if (val != NULL) {
-      sn.consolePrintln("Set rate to " + val);
-      reportInterval = val.toInt();
-    }
-    msg = "rate=" + String(reportInterval);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("version")) {
-    msg = "Version=" + String(APP_VERSION);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("reset")) {
-    sn.consolePrintln("Resetting");
-    sn.systemReset();
+void myCallback(char* topic, byte* payload, unsigned int length) {
+  SensorNet::callbackMessage cbMsg = sn.baseCallback(topic, payload, length);
+  if (cbMsg.handled == true) {
+    sn.consolePrintln("Callback message handled by baseCallback");
   } else {
-    msg = "ERROR: unknown command (" + cmd + ")";
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::ERROR, msg);
+    String respMsg = "Error: unhandled command: " + cbMsg.cmd;
+    sn.consolePrintln(respMsg);
+    sn.mqttPub(SensorNet::ERROR, respMsg);
   }
 }
-
 
 void setup() {
   sn.serialStart(&Serial, 9600, false);
@@ -84,12 +46,7 @@ void setup() {
 
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
-  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
-    sn.consolePrintln("Resetting");
-    delay(60000);
-    sn.systemReset();
-  }
+  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
 
   pms.passiveMode();    // Switch to passive mode
 }
@@ -97,18 +54,18 @@ void setup() {
 void loop() {
   String msg;
   unsigned long now = millis();
-  unsigned long deltaT = now - lastReport;
+  unsigned long deltaT = now - sn.lastReport;
 
   sn.mqttRun();
 
-  if ((wakingUp == false) && (deltaT >= (reportInterval / 2))) {
+  if ((wakingUp == false) && (deltaT >= (sn.reportInterval / 2))) {
     // start up sensor half an interval before reading it to get steady-state reading
     //// TODO assert REPORT_INTERVAL > 30000
     sn.consolePrintln("Waking up sensor");
     pms.wakeUp();
     wakingUp = true;
   }
-  if ((wakingUp == true) && (deltaT >= reportInterval)) {
+  if ((wakingUp == true) && (deltaT >= sn.reportInterval)) {
     sn.consolePrintln("Reading sensor");
     pms.requestRead();
 
@@ -137,6 +94,6 @@ void loop() {
     sn.consolePrintln("Sleep until next report");
     pms.sleep();
 
-    lastReport = now;
+    sn.lastReport = now;
   }
 }

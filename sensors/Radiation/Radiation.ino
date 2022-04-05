@@ -6,7 +6,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "Radiation"
-#define APP_VERSION     "1.1.0"
+#define APP_VERSION     "1.2.0"
 #define REPORT_SCHEMA   "CPM:d,uSv/h:.4f,Vcc:.2f"
 
 #define TOPIC_PREFIX    "/sensors/Radiation"
@@ -22,49 +22,15 @@ unsigned int reportInterval = REPORT_INTERVAL;
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  byte *cmdPtr = payload;
-  byte *valPtr = NULL;
-  String top, cmd, val;
-
-  payload[length] = '\0';
-  for (int i = 0; i < length; i++) {
-    if (payload[i] == '=') {
-      cmdPtr[i] = '\0';
-      valPtr = &payload[i + 1];
-    }
-  }
-  top = String(topic);
-  cmd = String((char *)cmdPtr);
-  val = String((char *)valPtr);
-
-  sn.consolePrintln(top + ", " + cmd + ", " + val);
-
-  String msg;
-  if (cmd.equals("RSSI")) {
-    SensorNet::WIFI_STATE wifiState = sn.wifiState();
-    msg = "RSSI=" + String(wifiState.rssi);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("rate")) {
-    if (val == NULL) {
-      msg = "rate=" + String(REPORT_INTERVAL);
-      sn.consolePrintln(msg);
-      sn.mqttPub(SensorNet::RESPONSE, msg);
-    } else {
-      sn.consolePrintln("ERROR: unable to set rate");
-    }
-  } else if (cmd.equals("version")) {
-    msg = "Version=" + String(APP_VERSION);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("reset")) {
-    sn.consolePrintln("Resetting");
-    sn.systemReset();
+void myCallback(char* topic, byte* payload, unsigned int length) {
+  SensorNet::callbackMessage cbMsg = sn.baseCallback(topic, payload, length);
+  if (cbMsg.handled == true) {
+    sn.consolePrintln("Callback message handled by baseCallback");
+    //// TODO test if trying to set reportInterval and issue warning that it can't be set
   } else {
-    msg = "ERROR: unknown command (" + cmd + ")";
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::ERROR, msg);
+    String respMsg = "Error: unhandled command: " + cbMsg.cmd;
+    sn.consolePrintln(respMsg);
+    sn.mqttPub(SensorNet::ERROR, respMsg);
   }
 }
 
@@ -75,12 +41,7 @@ void setup() {
 
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
-  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
-    sn.consolePrintln("Resetting");
-    delay(60000);
-    sn.systemReset();
-  }
+  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
 }
 
 void loop() {

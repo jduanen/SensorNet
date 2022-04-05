@@ -217,10 +217,11 @@ SensorNet::MQTT_STATE SensorNet::mqttState() {
 
 SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, unsigned int length) {
   // commands supported:
-  //  * RSSI: wifi signal strength
   //  * rate[=<msecs>]: get/set report interval period
-  //  * version: get version number
   //  * reset: reset the device (stimulates startup message with schema)
+  //  * RSSI: wifi signal strength
+  //  * schema: get report schema
+  //  * version: get version number
   byte *cmdPtr = payload;
   byte *valPtr = NULL;
   String respMsg;
@@ -237,10 +238,7 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
   cbMsg.val = String((char *)valPtr);
   cbMsg.handled = true;
 
-  if (cbMsg.cmd.equalsIgnoreCase("RSSI")) {
-    SensorNet::WIFI_STATE ws = wifiState();
-    respMsg = "RSSI=" + String(ws.rssi);
-  } else if (cbMsg.cmd.equalsIgnoreCase("rate")) {
+  if (cbMsg.cmd.equalsIgnoreCase("rate")) {
     if (cbMsg.val != NULL) {
       reportInterval = cbMsg.val.toInt();
       if (reportInterval < 0) {
@@ -250,12 +248,17 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
       consolePrintln("Set rate to " + cbMsg.val);
     }
     respMsg = "rate=" + String(reportInterval);
-  } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
-    respMsg = "Version=" + String(appVersion);
   } else if (cbMsg.cmd.equalsIgnoreCase("reset")) {
     consolePrintln("Resetting");
     systemReset();
     respMsg = "Reset";
+  } else if (cbMsg.cmd.equalsIgnoreCase("RSSI")) {
+    SensorNet::WIFI_STATE ws = wifiState();
+    respMsg = "RSSI=" + String(ws.rssi);
+  } else if (cbMsg.cmd.equalsIgnoreCase("schema")) {
+    respMsg = "Schema=" + reportSchema;
+  } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
+    respMsg = "Version=" + appVersion;
   } else {
     consolePrintln("Message not handled by base handler");
     cbMsg.handled = false;

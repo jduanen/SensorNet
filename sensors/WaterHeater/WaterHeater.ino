@@ -15,7 +15,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "WaterHeater"
-#define APP_VERSION     "1.1.0"
+#define APP_VERSION     "1.2.0"
 #define REPORT_SCHEMA   "waterDegC:3.2f,ambientDegC:3.2f"
 
 #define ONE_WIRE_BUS  2
@@ -39,9 +39,6 @@
 #define MAX_VAL_LEN     16
 
 
-unsigned long lastReport = 0;
-unsigned int reportInterval = DEF_REPORT_INTERVAL;
-
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
 
 OneWire oneWire(ONE_WIRE_BUS);
@@ -49,76 +46,47 @@ DallasTemperature sensors;
 DeviceAddress waterThermometer, ambientThermometer;
 
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  byte *cmdPtr = payload;
-  byte *valPtr = NULL;
-  String top, cmd, val;
+void myCallback(char* topic, byte* payload, unsigned int length) {
+  String respMsg;
+  char msgType = SensorNet::RESPONSE;
+  SensorNet::callbackMessage cbMsg = sn.baseCallback(topic, payload, length);
 
-  payload[length] = '\0';
-  for (int i = 0; i < length; i++) {
-    if (payload[i] == '=') {
-      cmdPtr[i] = '\0';
-      valPtr = &payload[i + 1];
-    }
-  }
-  top = String(topic);
-  cmd = String((char *)cmdPtr);
-  val = String((char *)valPtr);
-
-  sn.consolePrintln(top + ", " + cmd + ", " + val);
-
-  String msg;
-  if (cmd.equals("RSSI")) {
-    SensorNet::WIFI_STATE wifiState = sn.wifiState();
-    msg = "RSSI=" + String(wifiState.rssi);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("rate")) {
-    if (val != NULL) {
-      sn.consolePrintln("Set rate to " + val);
-      reportInterval = val.toInt();
-    }
-    msg = "rate=" + String(reportInterval);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("version")) {
-    msg = "Version=" + String(APP_VERSION);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("precision")) {
-    uint8_t precision;
-    if (val != NULL) {
-      precision = val.toInt();
-      if ((precision < 9) || (precision > 12)) {
-        sn.consolePrintln("ERROR: Invalid precision value: " + val);
-      } else {
-        sn.consolePrintln("Set precision to: " + val);
-        sensors.setResolution(ambientThermometer, precision);
-        sensors.setResolution(waterThermometer, precision);
-      }
-    }
-    uint8_t ambPrec = sensors.getResolution(ambientThermometer);
-    uint8_t watPrec = sensors.getResolution(waterThermometer);
-    if (ambPrec != watPrec) {
-      msg = "ERROR: precision mismatch: " + String(ambPrec) + ", " + String(watPrec);
-      sn.consolePrintln(msg);
-      sn.mqttPub(SensorNet::ERROR, msg);
-    } else {
-      precision = watPrec;
-    }
-    msg = "precision=" + String(precision);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("reset")) {
-    sn.consolePrintln("Resetting");
-    sn.systemReset();
+  if (cbMsg.handled == true) {
+    sn.consolePrintln("Callback message handled by baseCallback");
+    // N.B. you can do other stuff in addition to what's done in the base hander here
   } else {
-    msg = "ERROR: unknown command (" + cmd + ")";
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::ERROR, msg);
+    if (cbMsg.cmd.equalsIgnoreCase("precision")) {
+      uint8_t precision;
+      if (cbMsg.val != NULL) {
+        precision = cbMsg.val.toInt();
+        if ((precision < 9) || (precision > 12)) {
+          sn.consolePrintln("ERROR: Invalid precision value: " + cbMsg.val);
+        } else {
+          sn.consolePrintln("Set precision to: " + cbMsg.val);
+          sensors.setResolution(ambientThermometer, precision);
+          sensors.setResolution(waterThermometer, precision);
+        }
+      }
+      uint8_t ambPrec = sensors.getResolution(ambientThermometer);
+      uint8_t watPrec = sensors.getResolution(waterThermometer);
+      if (ambPrec != watPrec) {
+        respMsg = "ERROR: precision mismatch: " + String(ambPrec) + ", " + String(watPrec);
+        sn.consolePrintln(respMsg);
+        sn.mqttPub(SensorNet::ERROR, respMsg);
+      } else {
+        precision = watPrec;
+      }
+      respMsg = "precision=" + String(precision);
+      sn.consolePrintln(respMsg);
+      sn.mqttPub(SensorNet::RESPONSE, respMsg);
+    } else {
+      respMsg = "ERROR: unknown command (" + cbMsg.cmd + ")";
+      msgType = SensorNet::ERROR;
+    }
+    sn.consolePrintln("Response Message: " + respMsg);
+    sn.mqttPub(msgType, respMsg);
   }
 }
-
 
 void setup() {
   int deviceCount = 0;
@@ -127,12 +95,7 @@ void setup() {
 
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
-  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
-    sn.consolePrintln("Resetting");
-    delay(60000);
-    sn.systemReset();
-  }
+  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
 
   sn.consolePrintln("Init temp sensors");
   sensors = DallasTemperature(&oneWire);
@@ -170,11 +133,11 @@ void loop() {
   String msg;
   float tempC;
   unsigned long now = millis();
-  unsigned long deltaT = now - lastReport;
+  unsigned long deltaT = now - sn.lastReport;
 
   sn.mqttRun();
 
-  if (deltaT >= reportInterval) {
+  if (deltaT >= sn.reportInterval) {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();
@@ -195,6 +158,6 @@ void loop() {
     sn.consolePrintln(msg);
     sn.consolePrintln("Sleep until next report");
 
-    lastReport = now;
+    sn.lastReport = now;
   }
 }

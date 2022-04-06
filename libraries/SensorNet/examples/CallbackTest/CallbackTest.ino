@@ -7,9 +7,13 @@
  * Notes
  *   - listener
  *     * mosquitto_sub -h localhost -t "/test/callback/#" -F "%I,%t,%p"
- *   - tester
- *     * mosquitto_pub -t "/test/callback/<ipAddr>/cmd/" -m "<cmd>"
- *     * mosquitto_pub -t "/test/callback/<ipAddr>/cmd/" -m "<cmd>=<val>"
+ *   - example tests
+ *     * issue get 'cmd' to a specific device
+ *       - mosquitto_pub -t "/test/callback/typeA/<ipAddr>/cmd" -m "<cmd>"
+ *     * issue set 'cmd' to 'val' on a specific device
+ *       - mosquitto_pub -t "/test/callback/typeA/<ipAddr>/cmd" -m "<cmd>=<val>"
+ *     * issue get 'cmd' to all devices of type '/test/callback/typeA'
+ *       - mosquitto_pub -t "/test/callback/typeA/cmd" -m "<cmd>"
  *
  ***************************************************************************/
 
@@ -22,7 +26,7 @@
 #define APP_NAME            "CallbackTest"
 #define APP_VERSION         "0.0.0"
 #define REPORT_SCHEMA       "intVar:d,strVar:s,rssi:d"
-#define TOPIC_PREFIX        "/test/callback"
+#define TOPIC_PREFIX        "/test/callback/typeA"
 #define MQTT_SERVER         "192.168.166.113"
 #define MQTT_PORT           1883
 

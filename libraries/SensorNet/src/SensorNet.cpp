@@ -122,13 +122,25 @@ void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) 
         msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
         mqttClient.publish(topics[ERROR], pubMsg);
     }
+    String multicastTopic = baseTopic.substring(0, baseTopic.lastIndexOf('/')) + "/cmd";
+    char mcTopic[MAX_MQTT_TOPIC_LEN];
+    multicastTopic.toCharArray(mcTopic, MAX_MQTT_TOPIC_LEN);
+    consolePrintln("MC topic: " + multicastTopic);
+    if (mqttClient.subscribe(mcTopic) == false) {
+        String msg = "ERROR: failed to subscribe to topic";
+        consolePrintln(msg);
+        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+        mqttClient.publish(topics[ERROR], pubMsg);
+    } else {
+        consolePrintln("Subscribed to: " + multicastTopic);
+    }
     if (mqttClient.subscribe(topics[COMMAND]) == false) {
         String msg = "ERROR: failed to subscribe to topic";
         consolePrintln(msg);
         msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
         mqttClient.publish(topics[ERROR], pubMsg);
     } else {
-        consolePrintln(String("Subscribed to: ") + String(topics[COMMAND]));
+        consolePrintln("Subscribed to: " + String(topics[COMMAND]));
     }
 
     String startupMsg = "Startup,ESP8266," +
@@ -210,7 +222,7 @@ SensorNet::MQTT_STATE SensorNet::mqttState() {
     SensorNet::MQTT_STATE state = {
         String(mqttServer),
         mqttPort,
-        String(baseTopic)
+        baseTopic
     };
     return state;
 }

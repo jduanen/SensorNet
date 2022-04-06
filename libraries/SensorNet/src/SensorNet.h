@@ -15,6 +15,7 @@
 #define BUF_SIZE                64
 #define NUM_SUB_TOPICS			5
 #define DEF_REPORT_INTERVAL     60000  // one report every minute
+#define LIB_VERSION             "1.1"
 
 #define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
 
@@ -97,6 +98,8 @@ class SensorNet {
         PubSubClient mqttClient = PubSubClient(espClient);
 
         char topics[NUM_SUB_TOPICS][MAX_MQTT_TOPIC_LEN];
+
+        void topicSubscribe(String topic);
 };
 
 #endif /*SENSOR_NET_H*/

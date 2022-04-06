@@ -93,6 +93,20 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
     return status;
 }
 
+void SensorNet::topicSubscribe(String topic) {
+  char t[MAX_MQTT_TOPIC_LEN];
+  topic.toCharArray(t, MAX_MQTT_TOPIC_LEN);
+  consolePrintln("topic: " + topic);
+  if (mqttClient.subscribe(t) == false) {
+    String msg = "ERROR: failed to subscribe to topic (" + topic + ")";
+    consolePrintln(msg);
+    msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
+    mqttClient.publish(topics[ERROR], pubMsg);
+  } else {
+    consolePrintln("Subscribed to: " + topic);
+  }
+}
+
 void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) {
     server.toCharArray(mqttServer, BUF_SIZE);
     mqttPort = port;
@@ -122,26 +136,9 @@ void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) 
         msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
         mqttClient.publish(topics[ERROR], pubMsg);
     }
-    String multicastTopic = baseTopic.substring(0, baseTopic.lastIndexOf('/')) + "/cmd";
-    char mcTopic[MAX_MQTT_TOPIC_LEN];
-    multicastTopic.toCharArray(mcTopic, MAX_MQTT_TOPIC_LEN);
-    consolePrintln("MC topic: " + multicastTopic);
-    if (mqttClient.subscribe(mcTopic) == false) {
-        String msg = "ERROR: failed to subscribe to topic";
-        consolePrintln(msg);
-        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-        mqttClient.publish(topics[ERROR], pubMsg);
-    } else {
-        consolePrintln("Subscribed to: " + multicastTopic);
-    }
-    if (mqttClient.subscribe(topics[COMMAND]) == false) {
-        String msg = "ERROR: failed to subscribe to topic";
-        consolePrintln(msg);
-        msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
-        mqttClient.publish(topics[ERROR], pubMsg);
-    } else {
-        consolePrintln("Subscribed to: " + String(topics[COMMAND]));
-    }
+    topicSubscribe("/sensors");
+    topicSubscribe(baseTopic.substring(0, baseTopic.lastIndexOf('/')) + "/cmd");
+    topicSubscribe(topics[COMMAND]);
 
     String startupMsg = "Startup,ESP8266," +
                         appName + "," +

@@ -29,6 +29,7 @@ class SensorNet {
         String appVersion = "n/a";
         String reportSchema = "n/a";
         HardwareSerial *consolePtr;
+        String libVersion = LIB_VERSION;
 
         unsigned long lastReport = 0;
         unsigned int reportInterval = DEF_REPORT_INTERVAL;

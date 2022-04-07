@@ -24,7 +24,7 @@
 
 #define VERBOSE             1
 #define APP_NAME            "CallbackTest"
-#define APP_VERSION         "0.0.0"
+#define APP_VERSION         "1.0.0"
 #define REPORT_SCHEMA       "intVar:d,strVar:s,rssi:d"
 #define TOPIC_PREFIX        "/test/callback/typeA"
 #define MQTT_SERVER         "192.168.166.113"
@@ -94,7 +94,7 @@ void setup() {
   println("MQTT");
 }
 
-#define WAIT_TIME 3000
+#define WAIT_TIME 10000
 
 unsigned int indx = 0;
 

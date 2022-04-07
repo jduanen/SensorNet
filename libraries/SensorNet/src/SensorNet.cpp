@@ -136,7 +136,7 @@ void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) 
         msg.toCharArray(pubMsg, MAX_MQTT_PUB_MSG_LEN);
         mqttClient.publish(topics[ERROR], pubMsg);
     }
-    topicSubscribe("/sensors/cmd");
+    topicSubscribe(baseTopic.substring(0, baseTopic.indexOf('/')) + "/cmd");
     topicSubscribe(baseTopic.substring(0, baseTopic.lastIndexOf('/')) + "/cmd");
     topicSubscribe(topics[COMMAND]);
 

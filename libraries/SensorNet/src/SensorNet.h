@@ -15,7 +15,7 @@
 #define BUF_SIZE                64
 #define NUM_SUB_TOPICS			5
 #define DEF_REPORT_INTERVAL     60000  // one report every minute
-#define LIB_VERSION             "1.1"
+#define LIB_VERSION             "1.2"
 
 #define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
 

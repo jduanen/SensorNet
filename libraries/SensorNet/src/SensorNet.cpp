@@ -263,11 +263,11 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
     respMsg = "Reset";
   } else if (cbMsg.cmd.equalsIgnoreCase("RSSI")) {
     SensorNet::WIFI_STATE ws = wifiState();
-    respMsg = "RSSI=" + String(ws.rssi);
+    respMsg = "RSSI=\"" + String(ws.rssi) + "\"";
   } else if (cbMsg.cmd.equalsIgnoreCase("schema")) {
-    respMsg = "Schema=" + reportSchema;
+    respMsg = "Schema=\"" + reportSchema + "\"";
   } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
-    respMsg = "Version=" + appVersion;
+    respMsg = "Version=\"" + appVersion + "\"";
   } else {
     consolePrintln("Message not handled by base handler");
     cbMsg.handled = false;

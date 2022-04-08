@@ -101,7 +101,7 @@ def run(options):
             macAddr = msgParts[1].split('/')[-2]
             if (msgParts[2] == "Startup"):
                 devicesResponded.add(macAddr)
-                logging.info(f"Got response message from : {macAddr}")
+                logging.info(f"Got response message from : {macAddr}; response: {msgParts[-1]}")
     else:
         # issue command messages to all of the selected devices
         devicesMessaged = set([])

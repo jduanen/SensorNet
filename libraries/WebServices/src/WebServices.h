@@ -23,6 +23,21 @@
 
 typedef String (htmlProcessor)(const String& var);
 
+const char index_html[] PROGMEM = R"rawliteral(
+    <!DOCTYPE HTML>
+    <html>
+    <head>
+      <title>PrcDisplay Web Server</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="icon" href="data:,">
+    </head>
+    <body>
+      <div class="topnav">
+        <h1>PrcDisplay Web Server</h1>
+      </div>
+    </body>
+    </html>)rawliteral";
+
 
 class WebServices {
 public:
@@ -35,8 +50,8 @@ public:
 private:
     AsyncElegantOtaClass AsyncElegantOTA;
 
-    AsyncWebServer *_serverPtr;
-    AsyncWebSocket *_socketPtr;
+    AsyncWebServer *_serverPtr = NULL;
+    AsyncWebSocket *_socketPtr = NULL;
 
     ConfigStorage *_csPtr;
     StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
@@ -44,8 +59,12 @@ private:
     void _print(String str);
     void _println(String str);
 
+    void _notifyClients();
     String _commonProcessor(const String& var);
-};
 
+    void _onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
+                  AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void _handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
+};
 
 #endif /*WEB_SERVICES_H*/

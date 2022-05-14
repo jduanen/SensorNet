@@ -23,6 +23,7 @@ const char* password = WLAN_PASS;
 
 WebServices webSvcs(WEB_SERVER_PORT);
 
+int loopCnt = 0;
 
 void setup() {
   delay(500);
@@ -37,8 +38,17 @@ void setup() {
   }
 
   Serial.println(WiFi.localIP());
+
+  webSvcs.setup("", "");
+//  webSvcs.setup("/config.json", null);
+//  webSvcs.setup(null, "/");
+//  webSvcs.setup("/config.json", "/");
 }
 
 void loop() {
-    webSvcs.webServicesRun();
+    webSvcs.run();
+    if ((loopCnt % 100000) == 0) {
+        Serial.println("loop: " + String(loopCnt));
+    }
+    loopCnt++;
 };

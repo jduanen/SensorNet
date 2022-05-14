@@ -35,8 +35,11 @@ void WebServices::setup(String configPath, String rootPagePath) {
         _socketPtr->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {_onEvent(server, client, type, arg, data, len);});
         _serverPtr->addHandler(_socketPtr);
-        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
-            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
+        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
+//            request->send_P(200, "text/html", index_html, _commonProcessor);
+//        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
+//            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
+            request->send_P(200, "text/html", index_html);
         });
 
     }
@@ -58,7 +61,16 @@ void WebServices::_notifyClients() {
 }
 
 String WebServices::_commonProcessor(const String& var) {
-    _println("webServices::_commonProcessor");
+  if (var == "LIB_VERSION") {
+    return (libVersion);
+  } else if (var == "IP_ADDR") {
+    return (WiFi.localIP().toString());
+  } else if (var == "SSID") {
+    return (WiFi.SSID());
+  } else if (var == "RSSI") {
+    return (String(WiFi.RSSI()));
+  }
+  return String();
 }
 
 void WebServices::_onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,

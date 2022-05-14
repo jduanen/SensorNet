@@ -5,29 +5,42 @@
 #include "WebServices.h"
 
 
+void WebServices::_print(String str) {
+  if (VERBOSE) {
+    Serial.print(str);
+  }
+}
+
+void WebServices::_println(String str) {
+  if (VERBOSE) {
+    Serial.println(str);
+  }
+}
+
 WebServices::WebServices(const uint16_t portNum) {
-    // Setup web server interface on the given port number
-    Serial.println("WebServices");
-    _webServerPtr = new AsyncWebServer(portNum);
-    _webServicesSetup();
+    _println("webServices::setup");
+    _serverPtr = new AsyncWebServer(portNum);
+    AsyncElegantOTA.begin(_serverPtr);
+    _serverPtr->begin();
 }
 
-void WebServices::_webServicesSetup() {
-    Serial.println("webServicesSetup");
-    _webServerPtr->on("/",
-                  HTTP_GET,
-                  [](AsyncWebServerRequest *request){
-                    request->send_P(200, "text/html", _indexHtml, _processor);});
-//    AsyncElegantOTA.begin(_webServerPtr);
-    _webServerPtr->begin();
+void WebServices::setup(String configPath, String rootPagePath) {
+    _println("webServices::setup");
 }
 
-// Code to be run in loop() to maintain the websockets interface
-void WebServices::webServicesRun() {
-    Serial.println("webServicesRun");
+void WebServices::run() {
+//    _println("webServices::run");
 }
 
-String WebServices::_processor(const String &var) {
-    Serial.println("_processor: " + var);
-    return String();
+String WebServices::_commonProcessor(const String& var) {
+    _println("webServices::_commonProcessor");
 }
+
+/*
+private:
+    AsyncWebServer *_serverPtr;
+    AsyncWebSocket *_socketPtr;
+
+    ConfigStorage *_csPtr;
+    StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
+*/

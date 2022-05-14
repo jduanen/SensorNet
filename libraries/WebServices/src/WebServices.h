@@ -6,29 +6,46 @@
 #define WEB_SERVICES_H
 
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
+#include <ArduinoJson.h>
+#define CS_USE_LITTLEFS     true
+#include <ConfigStorage.h>
+
+#include <AsyncElegantOTA.h>
 #include <ESPAsyncWebServer.h>
-//#include <AsyncElegantOTA.h>
 
 
+#define VERBOSE                 1
 #define LIB_VERSION             "1.0"
+#define DEF_CONFIG_PATH         "/config.json"
+#define WEB_SOCKET_PATH         "/ws"
+#define WS_JSON_DOC_SIZE        256
 
 
-const char _indexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE HTML><html>Hello World!</html>)rawliteral";
+typedef String (htmlProcessor)(const String& var);
 
 
 class WebServices {
 public:
     WebServices(const uint16_t portNum);
 
-    void webServicesRun();
+    void setup(String configPath, String rootPagePath);
+
+    void run();
 
 private:
-    AsyncWebServer *_webServerPtr;
-    void _webServicesSetup();
+    AsyncElegantOtaClass AsyncElegantOTA;
 
-    static String _processor(const String &var);
+    AsyncWebServer *_serverPtr;
+    AsyncWebSocket *_socketPtr;
+
+    ConfigStorage *_csPtr;
+    StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
+
+    void _print(String str);
+    void _println(String str);
+
+    String _commonProcessor(const String& var);
 };
+
 
 #endif /*WEB_SERVICES_H*/

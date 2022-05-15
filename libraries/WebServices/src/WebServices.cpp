@@ -24,7 +24,15 @@ WebServices::WebServices(const uint16_t portNum) {
     _serverPtr->begin();
 }
 
-void WebServices::setup(String configPath, String rootPagePath) {
+void WebServices::setup(String configPath) {
+    setup(configPath, "", "");
+}
+
+void WebServices::setup(String configPath, String commonPagePath) {
+    setup(configPath, commonPagePath, "");
+}
+
+void WebServices::setup(String configPath, String commonPagePath, String applPagePath) {
     _print("webServices::setup ");
     if (!LittleFS.begin()) {
         _println("ERROR: WebServices::setup failed to mount LittleFS");
@@ -33,8 +41,8 @@ void WebServices::setup(String configPath, String rootPagePath) {
     if (configPath != "") {
         _print("configPath=" + configPath);
     }
-    if (rootPagePath != "") {
-        _print("rootPagePath=" + rootPagePath);
+    if (commonPagePath != "") {
+        _print("commonPagePath=" + commonPagePath);
         _socketPtr = new AsyncWebSocket("/ws");
         _socketPtr->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {_onEvent(server, client, type, arg, data, len);});
@@ -46,7 +54,7 @@ void WebServices::setup(String configPath, String rootPagePath) {
             request->send(LittleFS, "/wsScripts.js", "text/javascript");
         });
 
-        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
+        _serverPtr->on(commonPagePath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, _commonProcessor);
 //        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });

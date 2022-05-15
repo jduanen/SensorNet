@@ -78,7 +78,9 @@ public:
 
     WebServices(const uint16_t portNum);
 
-    void setup(String configPath, String rootPagePath);
+    void setup(String configPath);
+    void setup(String configPath, String commonPagePath);
+    void setup(String configPath, String commonPagePath, String applPagePath);
 
     void run();
 

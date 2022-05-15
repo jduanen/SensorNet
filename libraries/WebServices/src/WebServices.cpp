@@ -26,6 +26,10 @@ WebServices::WebServices(const uint16_t portNum) {
 
 void WebServices::setup(String configPath, String rootPagePath) {
     _print("webServices::setup ");
+    if (!LittleFS.begin()) {
+        _println("ERROR: WebServices::setup failed to mount LittleFS");
+        return;
+    }
     if (configPath != "") {
         _print("configPath=" + configPath);
     }
@@ -35,13 +39,19 @@ void WebServices::setup(String configPath, String rootPagePath) {
         _socketPtr->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {_onEvent(server, client, type, arg, data, len);});
         _serverPtr->addHandler(_socketPtr);
+        _serverPtr->on("/wsStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/wsStyle.css", "text/css");
+        });
+        _serverPtr->on("/wsScripts.js", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/wsScripts.js", "text/javascript");
+        });
+
         _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, _commonProcessor);
 //        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
             request->send_P(200, "text/html", index_html);
         });
-
     }
     _println(".");
 }
@@ -55,6 +65,7 @@ void WebServices::run() {
 
 void WebServices::_notifyClients() {
   String msg = "{";
+  //// FIXME add application-specific stuff here
   msg += "\"foo\": " + String(1);
   msg += "}";
   _socketPtr->textAll(msg);

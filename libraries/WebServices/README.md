@@ -54,4 +54,9 @@ file feature.
   * Removed Hash.h from AsyncElegentOTA package
   * Removed instantiation of AsyncElegentOTA in AsyncElegentOTA.h and put it into WebSevices.h
     - sleazy hack, need to fix this properly
-  
+  * have to use old Arduino IDE to upload files to LittleFS
+    - doesn't work with the 2.0 IDE
+
+  **TODO**
+  * Fix template pre-processor function
+  * make title a template value -- application-specific

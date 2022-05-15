@@ -18,7 +18,8 @@
 //#define PASSWD          "passwd"
 
 #define CONFIG_PATH         "/config.json"
-#define ROOT_PAGE_PATH      "/"
+#define COMMON_PAGE_PATH    "/"
+#define APPL_PAGE_PATH      "/app"
 
 #define FW_UPDATE           (1 << 0)
 #define CONFIG_FILE         (1 << 1)
@@ -56,19 +57,21 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   String confPath = "";
-  String rootPagePath = "";
+  String commonPagePath = "";
+  String applPagePath = "";
 
   if ((testMode & CONFIG_FILE) == CONFIG_FILE) {
     confPath = CONFIG_PATH;
   }
   if ((testMode & COMMON_GUI) == COMMON_GUI) {
-    rootPagePath = ROOT_PAGE_PATH;
+    commonPagePath = COMMON_PAGE_PATH;
   }
   if ((testMode & APPL_GUI) == APPL_GUI) {
-    Serial.println("ERROR: TBD");
+    applPagePath = APPL_PAGE_PATH;
   }
 
-  webSvcs.setup(confPath, rootPagePath);
+  //// TODO register appl page
+  webSvcs.setup(confPath, commonPagePath, applPagePath);
 }
 
 void loop() {

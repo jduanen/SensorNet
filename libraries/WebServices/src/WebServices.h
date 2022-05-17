@@ -32,7 +32,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <title>%APPL_NAME% Web Server</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <link rel="icon" href="data:,">
-      <link rel="stylesheet" type="text/css" href="wsStyle.css">
+      <link rel="stylesheet" type="text/css" href="common/wsStyle.css">
     </head>
     <body>
       <div class="topnav">
@@ -42,9 +42,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <h2>Common Information</h2>
           <div class="vertical-center" style="line-height: 1.5em;">
-            <p class="staticState">IP Address: <span style="color:blue" id="ipAddr">%IP_ADDR%</span></p>
-            <p class="staticState">SSID: <span style="color:blue" id="connection">%SSID%</span></p>
-            <p class="staticState">RSSI: <span style="color:blue" id="rssi">%RSSI%</span></p>
+            <p>
+              <p class="staticState">Library Version: <span style="color:blue" id="libVersion">%LIB_VERSION%</span></p>
+              <p class="staticState">IP Address: <span style="color:blue" id="ipAddr">%IP_ADDR%</span></p>
+              <p class="staticState">Connected: <span style="color:blue" id="connected">%CONNECTED%</span></p>
+              <p class="staticState">RSSI: <span style="color:blue" id="rssi">%RSSI%</span></p>
+            </p>
           </div>
         </div>
         <br>
@@ -62,12 +65,13 @@ const char index_html[] PROGMEM = R"rawliteral(
             <p><button class="green-button" id="save" onclick="saveConfiguration()">Save Configuration</button></p>
           </div>
         </div>
+        <br>
         <nav>
         <a href="/app">Application-Specific</a> |
         <a href="/update">Update Firmware</a>
         </nav>
       </div>
-      <script src="wsScripts.js"></script>
+      <script src="common/wsScripts.js"></script>
     </body>
   </html>)rawliteral";
 
@@ -76,7 +80,7 @@ class WebServices {
 public:
     String libVersion = LIB_VERSION;
 
-    WebServices(const uint16_t portNum);
+    WebServices(String applName, const uint16_t portNum);
 
     void setup(String configPath);
     void setup(String configPath, String commonPagePath);
@@ -85,6 +89,8 @@ public:
     void run();
 
 private:
+    String _applName;
+
     AsyncElegantOtaClass AsyncElegantOTA;
 
     AsyncWebServer *_serverPtr = NULL;
@@ -98,10 +104,13 @@ private:
 
     void _notifyClients();
     String _commonProcessor(const String& var);
+    String _applProcessor(const String& var);
 
     void _onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
                   AwsEventType type, void *arg, uint8_t *data, size_t len);
     void _handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
+
+    String _applWSMsgHandler();
 };
 
 #endif /*WEB_SERVICES_H*/

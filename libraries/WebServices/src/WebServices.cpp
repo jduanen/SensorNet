@@ -17,8 +17,9 @@ void WebServices::_println(String str) {
   }
 }
 
-WebServices::WebServices(const uint16_t portNum) {
-    _println("webServices::setup");
+WebServices::WebServices(String applName, const uint16_t portNum) {
+    _applName = applName;
+    _println("webServices for " + _applName);
     _serverPtr = new AsyncWebServer(portNum);
     AsyncElegantOTA.begin(_serverPtr);
     _serverPtr->begin();
@@ -42,16 +43,16 @@ void WebServices::setup(String configPath, String commonPagePath, String applPag
         _print("configPath=" + configPath);
     }
     if (commonPagePath != "") {
-        _print("commonPagePath=" + commonPagePath);
         _socketPtr = new AsyncWebSocket("/ws");
         _socketPtr->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {_onEvent(server, client, type, arg, data, len);});
         _serverPtr->addHandler(_socketPtr);
-        _serverPtr->on("/wsStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(LittleFS, "/wsStyle.css", "text/css");
+        _print("commonPagePath=" + commonPagePath);
+        _serverPtr->on("/common/wsStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/common/wsStyle.css", "text/css");
         });
-        _serverPtr->on("/wsScripts.js", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(LittleFS, "/wsScripts.js", "text/javascript");
+        _serverPtr->on("/common/wsScripts.js", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/common/wsScripts.js", "text/javascript");
         });
 
         _serverPtr->on(commonPagePath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
@@ -59,6 +60,16 @@ void WebServices::setup(String configPath, String commonPagePath, String applPag
 //        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
             request->send_P(200, "text/html", index_html);
+        });
+    }
+    if (applPagePath != "") {
+        // N.B. this assumes that the common page is always enabled when an application-specific page is enabled
+        _print("applPagePath=" + applPagePath);
+        _serverPtr->on("/appl/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/appl/style.css", "text/css");
+        });
+        _serverPtr->on("/appl/wsScripts.js", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(LittleFS, "/appl/scripts.js", "text/javascript");
         });
     }
     _println(".");
@@ -71,16 +82,10 @@ void WebServices::run() {
     }
 }
 
-void WebServices::_notifyClients() {
-  String msg = "{";
-  //// FIXME add application-specific stuff here
-  msg += "\"foo\": " + String(1);
-  msg += "}";
-  _socketPtr->textAll(msg);
-}
-
 String WebServices::_commonProcessor(const String& var) {
-  if (var == "LIB_VERSION") {
+  if (var == "APPL_NAME") {
+    return (_applName);
+  } else if (var == "LIB_VERSION") {
     return (libVersion);
   } else if (var == "IP_ADDR") {
     return (WiFi.localIP().toString());
@@ -92,14 +97,20 @@ String WebServices::_commonProcessor(const String& var) {
   return String();
 }
 
+String WebServices::_applProcessor(const String& var) {
+    // N.B. This is to be overridden by application-specific code
+    // returns the actual string to be used in place of the given template value
+    return String();
+}
+
 void WebServices::_onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
-      printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      _println("WebSocket client #" + String(client->id()) + " connected from " + String(client->remoteIP().toString().c_str()));
       break;
     case WS_EVT_DISCONNECT:
-      printf("WebSocket client #%u disconnected\n", client->id());
+      _println("WebSocket client #" + String(client->id()) + " disconnected");
       break;
     case WS_EVT_DATA:
       _handleWebSocketMessage(arg, data, len);
@@ -120,7 +131,38 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
             Serial.println(error.f_str());
             return;
         };
-        Serial.println("Msg: ");
+        String m;
+        serializeJsonPretty(_wsMsg, m);
+        _println("Msg: " + m);
+        // TODO add any common actions in response to the WS message
+        String msgType = String(_wsMsg["msgType"]);
+        if (msgType.equals("query")) {
+            // NOP
+        } else if (msgType.equals("saveConf")) {
+            //// FIXME add code here
+        }
+
+        // notify clients of current state via a stringified JSON object
+        String msg = "{\"applName\": \"" + _applName + "\"";
+        msg += ", \"libVersion\": \"" + libVersion + "\"";
+        msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
+        msg += ", \"connected\": \"" + WiFi.SSID() + "\"";
+        msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
+        msg += _applWSMsgHandler();
+        msg += "}";
+        Serial.println("MSG: " + msg); //// TMP TMP TMP
+      _socketPtr->textAll(msg);
+    }
+}
+
+String WebServices::_applWSMsgHandler() {
+    // N.B. This is to be overridden by application-specific code
+    // returns serialized JSON object to be sent in client notification message
+    String msg = ", \"applName\": " + String("\"?\"");
+    msg += ", \"applVersion\": " + String("\"?\"");
+    return(msg);
+}
+
         /*
         String msgType = String(wsMsg["msgType"]);
         if (msgType.equals("led")) {
@@ -132,9 +174,6 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
             return;
         }
         */
-        _notifyClients();
-    }
-}
 
 /*
 private:

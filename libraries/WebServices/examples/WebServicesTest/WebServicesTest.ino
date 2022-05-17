@@ -13,6 +13,8 @@
 
 #define VERBOSE             1
 
+#define APPL_NAME           "WebServicesTest"
+#define APPL_VERSION        "1.0.0"
 #define WEB_SERVER_PORT     80
 //#define USER_NAME       "name"
 //#define PASSWD          "passwd"
@@ -37,10 +39,11 @@
 const char* ssid = WLAN_SSID;
 const char* password = WLAN_PASS;
 
-WebServices webSvcs(WEB_SERVER_PORT);
+WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
 int testMode = FW_UPDATE | COMMON_GUI;
 int loopCnt = 0;
+
 
 void setup() {
   delay(500);

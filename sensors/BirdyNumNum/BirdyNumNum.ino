@@ -11,7 +11,7 @@
 #include "wifi.h"
 
 #define APP_NAME        "BirdyNumNum"
-#define APP_VERSION     "1.1.0"
+#define APP_VERSION     "1.2.0"
 #define REPORT_SCHEMA   "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK     5
@@ -32,10 +32,9 @@
 
 #define SCALE           2898.41
 
-#define VERBOSE         0
+#define VERBOSE         1
 
 
-unsigned long lastReport = 0;
 unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
@@ -46,69 +45,29 @@ DallasTemperature sensors(&oneWire);
 HX711 scale;
 
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  byte *cmdPtr = payload;
-  byte *valPtr = NULL;
-  String top, cmd, val;
-
-  payload[length] = '\0';
-  for (int i = 0; i < length; i++) {
-    if (payload[i] == '=') {
-      cmdPtr[i] = '\0';
-      valPtr = &payload[i + 1];
-    }
-  }
-  top = String(topic);
-  cmd = String((char *)cmdPtr);
-  val = String((char *)valPtr);
-
-  sn.consolePrintln(top + ", " + cmd + ", " + val);
-
-  String msg;
-  if (cmd.equals("RSSI")) {
-    SensorNet::WIFI_STATE wifiState = sn.wifiState();
-    msg = "RSSI=" + String(wifiState.rssi);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("rate")) {
-    if (val != NULL) {
-      sn.consolePrintln("Set rate to " + val);
-      reportInterval = val.toInt();
-    }
-    msg = "rate=" + String(reportInterval);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("version")) {
-    msg = "Version=" + String(APP_VERSION);
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::RESPONSE, msg);
-  } else if (cmd.equals("reset")) {
-    sn.consolePrintln("Resetting");
-    sn.systemReset();
+void myCallback(char* topic, byte* payload, unsigned int length) {
+  SensorNet::callbackMessage cbMsg = sn.baseCallback(topic, payload, length);
+  if (cbMsg.handled == true) {
+    sn.consolePrintln("Callback message handled by baseCallback");
+    //// TODO test if trying to set reportInterval and issue warning that it can't be set
   } else {
-    msg = "ERROR: unknown command (" + cmd + ")";
-    sn.consolePrintln(msg);
-    sn.mqttPub(SensorNet::ERROR, msg);
+    String respMsg = "Error: unhandled command: " + cbMsg.cmd;
+    sn.consolePrintln(respMsg);
+    sn.mqttPub(SensorNet::ERROR, respMsg);
   }
 }
-
 
 void setup() {
   String msg;
   int deviceCount = 0;
 
   pinMode(CALIBRATE_PIN, INPUT);
-  sn.serialStart(&Serial, 9600, true);
+  sn.serialStart(&Serial, 19200, true);
   sn.consolePrintln(APP_NAME);
 
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
-  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX);
-  if (!sn.mqttSub(SensorNet::COMMAND, callback)) {
-    sn.consolePrintln("Resetting");
-    delay(60000);
-    sn.systemReset();
-  }
+  sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
 
   sn.consolePrintln("Init temp sensors");
   sensors.begin();
@@ -157,13 +116,13 @@ void loop() {
   int volts;
   float units;
   unsigned long now = millis();
-  unsigned long deltaT = now - lastReport;
+  unsigned long deltaT = now - sn.lastReport;
 
   sn.mqttRun();
 
   //// TODO add conditionals to power up/down the scale
 
-  if (deltaT >= reportInterval) {
+  if (deltaT >= sn.reportInterval) {
     sn.consolePrintln("Reading sensors");
 
     sensors.requestTemperatures();
@@ -188,9 +147,8 @@ void loop() {
 
     sn.mqttPub(SensorNet::DATA, msg);
     sn.consolePrintln(msg);
-
     sn.consolePrintln("Sleep until next report");
 
-    lastReport = now;
+    sn.lastReport = now;
   }
 }

@@ -10,8 +10,11 @@
 #include "SensorNet.h"
 #include "wifi.h"
 
+
+#define VERBOSE             1
+
 #define APP_NAME            "BirdyNumNum"
-#define APP_VERSION         "1.3.0"
+#define APP_VERSION         "1.3.1"
 #define REPORT_SCHEMA       "intDegC:3.2f,extDegC:3.2f,volts:4d,grams:4.2f"
 
 #define HX711_CLK           5
@@ -35,15 +38,15 @@
 
 #define DEF_SCALE_VAL       2898.41
 
-#define VERBOSE             1
+#define COMMAND_NAMES       "Calibrate,Gain,Offset,Precision,Scale,ScalePower,Tare,Units,Volts"
 
 
 typedef struct ScaleInfoStr {
-    float   units;
-    float   tare;
-    long    offset;
-    float   scale;
-    uint8_t gain;
+    float           units;
+    float           tare;
+    unsigned long   offset;
+    float           scale;
+    uint8_t         gain;
 } ScaleInfo;
 
 
@@ -51,7 +54,7 @@ bool scalePower = false;
 
 unsigned int reportInterval = DEF_REPORT_INTERVAL;
 
-SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA, COMMAND_NAMES);
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -102,52 +105,16 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
                       ",Offset=" + String(si.offset) + \
                       ",Scale=" + String(si.scale) + \
                       ",Gain=" + String(si.gain);
-        } else if (cbMsg.cmd.equalsIgnoreCase("Units")) {
-            if (cbMsg.val != NULL) {
-                sn.consolePrintln("WARNING: ignoring value");
-            }
-            float units = scale.get_units();
-            respMsg = "Units=" + String(units);
-        } else if (cbMsg.cmd.equalsIgnoreCase("Tare")) {
-            if (cbMsg.val != NULL) {
-                sn.consolePrintln("WARNING: ignoring value");
-            }
-            float tare = scale.get_tare();
-            respMsg = "Tare=" + String(tare);
+        } else if (cbMsg.cmd.equalsIgnoreCase("Gain")) {
+            uint8_t gain = scale.get_gain();
+            respMsg = "Gain=" + String(gain);
         } else if (cbMsg.cmd.equalsIgnoreCase("Offset")) {
             if (cbMsg.val != NULL) {
                 scale.set_scale(cbMsg.val.toInt());
             }
             unsigned long offset = scale.get_offset();
             respMsg = "Offset=" + String(offset);
-        } else if (cbMsg.cmd.equalsIgnoreCase("Scale")) {
-            if (cbMsg.val != NULL) {
-                scale.set_scale(cbMsg.val.toFloat());
-            }
-            float s = scale.get_scale();
-            respMsg = "Scale=" + String(s);
-        } else if (cbMsg.cmd.equalsIgnoreCase("Gain")) {
-            uint8_t gain = scale.get_gain();
-            respMsg = "Gain=" + String(gain);
-        } else if (cbMsg.cmd.equalsIgnoreCase("ScalePower")) {
-            if (cbMsg.val != NULL) {
-                if (cbMsg.val.equalsIgnoreCase("on")) {
-                    scale.power_up();
-                    scalePower = true;
-                } else if (cbMsg.val.equalsIgnoreCase("off")) {
-                    scale.power_down();
-                    scalePower = false;
-                } else {
-                    sn.consolePrintln("WARNING: ignoring invalid value (" + cbMsg.val + ")");
-                }
-            }
-            respMsg = "ScalePower=";
-            if (scalePower) {
-                respMsg += "ON";
-            } else {
-                respMsg += "OFF";
-            }
-        } else if (cbMsg.cmd.equalsIgnoreCase("precision")) {
+        } else if (cbMsg.cmd.equalsIgnoreCase("Precision")) {
             uint8_t precision;
             if (cbMsg.val != NULL) {
                 precision = cbMsg.val.toInt();
@@ -168,7 +135,43 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
                 precision = batPrec;
                 respMsg = "Precision=" + String(precision);
             }
-        } else if (cbMsg.cmd.equalsIgnoreCase("volts")) {
+        } else if (cbMsg.cmd.equalsIgnoreCase("Scale")) {
+            if (cbMsg.val != NULL) {
+                scale.set_scale(cbMsg.val.toFloat());
+            }
+            float s = scale.get_scale();
+            respMsg = "Scale=" + String(s);
+        } else if (cbMsg.cmd.equalsIgnoreCase("ScalePower")) {
+            if (cbMsg.val != NULL) {
+                if (cbMsg.val.equalsIgnoreCase("on")) {
+                    scale.power_up();
+                    scalePower = true;
+                } else if (cbMsg.val.equalsIgnoreCase("off")) {
+                    scale.power_down();
+                    scalePower = false;
+                } else {
+                    sn.consolePrintln("WARNING: ignoring invalid value (" + cbMsg.val + ")");
+                }
+            }
+            respMsg = "ScalePower=";
+            if (scalePower) {
+                respMsg += "ON";
+            } else {
+                respMsg += "OFF";
+            }
+        } else if (cbMsg.cmd.equalsIgnoreCase("Tare")) {
+            if (cbMsg.val != NULL) {
+                sn.consolePrintln("WARNING: ignoring value");
+            }
+            float tare = scale.get_tare();
+            respMsg = "Tare=" + String(tare);
+        } else if (cbMsg.cmd.equalsIgnoreCase("Units")) {
+            if (cbMsg.val != NULL) {
+                sn.consolePrintln("WARNING: ignoring value");
+            }
+            float units = scale.get_units();
+            respMsg = "Units=" + String(units);
+        } else if (cbMsg.cmd.equalsIgnoreCase("Volts")) {
             if (cbMsg.val != NULL) {
                 sn.consolePrintln("WARNING: ignoring value");
             }

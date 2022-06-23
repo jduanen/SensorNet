@@ -27,6 +27,14 @@ SensorNet::SensorNet(String name, String version, String schema) {
     reportSchema = schema;
 }
 
+SensorNet::SensorNet(String name, String version, String schema, String cmdNames) {
+    consolePtr = NULL;
+    appName = name;
+    appVersion = version;
+    reportSchema = schema;
+    _commandNames += "," + cmdNames;
+}
+
 // Initialize a serial port
 //// TODO figure out default parameters
 void SensorNet::serialStart(HardwareSerial *portPtr, uint16 baud, bool console) {
@@ -269,6 +277,8 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
         respMsg = "Schema=\"" + reportSchema + "\"";
     } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
         respMsg = "Version=\"" + appVersion + "\"";
+    } else if (cbMsg.cmd.equals("?")) {
+        respMsg = "CommandNames:" + _commandNames;
     } else {
         consolePrintln("Message not handled by base handler");
         cbMsg.handled = false;
@@ -277,4 +287,8 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
         mqttPub(SensorNet::RESPONSE, respMsg);
     }
     return cbMsg;
+}
+
+String SensorNet::commandNames() {
+    return _commandNames;
 }

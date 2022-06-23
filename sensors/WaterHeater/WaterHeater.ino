@@ -14,6 +14,9 @@
 #include "SensorNet.h"
 #include "wifi.h"
 
+
+#define VERBOSE                     1
+
 #define APP_NAME                    "WaterHeater"
 #define APP_VERSION                 "1.2.1"
 #define REPORT_SCHEMA               "waterDegC:3.2f,ambientDegC:3.2f"
@@ -33,13 +36,13 @@
 #define MQTT_SERVER                 "192.168.166.113"
 #define MQTT_PORT                   1883
 
-#define VERBOSE                     1
-
 #define MAX_CMD_LEN                 16
 #define MAX_VAL_LEN                 16
 
+#define COMMAND_NAMES               "Precision"
 
-SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA);
+
+SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA, COMMAND_NAMES);
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors;
@@ -55,7 +58,7 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
         sn.consolePrintln("Callback message handled by baseCallback");
         // N.B. you can do other stuff in addition to what's done in the base hander here
     } else {
-        if (cbMsg.cmd.equalsIgnoreCase("precision")) {
+        if (cbMsg.cmd.equalsIgnoreCase("Precision")) {
             uint8_t precision;
             if (cbMsg.val != NULL) {
                 precision = cbMsg.val.toInt();

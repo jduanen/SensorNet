@@ -65,6 +65,7 @@ public:
     SensorNet(String name);
     SensorNet(String name, String version);
     SensorNet(String name, String version, String schema);
+    SensorNet(String name, String version, String schema, String cmdNames);
 
     void(* systemReset)(void) = 0;
 
@@ -84,16 +85,18 @@ public:
 
     callbackMessage baseCallback(char* topic, byte* payload, unsigned int length);
 
+    String commandNames();
+
 private:
     byte _mac[6];
     String _macAddr;
     IPAddress _ipAddr;
     char _clientName[BUF_SIZE];
-
     char _mqttServer[BUF_SIZE];
     int _mqttPort;
     String _baseTopic;
     char _pubMsg[MAX_MQTT_PUB_MSG_LEN];
+    String _commandNames = "Rate,Reset,RSSI,Schema,Version";
 
     WiFiClient _espClient;
     PubSubClient _mqttClient = PubSubClient(_espClient);  //// FIXME dynamically allocate this

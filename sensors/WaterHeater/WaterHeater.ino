@@ -76,7 +76,7 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
       } else {
         precision = watPrec;
       }
-      respMsg = "precision=" + String(precision);
+      respMsg = "Precision=" + String(precision);
       sn.consolePrintln(respMsg);
       sn.mqttPub(SensorNet::RESPONSE, respMsg);
     } else {

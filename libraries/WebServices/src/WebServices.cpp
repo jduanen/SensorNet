@@ -99,9 +99,15 @@ void WebServices::addPage(String htmlPath, String stylePath, String scriptsPath,
     if (scriptsPath != "") {
         scriptsPath.toCharArray(pathBuffer, MAX_PATH_LENGTH);
         //// FIXME figure out how to make pre-processing work
-        _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-            request->send(LittleFS, pathBuffer, "text/javascript");
-        });
+        if (processor == nullptr) {
+            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, pathBuffer, "text/javascript");
+            });
+        } else {
+            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, pathBuffer, "text/javascript", false, processor);
+            });
+        }
     }
 /*
         _serverPtr->on(htmlPath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){

@@ -22,30 +22,47 @@ function onLoad(event) {
 function initView() {
   var jsonMsg = JSON.stringify({"msgType": "query"});
   websocket.send(jsonMsg);
-  console.log("FIXME: initView");
+  var wifiMode = "%WIFI_MODE%";
+  switch (wifiMode) {
+    case "STA":
+      var p1 = "<p class=\"staticState\">IP Address: <span style=\"color:blue\" id=\"ipAddr\">%IP_ADDR%</span></p>";
+      var p2 = "<p class=\"staticState\">Connection: <span style=\"color:blue\" id=\"connection\">%CONNECTION%</span></p>";
+      document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
+      document.getElementById("ipAddr").insertAdjacentHTML('afterend', p2);
+      break;
+    case "A_P":
+      var p1 = "<p class=\"staticState\">AP SSID: <span style=\"color:blue\" id=\"wifiApSsid\">%WIFI_AP_SSID%</span></p>";
+      document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
+      break;
+    default:
+      console.log("WARNING: invalid WIFI mode: " + wifiMode);
+  }
 }
 function onMessage(event) {
-  console.log("msgObj: " + event.data);
+  var state;
+  var elem;
   const msgObj = JSON.parse(event.data);
-  document.getElementById("libVersion").textContent = escapeHTML(msgObj.libVersion);
-  document.getElementById("ipAddr").textContent = escapeHTML(msgObj.ipAddr);
-  document.getElementById("connected").textContent = escapeHTML(msgObj.connected);
-  document.getElementById("rssi").textContent = escapeHTML(msgObj.RSSI);
+  console.log("msgObj: " + JSON.stringify(msgObj));
+  elem = document.getElementById("ssid");
+  elem.value = msgObj.ssid;
+  elem = document.getElementById("password");
+  if (msgObj.passwd != null) {
+    elem.value = rot47(msgObj.passwd);
+  } else {
+    elem.value = "";
+  }
+  document.getElementById("save").disabled = false;
+}
+function toggleCheckbox(element) {
+  element.innerHTML = element.checked ? "ON" : "OFF";
+  var jsonMsg = JSON.stringify({"msgType": element.id, "state": element.innerHTML});
+  websocket.send(jsonMsg);
 }
 function saveConfiguration() {
   var ssid = document.getElementById("ssid").value;
-  if ((typeof ssid == "undefined") || (ssid == "")) {
-    console.log("Undefined SSID, not saving");
-    return;
-  }
   var passwd = document.getElementById("password").value;
-  if ((typeof passwd == "undefined") || (passwd == "")) {
-    console.log("Undefined password, not saving");
-    return;
-  }
-  //// TODO do some simple obfuscation of the password -- e.g., rot13 so at least it's not in the clear
-  var jsonMsg = JSON.stringify({"msgType": "saveConf", "ssid": ssid, "passwd": passwd});
-  console.log("Save configuration: " + jsonMsg);  //// TMP TMP TMP
+  var jsonMsg = JSON.stringify({"msgType": "saveConf", "ssid": ssid, "passwd": rot47(passwd)});
+  document.getElementById("save").disabled = true;
   websocket.send(jsonMsg);
 }
 function escapeHTML(s) {
@@ -55,4 +72,19 @@ function escapeHTML(s) {
       .replace(/'/g, '&apos;')
       .replace(/"/g, '&quot;')
       .replace(/\//g, '&sol;');
+}
+function rot13(str) {
+  return str.split('').map(char => String.fromCharCode(char.charCodeAt(0) + (char.toLowerCase() < 'n' ? 13 : -13))).join('');
+}
+function rot47(x) {
+  var s = [];
+  for(var i = 0; (i < x.length); i++) {
+    var j = x.charCodeAt(i);
+    if ((j >= 33) && (j <= 126)) {
+      s[i] = String.fromCharCode(33 + ((j + 14) % 94));
+    } else {
+      s[i] = String.fromCharCode(j);
+    }
+  }
+  return s.join('');
 }

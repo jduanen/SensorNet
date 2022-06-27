@@ -31,7 +31,7 @@ body {
   margin: 0 auto;
 }
 .card {
-  background-color: #F8F7F9;;
+  background-color: #F8F7F9;
   box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
   padding-top:10px;
   padding-bottom:20px;
@@ -42,6 +42,39 @@ body {
   color:black;
   font-weight: bold;
 }
+.state {
+  font-size: 1.2rem;
+  color:#8c8c8c;
+  font-weight: bold;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 10px;
+}
+.switch input {
+  display: none
+}
+.slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  border-radius: 25px
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #fff;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 25px;
+}
 .vertical-center {
   margin-top: 0px;
   margin-bottom: 25px;
@@ -49,6 +82,22 @@ body {
   font-size: 1.2rem;
   color:#8c8c8c;
   font-weight: bold;
+}
+.center {
+  font-size: 1.2rem;
+  color:#8c8c8c;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+input:checked+.slider {
+  background-color: #00b300;
+}
+input:checked+.slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
 }
 .green-button {
   background-color: #4CAF50;
@@ -60,6 +109,7 @@ body {
   display: inline-block;
   font-size: 1.2rem;
 }
-nav {
-  display: block;
+.green-button:disabled {
+  background: #F5F5F5;
+  color : #C3C3C3;
 }

@@ -19,74 +19,37 @@
 #define VERBOSE                 1
 #define LIB_VERSION             "1.0"
 #define DEF_CONFIG_PATH         "/config.json"
+#define DEF_PORT_NUM            80
 #define WEB_SOCKET_PATH         "/ws"
 #define WS_JSON_DOC_SIZE        256
+#define MAX_PATH_LENGTH         80
+
+#define COMMON_STYLE_PATH       "/common/wsStyle.css"
+#define COMMON_SCRIPT_PATH      "/common/wsScripts.js"
+
+#define CALL_MEMBER_FUNC(obj, memberPtr)    ((obj).*(memberPtr))
 
 
-typedef String (htmlProcessor)(const String& var);
-
-const char index_html[] PROGMEM = R"rawliteral(
-  <!DOCTYPE HTML>
-  <html>
-    <head>
-      <title>%APPL_NAME% Web Server</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="icon" href="data:,">
-      <link rel="stylesheet" type="text/css" href="common/wsStyle.css">
-    </head>
-    <body>
-      <div class="topnav">
-        <h1>%APPL_NAME% Web Server</h1>
-      </div>
-      <div class="content">
-        <div class="card">
-          <h2>Common Information</h2>
-          <div class="vertical-center" style="line-height: 1.5em;">
-            <p>
-              <p class="staticState">Library Version: <span style="color:blue" id="libVersion">%LIB_VERSION%</span></p>
-              <p class="staticState">IP Address: <span style="color:blue" id="ipAddr">%IP_ADDR%</span></p>
-              <p class="staticState">Connected: <span style="color:blue" id="connected">%CONNECTED%</span></p>
-              <p class="staticState">RSSI: <span style="color:blue" id="rssi">%RSSI%</span></p>
-            </p>
-          </div>
-        </div>
-        <br>
-        <div class="card">
-          <h2>Common Controls</h2>
-          <div class="vertical-center" style="line-height: 1.5em;">
-            <p>Update Firmware: <a href="update">Update</a></p>
-            <p>
-              SSID: <input type="text" id="ssid">
-              <br>
-              Password: <input type="password" id="password">
-            </p>
-          </div>
-          <div class="vertical-center">
-            <p><button class="green-button" id="save" onclick="saveConfiguration()">Save Configuration</button></p>
-          </div>
-        </div>
-        <br>
-        <nav>
-        <a href="/app">Application-Specific</a> |
-        <a href="/update">Update Firmware</a>
-        </nav>
-      </div>
-      <script src="common/wsScripts.js"></script>
-    </body>
-  </html>)rawliteral";
+////typedef String (htmlProcessor)(const String& var);  #### Use AwsTemplateProcessor instead
+typedef String (*wsMsgHandler)(StaticJsonDocument<WS_JSON_DOC_SIZE>& wsMsg);
 
 
 class WebServices {
 public:
     String libVersion = LIB_VERSION;
 
+    //// FIXME replace all with this: WebServices(String applName, const uint16_t portNum=DEF_PORT_NUM, String configPath="");
+    WebServices(String applName);
     WebServices(String applName, const uint16_t portNum);
+    WebServices(String applName, const uint16_t portNum, String configPath);
 
-    void setup(String configPath);
-    void setup(String configPath, String commonPagePath);
-    void setup(String configPath, String commonPagePath, String applPagePath);
+    //// FIXME replace with this: 
+    void addPage(String htmlPath="", String stylePath="", String scriptsPath="", AwsTemplateProcessor processor=nullptr);
+    //void addPage(String htmlPath, String stylePath, String scriptsPath, AwsTemplateProcessor processor);
 
     void run();
+
+    String commonMsgHandler(StaticJsonDocument<WS_JSON_DOC_SIZE> wsMsg);
 
 private:
     String _applName;
@@ -99,18 +62,19 @@ private:
     ConfigStorage *_csPtr;
     StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
 
+//    wsMsgHandler *_msgHandlers;
+    wsMsgHandler _msgHandlers[3];
+
     void _print(String str);
     void _println(String str);
 
-    void _notifyClients();
-    String _commonProcessor(const String& var);
-    String _applProcessor(const String& var);
+    void _setup(String applName, const uint16_t portNum, String configPath);
 
+    void _notifyClients();
     void _onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
                   AwsEventType type, void *arg, uint8_t *data, size_t len);
     void _handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
-
-    String _applWSMsgHandler();
+//    static String _commonProcessor(const String& var);
 };
 
 #endif /*WEB_SERVICES_H*/

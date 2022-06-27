@@ -4,6 +4,17 @@ This library includes support for OTA firmware updates, and (optionally) a
 Web-Sockets-based Web Server and a (local-file-system-based) configuration
 file feature.
 
+##Uploading Files to LittleFS on ESP8266
+
+* Install LittleFS Uploader Plugin in Arduino IDE (1.x only)
+  - https://github.com/earlephilhower/arduino-esp8266littlefs-plugin/releases
+  - unzip and install jar file in "<sketchbook>/tools/ESP8266FS/tool/esp8266fs.jar"
+  - https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html
+* Arduino IDE (1.x)
+  - create sketch with "data/" folder containing files to upload
+  - make sure Serial Monitor is closed
+  - Tools=>ESP8266 LittleFS Data Upload
+
 **TBD**
 
 * Notes
@@ -48,6 +59,7 @@ file feature.
   - call ?() to add app-specific info/controls page
   - have separate or common local json file for common and application-specific config info?
   
+
 
   **N.B.**
 

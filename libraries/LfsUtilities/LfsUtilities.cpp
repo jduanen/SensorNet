@@ -20,7 +20,7 @@
         }
 */
 
-void listFiles(String dirPath) {
+void listFiles(const String& dirPath) {
     //// TODO add '/' if dirPath doesn't end with one
     Dir d = LittleFS.openDir(dirPath);
     while (d.next()) {

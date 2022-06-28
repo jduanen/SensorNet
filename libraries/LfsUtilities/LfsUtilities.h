@@ -14,7 +14,7 @@
 #define NUM_ITEMS(arr)  ((unsigned int)(sizeof(arr) / sizeof(arr[0])))
 
 
-void listFiles(String dirPath);
+void listFiles(const String& dirPath);
 
 void formatLFS();
 

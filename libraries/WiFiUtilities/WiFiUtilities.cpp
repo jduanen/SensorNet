@@ -18,6 +18,8 @@ IPAddress   softIPA;
 const char wifiModes[][4] = {"OFF", "STA", "A_P", "APS"};
 
 
+void (*resetFunc)(void) = 0;
+
 String rot47(String str) {
     String outStr = "";
     char oldChr, newChr;
@@ -65,7 +67,7 @@ String getWiFiMode() {
     return String(wifiModes[wifiMode]);
 }
 
-void wiFiConnect(String staSSID, String passwd, String apSSID) {
+void wiFiConnect(const String& staSSID, const String& passwd, const String& apSSID) {
     wifiMode = WIFI_STA;
     WiFi.mode(wifiMode);
     WiFi.begin(staSSID, passwd);
@@ -75,7 +77,12 @@ void wiFiConnect(String staSSID, String passwd, String apSSID) {
         delay(1000);
         Serial.println("Connecting to WiFi.." + wiFiStatusToString(WiFi.status()));
         if (i++ > MAX_WIFI_RETRIES) {
-            Serial.println("Switch to AP mode: ");
+            Serial.print("Too many attempts to connect to WiFi, ");
+            if (apSSID == "") {
+                Serial.println("restarting...");
+                resetFunc();
+            }
+            Serial.println("switching to AP mode...");
             wifiMode = WIFI_AP;
             WiFi.mode(wifiMode);
             WiFi.softAP(apSSID);

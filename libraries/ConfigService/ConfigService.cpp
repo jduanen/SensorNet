@@ -1,6 +1,8 @@
-/*
-* Library that handles application configuration
-*/
+/***************************************************************************
+ *
+ * Library that handles application configuration
+ * 
+ ***************************************************************************/
 
 //// TODO
 

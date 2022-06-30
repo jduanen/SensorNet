@@ -12,31 +12,36 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#define CS_USE_LITTLEFS     true
-#include <ConfigStorage.h>
+#include <LfsUtilities.h>
 
 
 #define VERBOSE                 1
 #define LIB_VERSION             "1.0"
 
-#define DEF_CONFIG_PATH         "/config.json"
 #define JSON_OBJ_SIZE           512
+#define MAX_PATH_LENGTH         80
+
+
+typedef StaticJsonDocument<JSON_OBJ_SIZE> ConfigJsonDoc;
 
 
 class ConfigService {
 public:
     String libVersion = LIB_VERSION;
+    ConfigJsonDoc configJsonDoc;
 
-	ConfigService(const String& configPath=DEF_CONFIG_PATH);
-    void initializeConfig(const String& configPath);
-    void updateConfig(StaticJsonDocument<JSON_OBJ_SIZE> confDoc);
+	ConfigService(const String& configPath);
+    ~ConfigService();
+    bool initializeConfig();
+    bool saveConfig();
+    void printConfig();
+    bool deleteConfig();
 
 private:
-	ConfigStorage _cs;
-	StaticJsonDocument<JSON_OBJ_SIZE> _configJson;
+    char _configPath[MAX_PATH_LENGTH];
 
-    void _saveConfig();
-}
+    bool _readConfig();
+};
 
 
 #endif /*CONFIG_SERVICE_H*/

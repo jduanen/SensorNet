@@ -4,45 +4,84 @@
  * 
  ***************************************************************************/
 
+////#include <stdexcept.h>
 #include "ConfigService.h"
 
 
+//// FIXME throw exception on failure
 ConfigService::ConfigService(const String& configPath) {
-    _cs = ConfigStorage(configPath);
-    _configDoc = _cs.get();
-    _configJson = _configDoc.as<JsonObject>();
-    if (_configJson.isNull()) {
+    configPath.toCharArray(_configPath, sizeof(_configPath));
+    if (!mountLFS()) {
+        Serial.println("ERROR: failed to mount LittleFS");
+        return;
+    }
+    if (!LittleFS.exists(_configPath)) {
         if (VERBOSE) {
-            Serial.println("No config file, initializing an empty file");
+            Serial.println("WARNING: No config file; initializing config file with an empty JSON object");
         }
-        initializeConfig(configPath);
+        if (!initializeConfig()) {
+            return;
+        }
     }
+    if (!_readConfig()) {
+        return;
+    }
+}
+
+ConfigService::~ConfigService() {
+    unmountLFS();
+}
+
+bool ConfigService::initializeConfig() {
+    deserializeJson(configJsonDoc, "{}");
+    return(saveConfig());
+}
+
+bool ConfigService::saveConfig() {
+    File f = LittleFS.open(_configPath, "w");
+    if (!f) {
+        Serial.printf("ERROR: failed to write config file: %s\n", _configPath);
+        return(false);
+    }
+    serializeJson(configJsonDoc, f);
     if (VERBOSE) {
-        Serial.println("Read config file:");
-        serializeJsonPretty(_configJson, Serial);
+        Serial.printf("Wrote serialized JSON to config file: %s\n", _configPath);
+        printConfig();
         Serial.println("");
     }
+    f.close();
+    return(true);
 }
 
-void ConfigService::initializeConfig(const String& configPath) {
-    _cs.initialize();
-    deserializeJson(_configJson, "{}");
-    _saveConfig();
-}
-
-void ConfigService::updateConfig(const StaticJsonDocument<JSON_OBJ_SIZE>& confDoc) {
-    for (JsonPair kv : confDoc) {
-        Serial.println(kv.key().c_str() + ": " + kv.value());
-    }
-    _saveConfig();
-}
-
-void ConfigService::_saveConfig() {
+void ConfigService::printConfig() {
     if (VERBOSE) {
-        Serial.println("Save config file:");
-        serializeJsonPretty(_configJson, Serial);
-        Serial.println("");
+        Serial.printf("Read and print config file: %s\n", _configPath);
     }
-    _cs.set(_configJson);
-    _cs.save();
+    printFile(_configPath);
+}
+
+bool ConfigService::deleteConfig() {
+    if (!LittleFS.remove(_configPath)) {
+        Serial.printf("ERROR: failed to read config file: %s\n", _configPath);
+        return(false);
+    }
+    configJsonDoc.clear();
+    if (VERBOSE) {
+        Serial.printf("Removed config file: %s\n", _configPath);
+    }
+    return(true);
+}
+
+bool ConfigService::_readConfig() {
+    File f = LittleFS.open(_configPath, "r");
+    if (!f) {
+        Serial.printf("ERROR: failed to read config file: %s\n", _configPath);
+        return(false);
+    }
+    deserializeJson(configJsonDoc, f);
+    if (VERBOSE) {
+        Serial.println("Read config file and deserialized JSON");
+    }
+    f.close();
+    return(true);
 }

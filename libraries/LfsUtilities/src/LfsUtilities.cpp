@@ -33,32 +33,8 @@ void unmountLFS() {
     }
 }
 
-//// FIXME must initialize localtime
-void listDir(const char *dirname) {
-    Serial.printf("Listing directory: %s\n", dirname);
-    Dir root = LittleFS.openDir(dirname);
-    while (root.next()) {
-        File f = root.openFile("r");
-        Serial.printf("  FILE: %s", root.fileName());
-        Serial.printf("  SIZE: %d", f.size());
-        time_t cr = f.getCreationTime();
-        time_t lw = f.getLastWrite();
-        f.close();
-        struct tm * tmstruct = localtime(&cr);
-        Serial.printf("  CREATION: %d-%02d-%02d %02d:%02d:%02d ",
-                      (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1,
-                      tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min,
-                      tmstruct->tm_sec);
-        tmstruct = localtime(&lw);
-        Serial.printf("  LAST WRITE: %d-%02d-%02d %02d:%02d:%02d\n",
-                      (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1,
-                      tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min,
-                      tmstruct->tm_sec);
-    }
-}
-
-bool printFile(const char *path) {
-    Serial.printf("Reading file: %s\n", path);
+bool printFile(const String& path) {
+    Serial.println("Reading file: " + path);
     File f = LittleFS.open(path, "r");
     if (!f) {
         Serial.println("ERROR: Failed to open file for reading");
@@ -73,17 +49,19 @@ bool printFile(const char *path) {
     return(true);
 }
 
-bool writeFile(const char *path, const char *contents) {
+bool writeFile(const String& path, const char *contents) {
     if (VERBOSE) {
-        Serial.printf("Writing file: %s\n", path);
+        Serial.println("Writing file: " + path);
     }
     File f = LittleFS.open(path, "w");
     if (!f) {
-        Serial.printf("ERROR: Failed to open file for writing: %s\n", path);
+        Serial.print("ERROR: Failed to open file for writing: ");
+        Serial.println(path);
         return(false);
     }
     if (!f.print(contents)) {
-        Serial.printf("ERROR: Write failed: %s\n", path);
+        Serial.print("ERROR: Write failed: ");
+        Serial.println(path);
         f.close();
         return(false);
     }
@@ -95,17 +73,18 @@ bool writeFile(const char *path, const char *contents) {
     return(true);
 }
 
-bool appendFile(const char *path, const char *contents) {
+bool appendFile(const String& path, const char *contents) {
     if (VERBOSE) {
-        Serial.printf("Appending to file: %s\n", path);
+        Serial.println("Appending to file: " + path);
     }
     File f = LittleFS.open(path, "a");
     if (!f) {
-        Serial.printf("ERROR: Failed to open file for appending: %s\n", path);
+        Serial.print("ERROR: Failed to open file for appending: ");
+        Serial.println(path);
         return(false);
     }
     if (!f.print(contents)) {
-        Serial.printf("ERROR: Append failed: %s\n", path);
+        Serial.println("ERROR: Append failed: " + path);
         f.close();
         return(false);
     }
@@ -116,11 +95,11 @@ bool appendFile(const char *path, const char *contents) {
     return(true);
 }
 
-bool renameFile(const char *srcPath, const char *dstPath) {
+bool renameFile(const String& srcPath, const String& dstPath) {
     if (VERBOSE) {
-        Serial.printf("Renaming file %s to %s\n", srcPath, srcPath);
+        Serial.println("Renaming file " + srcPath + " to " + dstPath);
     }
-    if (!LittleFS.rename(srcPath, srcPath)) {
+    if (!LittleFS.rename(srcPath, dstPath)) {
         Serial.println("ERROR: Rename failed");
         return(false);
     }
@@ -130,11 +109,11 @@ bool renameFile(const char *srcPath, const char *dstPath) {
     return(true);
 }
 
-bool deleteFile(const char *path) {
+bool deleteFile(const String& path) {
     if (VERBOSE) {
-        Serial.printf("Deleting file: %s\n", path);
+        Serial.println("Deleting file: " + path);
     }
-    if (LittleFS.remove(path)) {
+    if (!LittleFS.remove(path)) {
         Serial.println("ERROR: Delete failed");
         return(false);
     }
@@ -144,31 +123,48 @@ bool deleteFile(const char *path) {
     return(true);
 }
 
-int getFiles(const char *dirname, char *paths) {
+int getFiles(const String& dirName, char *paths) {
     //// TODO return number of files and list of files in paths
     Serial.println("TBD");
     return(0);
 }
 
-/*
 void listFiles(const String& dirPath) {
-    //// TODO add '/' if dirPath doesn't end with one
-    Dir d = LittleFS.openDir(dirPath);
-    Serial.println("LF: " + dirPath);
-    while (d.next()) {
-        if (d.isFile()) {
-            Serial.println("File: " + dirPath + d.fileName());
-        } else if (d.isDirectory()) {
-            String p = dirPath + d.fileName() + "/";
-            Serial.println("Dir: " + p);
-            listFiles(p);
-        } else {
-            Serial.println("Unknown: " + d.fileName());
+    Dir dir = LittleFS.openDir(dirPath);
+    while (dir.next()) {
+        if (dir.isFile()) {
+            Serial.println(dirPath + dir.fileName());
+        }
+        if (dir.isDirectory()) {
+            Serial.println(dirPath + dir.fileName() + "/");
+            listFiles(dirPath + dir.fileName() + "/");
         }
     }
-    Serial.println("DONE");
 }
-*/
+
+//// FIXME must initialize localtime
+void listDir(const String& dirName) {
+    Serial.println("Listing directory: " + dirName);
+    Dir root = LittleFS.openDir(dirName);
+    while (root.next()) {
+        File f = root.openFile("r");
+        Serial.print("  File: " + root.fileName() + " \t");
+        Serial.print("Size: " + String(f.size()) + " \t");
+        time_t cr = f.getCreationTime();
+        time_t lw = f.getLastWrite();
+        f.close();
+        struct tm * tmstruct = localtime(&cr);
+        Serial.printf("Creation: %d-%02d-%02d %02d:%02d:%02d \t",
+                      (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1,
+                      tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min,
+                      tmstruct->tm_sec);
+        tmstruct = localtime(&lw);
+        Serial.printf("Last Write: %d-%02d-%02d %02d:%02d:%02d\n",
+                      (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1,
+                      tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min,
+                      tmstruct->tm_sec);
+    }
+}
 
 /*
 //// TODO make this take indent level arg

@@ -10,8 +10,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#define VERBOSE             1
-#define MAX_FILENAME_LEN    32
+#define VERBOSE             0
 
 #define NUM_ITEMS(arr)  ((unsigned int)(sizeof(arr) / sizeof(arr[0])))
 
@@ -22,21 +21,21 @@ bool mountLFS();
 
 void unmountLFS();
 
-void listDir(const char *dirname);
+bool printFile(const String& path);
 
-bool printFile(const char *path);
+bool writeFile(const String& path, const char *contents);
 
-bool writeFile(const char *path, const char *contents);
+bool appendFile(const String& path, const char *contents);
 
-bool appendFile(const char *path, const char *contents);
+bool renameFile(const String& srcPath, const String &dstPath);
 
-bool renameFile(const char *srcPath, const char *dstPath);
+bool deleteFile(const String &path);
 
-bool deleteFile(const char *path);
+int getFiles(const String& dirName, char *paths);
 
-//void listFiles(const String& dirPath = "/");
+void listFiles(const String& dirPath);
 
-int getFiles(const char *dirname, char *paths);
+void listDir(const String& dirName);
 
 
 #endif /*LFS_UTILITIES_H*/

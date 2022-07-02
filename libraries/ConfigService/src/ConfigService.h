@@ -15,7 +15,10 @@
 #include <LfsUtilities.h>
 
 
+#ifndef VERBOSE
 #define VERBOSE                 1
+#endif
+
 #define LIB_VERSION             "1.0"
 
 #define JSON_OBJ_SIZE           512

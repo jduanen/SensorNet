@@ -10,7 +10,9 @@
 #include <FS.h>
 #include <LittleFS.h>
 
+#ifndef VERBOSE
 #define VERBOSE             0
+#endif
 
 #define NUM_ITEMS(arr)  ((unsigned int)(sizeof(arr) / sizeof(arr[0])))
 

@@ -16,7 +16,7 @@
 
 
 #ifndef VERBOSE
-#define VERBOSE                 1
+#define VERBOSE                 0
 #endif
 
 #define LIB_VERSION             "1.0"
@@ -44,6 +44,8 @@ private:
     char _configPath[MAX_PATH_LENGTH];
 
     bool _readConfig();
+
+    void _displayConfigDoc();
 };
 
 

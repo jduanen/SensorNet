@@ -85,3 +85,7 @@ bool ConfigService::_readConfig() {
     f.close();
     return(true);
 }
+
+void ConfigService::_displayConfigDoc() {
+    serializeJsonPretty(configJsonDoc, Serial);
+}

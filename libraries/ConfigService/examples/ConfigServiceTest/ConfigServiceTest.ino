@@ -63,7 +63,7 @@ void setup() {
     Serial.println(APP_NAME);
     Serial.println("==========================");
 
-    if (true) {
+    if (false) {
         Serial.println("Formatting LittleFS");
         formatLFS();
     }

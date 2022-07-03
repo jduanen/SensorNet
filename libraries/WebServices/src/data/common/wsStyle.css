@@ -77,8 +77,8 @@ body {
 }
 .vertical-center {
   margin-top: 0px;
-  margin-bottom: 25px;
-  line-height: 2em;
+  margin-bottom: 0px;
+  line-height: 1.5em;
   font-size: 1.2rem;
   color:#8c8c8c;
   font-weight: bold;

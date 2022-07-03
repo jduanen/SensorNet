@@ -11,9 +11,12 @@
 #include "WiFiUtilities.h"
 #include "WebServices.h"
 #include "LfsUtilities.h"
+#include "ConfigService.h"
 
 
+#ifndef VERBOSE
 #define VERBOSE             1
+#endif
 
 #define APPL_NAME           "WebServicesTest"
 #define APPL_VERSION        "1.0.0"
@@ -23,13 +26,7 @@
 //#define USER_NAME           "name"
 //#define PASSWD              "passwd"
 
-/*
 #define CONFIG_PATH         "/config.json"
-#define CONFIG_FILE         (1 << 1)    // test configuration feature
-    if ((testMode & CONFIG_FILE) == CONFIG_FILE) {
-        confPath = CONFIG_PATH;
-    }
-*/
 
 #define COMMON_PAGE_PATH    "/index.html"
 #define APPL_PAGE_PATH      "/appl"
@@ -48,7 +45,6 @@ ConfigState configState = {
   String(WLAN_SSID),
   String(rot47(WLAN_PASS)),
 };
-
 
 WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
@@ -85,23 +81,46 @@ String processPage(const String& var) {
     return String();
 }
 
+void config() {
+    bool dirty = false;
+    ConfigService cs = ConfigService(CONFIG_PATH);
+
+    if (!cs.configJsonDoc.containsKey("ssid")) {
+        cs.configJsonDoc["ssid"] = configState.ssid;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("passwd")) {
+        cs.configJsonDoc["passwd"] = configState.passwd;
+        dirty = true;
+    }
+    if (dirty) {
+        cs.saveConfig();
+    }
+    cs.printConfig();
+
+    configState.ssid = cs.configJsonDoc["ssid"].as<String>();
+    configState.passwd = cs.configJsonDoc["passwd"].as<String>();
+}
+
 void setup() {
     delay(500);
     Serial.begin(19200);
     delay(500);
     Serial.println("\nBEGIN");
 
-    //// FIXME use the config library
-    String confPath = "";
-
     //// FIXME 
     if (false) {
         // clear the local file system
         formatLFS();
     }
+    config();
 
-    Serial.println("Local files: ");
+    Serial.println("Local Files:");
+    mountLFS();
     listFiles("/");
+    Serial.println("----");
+    listFilesLong("/");
+    unmountLFS();
 
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
@@ -116,8 +135,8 @@ void setup() {
 
 void loop() {
     webSvcs.run();
-    if ((loopCnt % 500000) == 0) {
-        Serial.println("loop: " + String(loopCnt));
+    if ((loopCnt % 5000000) == 0) {
+        Serial.printf("loop: %d\n", loopCnt);
     }
     loopCnt++;
 };

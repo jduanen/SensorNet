@@ -17,19 +17,7 @@ void WebServices::_println(String str) {
   }
 }
 
-WebServices::WebServices(String applName) {
-    _setup(applName, DEF_PORT_NUM, "");
-}
-
-WebServices::WebServices(String applName, const uint16_t portNum) {
-    _setup(applName, portNum, "");
-}
-
-WebServices::WebServices(String applName, const uint16_t portNum, String configPath) {
-    _setup(applName, portNum, configPath);
-}
-
-void WebServices::_setup(String applName, const uint16_t portNum, String configPath) {
+WebServices::WebServices(const String& applName, const uint16_t portNum, const String& configPath) {
     _applName = applName;
     _print("webServices for " + _applName + ", port number: " + String(portNum));
     if (configPath == "") {
@@ -47,7 +35,7 @@ void WebServices::_setup(String applName, const uint16_t portNum, String configP
     }
 }
 
-void WebServices::addPage(String htmlPath, String stylePath, String scriptsPath, AwsTemplateProcessor processor) {
+void WebServices::addPage(const String& htmlPath, const String& stylePath, const String& scriptsPath, AwsTemplateProcessor processor) {
     if ((htmlPath == "") && (stylePath == "") && (scriptsPath == "")) {
         Serial.println("ERROR: all paths are empty");
         return;
@@ -74,38 +62,34 @@ void WebServices::addPage(String htmlPath, String stylePath, String scriptsPath,
     }
 
     // "/index.html"
-    char pathBuffer[MAX_PATH_LENGTH];
     if (htmlPath != "") {
-        htmlPath.toCharArray(pathBuffer, MAX_PATH_LENGTH);
         //// FIXME figure out how to make pre-processing work
         if (processor == nullptr) {
-            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, pathBuffer, "text/html");
+            _serverPtr->on(htmlPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, htmlPath.c_str(), "text/html");
             });
         } else {
-            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, pathBuffer, "text/html", false, processor);
+            _serverPtr->on(htmlPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, htmlPath.c_str(), "text/html", false, processor);
             });
         }
     }
     // "/common/wsStyle.css"
     if (stylePath != "") {
-        stylePath.toCharArray(pathBuffer, MAX_PATH_LENGTH);
-        _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-            request->send(LittleFS, pathBuffer, "text/css");
+        _serverPtr->on(stylePath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
+            request->send(LittleFS, stylePath.c_str(), "text/css");
         });
     }
     // "/common/wsScripts.js"
     if (scriptsPath != "") {
-        scriptsPath.toCharArray(pathBuffer, MAX_PATH_LENGTH);
         //// FIXME figure out how to make pre-processing work
         if (processor == nullptr) {
-            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, pathBuffer, "text/javascript");
+            _serverPtr->on(scriptsPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, scriptsPath.c_str(), "text/javascript");
             });
         } else {
-            _serverPtr->on(pathBuffer, HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, pathBuffer, "text/javascript", false, processor);
+            _serverPtr->on(scriptsPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
+                request->send(LittleFS, scriptsPath.c_str(), "text/javascript", false, processor);
             });
         }
     }

@@ -142,13 +142,32 @@ void listFiles(const String& dirPath) {
     }
 }
 
+String _indent(uint8_t num) {
+    //// TODO assert num >= 0
+    char s[num];
+    for (int i = 0; (i < num); i++) {
+        s[i] = ' ';
+    }
+    s[num] = 0;
+    return(String(s));
+}
+
 //// FIXME must initialize localtime
-void listDir(const String& dirName) {
-    Serial.println("Listing directory: " + dirName);
-    Dir root = LittleFS.openDir(dirName);
+//// TODO add arg for indent and indent directories
+void listFilesLong(const String& dirPath, uint8_t indent) {
+    Dir root = LittleFS.openDir(dirPath);
     while (root.next()) {
         File f = root.openFile("r");
-        Serial.print("  File: " + root.fileName() + " \t");
+        if (root.isFile()) {
+            Serial.print(_indent(indent) + root.fileName() + " \t");
+        } else if (root.isDirectory()) {
+            Serial.println(_indent(indent) + root.fileName() + "/ \t");
+            listFilesLong(dirPath + root.fileName() + "/", (indent + 2));
+            continue;
+        } else {
+            Serial.print("ERROR: Unknown file type: " + root.fileName());
+            continue;
+        }
         Serial.print("Size: " + String(f.size()) + " \t");
         time_t cr = f.getCreationTime();
         time_t lw = f.getLastWrite();

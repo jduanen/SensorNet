@@ -37,7 +37,7 @@ int getFiles(const String& dirName, char *paths);
 
 void listFiles(const String& dirPath);
 
-void listDir(const String& dirName);
+void listFilesLong(const String& dirPath, uint8_t indent=2);
 
 
 #endif /*LFS_UTILITIES_H*/

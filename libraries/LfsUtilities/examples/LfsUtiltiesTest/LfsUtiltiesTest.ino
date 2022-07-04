@@ -41,7 +41,7 @@ void setup() {
         halt();
     }
     Serial.println("List Directory:");
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.unmountLFS();
     Serial.println("------------------------");
 
@@ -49,13 +49,13 @@ void setup() {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.printFile(f1);
     lfs.writeFile(f1, "Hello ");
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.printFile(f1);
     lfs.appendFile(f1, "World!\n");
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.printFile(f1);
     lfs.unmountLFS();
     Serial.println("------------------------");
@@ -64,7 +64,7 @@ void setup() {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.printFile(f1);
     Serial.println("Adding new file: " + f3);
     lfs.writeFile(f3, "New File");
@@ -75,16 +75,16 @@ void setup() {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     Serial.println("New file contents:");
     lfs.printFile(f3);
     Serial.println("Rename file: " + f1 + " to " + f2);
     lfs.renameFile(f1, f2);
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.printFile(f2);
     Serial.println("Delete file: " + f2);
     lfs.deleteFile(f2);
-    lfs.listFiles("/");
+    lfs.listFilesLong("/");
     lfs.unmountLFS();
     Serial.println("------------------------");
 
@@ -92,8 +92,8 @@ void setup() {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    Serial.println("listFiles:");
-    lfs.listFiles("/");
+    Serial.println("listFilesLong:");
+    lfs.listFilesLong("/");
     lfs.unmountLFS();
     Serial.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 }

@@ -17,27 +17,34 @@
 #define NUM_ITEMS(arr)  ((unsigned int)(sizeof(arr) / sizeof(arr[0])))
 
 
-void formatLFS();
+class LfsUtilities {
+public:
+    LfsUtilities();
+    ~LfsUtilities();
 
-bool mountLFS();
+    void formatLFS();
 
-void unmountLFS();
+    bool mountLFS();
+    void unmountLFS();
 
-bool printFile(const String& path);
+    bool printFile(const String& path);
+    bool writeFile(const String& path, const char *contents);
+    bool appendFile(const String& path, const char *contents);
+    bool renameFile(const String& srcPath, const String &dstPath);
+    bool deleteFile(const String &path);
 
-bool writeFile(const String& path, const char *contents);
+    //int getFiles(const String& dirName, char *paths);
 
-bool appendFile(const String& path, const char *contents);
+    void listFiles(const String& dirPath);
+    void listFilesLong(const String& dirPath, uint8_t indent=2);
 
-bool renameFile(const String& srcPath, const String &dstPath);
+private:
+    bool _verbose = VERBOSE;
 
-bool deleteFile(const String &path);
-
-int getFiles(const String& dirName, char *paths);
-
-void listFiles(const String& dirPath);
-
-void listFilesLong(const String& dirPath, uint8_t indent=2);
+    String _indent(uint8_t num);
+    void _print(String str);
+    void _println(String str);
+};
 
 
 #endif /*LFS_UTILITIES_H*/

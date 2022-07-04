@@ -8,39 +8,41 @@
 #include "LfsUtilities.h"
 
 
-void formatLFS() {
-    if (VERBOSE) {
-        Serial.println("Formatting -- erasing all local files");
-    }
+LfsUtilities::LfsUtilities() {
+    mountLFS();
+}
+
+LfsUtilities::~LfsUtilities() {
+    unmountLFS();
+}
+
+void LfsUtilities::formatLFS() {
+    _println("Formatting -- erasing all local files");
     LittleFS.format();
 }
 
-bool mountLFS() {
+bool LfsUtilities::mountLFS() {
     bool r = LittleFS.begin();
     if (!r) {
         Serial.println("ERROR: failed to mount LittleFS");
     }
-    if (VERBOSE) {
-        Serial.println("Mounted LittleFS");
-    }
+    _println("Mounted LittleFS");
     return(r);
 }
 
-void unmountLFS() {
+void LfsUtilities::unmountLFS() {
     LittleFS.end();
-    if (VERBOSE) {
-        Serial.println("Unmounted LittleFS");
-    }
+    _println("Unmounted LittleFS");
 }
 
-bool printFile(const String& path) {
-    Serial.println("Reading file: " + path);
+bool LfsUtilities::printFile(const String& path) {
+    _println("Reading file: " + path);
     File f = LittleFS.open(path, "r");
     if (!f) {
         Serial.println("ERROR: Failed to open file for reading");
         return(false);
     }
-    Serial.print("Read from file: ");
+    _print("Read from file: ");
     while (f.available()) {
         Serial.write(f.read());
     }
@@ -49,10 +51,8 @@ bool printFile(const String& path) {
     return(true);
 }
 
-bool writeFile(const String& path, const char *contents) {
-    if (VERBOSE) {
-        Serial.println("Writing file: " + path);
-    }
+bool LfsUtilities::writeFile(const String& path, const char *contents) {
+    _println("Writing file: " + path);
     File f = LittleFS.open(path, "w");
     if (!f) {
         Serial.print("ERROR: Failed to open file for writing: ");
@@ -65,18 +65,14 @@ bool writeFile(const String& path, const char *contents) {
         f.close();
         return(false);
     }
-    if (VERBOSE) {
-        Serial.println("File written");
-    }
+    _println("File written");
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
     f.close();
     return(true);
 }
 
-bool appendFile(const String& path, const char *contents) {
-    if (VERBOSE) {
-        Serial.println("Appending to file: " + path);
-    }
+bool LfsUtilities::appendFile(const String& path, const char *contents) {
+    _println("Appending to file: " + path);
     File f = LittleFS.open(path, "a");
     if (!f) {
         Serial.print("ERROR: Failed to open file for appending: ");
@@ -88,48 +84,40 @@ bool appendFile(const String& path, const char *contents) {
         f.close();
         return(false);
     }
-    if (VERBOSE) {
-        Serial.println("Message appended");
-    }
+    _println("Message appended");
     f.close();
     return(true);
 }
 
-bool renameFile(const String& srcPath, const String& dstPath) {
-    if (VERBOSE) {
-        Serial.println("Renaming file " + srcPath + " to " + dstPath);
-    }
+bool LfsUtilities::renameFile(const String& srcPath, const String& dstPath) {
+    _println("Renaming file " + srcPath + " to " + dstPath);
     if (!LittleFS.rename(srcPath, dstPath)) {
         Serial.println("ERROR: Rename failed");
         return(false);
     }
-    if (VERBOSE) {
-        Serial.println("File renamed");
-    }
+    _println("File renamed");
     return(true);
 }
 
-bool deleteFile(const String& path) {
-    if (VERBOSE) {
-        Serial.println("Deleting file: " + path);
-    }
+bool LfsUtilities::deleteFile(const String& path) {
+    _println("Deleting file: " + path);
     if (!LittleFS.remove(path)) {
         Serial.println("ERROR: Delete failed");
         return(false);
     }
-    if (VERBOSE) {
-        Serial.println("File deleted");
-    }
+    _println("File deleted");
     return(true);
 }
 
-int getFiles(const String& dirName, char *paths) {
+/*
+int LfsUtilities::getFiles(const String& dirName, char *paths) {
     //// TODO return number of files and list of files in paths
     Serial.println("TBD");
     return(0);
 }
+*/
 
-void listFiles(const String& dirPath) {
+void LfsUtilities::listFiles(const String& dirPath) {
     Dir dir = LittleFS.openDir(dirPath);
     while (dir.next()) {
         if (dir.isFile()) {
@@ -142,19 +130,8 @@ void listFiles(const String& dirPath) {
     }
 }
 
-String _indent(uint8_t num) {
-    //// TODO assert num >= 0
-    char s[num];
-    for (int i = 0; (i < num); i++) {
-        s[i] = ' ';
-    }
-    s[num] = 0;
-    return(String(s));
-}
-
 //// FIXME must initialize localtime
-//// TODO add arg for indent and indent directories
-void listFilesLong(const String& dirPath, uint8_t indent) {
+void LfsUtilities::listFilesLong(const String& dirPath, uint8_t indent) {
     Dir root = LittleFS.openDir(dirPath);
     while (root.next()) {
         File f = root.openFile("r");
@@ -185,15 +162,24 @@ void listFilesLong(const String& dirPath, uint8_t indent) {
     }
 }
 
-/*
-//// TODO make this take indent level arg
-        String paths[] = {COMMON_PAGE_PATH, COMMON_STYLE_PATH, COMMON_SCRIPT_PATH};
-        for (int i = 0; (i < NUM_ITEMS(paths)); i++) {
-            Serial.print(paths[i]);
-            if (LittleFS.exists(paths[i]) == false) {
-                Serial.println(": file not found");
-            } else {
-                Serial.println(": file exists");
-            }
-        }
-*/
+String LfsUtilities::_indent(uint8_t num) {
+    //// TODO assert num >= 0
+    char s[num];
+    for (int i = 0; (i < num); i++) {
+        s[i] = ' ';
+    }
+    s[num] = 0;
+    return(String(s));
+}
+
+void LfsUtilities::_print(String str) {
+  if (_verbose) {
+    Serial.print(str);
+  }
+}
+
+void LfsUtilities::_println(String str) {
+  if (_verbose) {
+    Serial.println(str);
+  }
+}

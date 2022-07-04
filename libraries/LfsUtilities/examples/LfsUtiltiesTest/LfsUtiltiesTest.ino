@@ -9,8 +9,11 @@
 
 
 #define VERBOSE         1
-#define APP_NAME        "LfsUtilitiesTest"
+#define APP_NAME        "lfsTest"
 #define APP_VERSION     "1.0.0"
+
+
+LfsUtilities lfs;
 
 
 void halt() {
@@ -29,69 +32,69 @@ void setup() {
     const String f3 = "/newfile.txt";
 
     if (true) {
-        formatLFS();
+        lfs.formatLFS();
     }
     Serial.println("vvvvvvvvvvvvvvvvvvvvvvvv");
 
-    if (!mountLFS()) {
+    if (!lfs.mountLFS()) {
         Serial.println("LittleFS mount failed");
         halt();
     }
     Serial.println("List Directory:");
-    listDir("/");
-    unmountLFS();
+    lfs.listFiles("/");
+    lfs.unmountLFS();
     Serial.println("------------------------");
 
-    if (!mountLFS()) {
+    if (!lfs.mountLFS()) {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    listDir("/");
-    printFile(f1);
-    writeFile(f1, "Hello ");
-    listDir("/");
-    printFile(f1);
-    appendFile(f1, "World!\n");
-    listDir("/");
-    printFile(f1);
-    unmountLFS();
+    lfs.listFiles("/");
+    lfs.printFile(f1);
+    lfs.writeFile(f1, "Hello ");
+    lfs.listFiles("/");
+    lfs.printFile(f1);
+    lfs.appendFile(f1, "World!\n");
+    lfs.listFiles("/");
+    lfs.printFile(f1);
+    lfs.unmountLFS();
     Serial.println("------------------------");
 
-    if (!mountLFS()) {
+    if (!lfs.mountLFS()) {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    listDir("/");
-    printFile(f1);
+    lfs.listFiles("/");
+    lfs.printFile(f1);
     Serial.println("Adding new file: " + f3);
-    writeFile(f3, "New File");
-    unmountLFS();
+    lfs.writeFile(f3, "New File");
+    lfs.unmountLFS();
     Serial.println("------------------------");
 
-    if (!mountLFS()) {
+    if (!lfs.mountLFS()) {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    listDir("/");
+    lfs.listFiles("/");
     Serial.println("New file contents:");
-    printFile(f3);
+    lfs.printFile(f3);
     Serial.println("Rename file: " + f1 + " to " + f2);
-    renameFile(f1, f2);
-    listDir("/");
-    printFile(f2);
+    lfs.renameFile(f1, f2);
+    lfs.listFiles("/");
+    lfs.printFile(f2);
     Serial.println("Delete file: " + f2);
-    deleteFile(f2);
-    listDir("/");
-    unmountLFS();
+    lfs.deleteFile(f2);
+    lfs.listFiles("/");
+    lfs.unmountLFS();
     Serial.println("------------------------");
 
-    if (!mountLFS()) {
+    if (!lfs.mountLFS()) {
         Serial.println("LittleFS mount failed");
         halt();
     }
-    Serial.println("ListFiles:");
-    listFiles("/");
-    unmountLFS();
+    Serial.println("listFiles:");
+    lfs.listFiles("/");
+    lfs.unmountLFS();
     Serial.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 }
 

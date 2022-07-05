@@ -6,7 +6,6 @@
 
 #include <Arduino.h>
 #include "ConfigService.h"
-#include "LfsUtilities.h"
 
 
 #define APP_NAME        "ConfigServiceTest"
@@ -98,16 +97,16 @@ void setup() {
 
     if (false) {
         Serial.println("Formatting LittleFS");
-        lfs.formatLFS();
+        cs.format();
     }
-    lfs.listFilesLong("/");
+    cs.listFiles("/");
     Serial.println("==========================");
 
     if (true) {
         // should create an empty config file as none exists
         Serial.println("1vvvvvvvvvvvvvvvvvvvvvvvvvv1");
         cs.open(CONFIG_PATH);
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         cs.close();
     }
 
@@ -121,40 +120,40 @@ void setup() {
         cs.configJsonDoc["i"] = configSubState.i;
         cs.configJsonDoc["c"] = configSubState.c;
         cs.saveConfig();
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         cs.close();
     }
 
     if (true) {
         Serial.println("3vvvvvvvvvvvvvvvvvvvvvvvvvv3");
         cs.open(CONFIG_PATH);
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         Serial.print("Contents of config file: ");
         cs.printConfig();
         Serial.println("Initialize with the full config");
         initConfig(&configState);
         cs.saveConfig();
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         cs.close();
     }
 
     if (true) {
         Serial.println("4vvvvvvvvvvvvvvvvvvvvvvvvvv4");
         cs.open(CONFIG_PATH);
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         Serial.print("Contents of config file: ");
         cs.printConfig();
         Serial.println("Initialize with the full config");
         setConfig(&configState);
         cs.saveConfig();
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         cs.close();
     }
 
     if (true) {
         Serial.println("5vvvvvvvvvvvvvvvvvvvvvvvvvv5");
         cs.open(CONFIG_PATH);
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         Serial.print("Contents of complete config file: ");
         cs.printConfig();
         Serial.println("Update the config");
@@ -163,7 +162,7 @@ void setup() {
         configState.b = !configState.b;
         setConfig(&configState);
         cs.saveConfig();
-        lfs.listFilesLong("/");
+        cs.listFiles("/");
         cs.close();
     }
 

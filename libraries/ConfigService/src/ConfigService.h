@@ -35,6 +35,8 @@ public:
 
     bool open(const String& configPath);
     void close();
+    void format();
+    void listFiles(const String& path);
     bool initializeConfig();
     bool saveConfig();
     void printConfig();

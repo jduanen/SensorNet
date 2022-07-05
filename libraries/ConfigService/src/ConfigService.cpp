@@ -49,6 +49,14 @@ void ConfigService::close() {
     lfs.unmountLFS();
 }
 
+void ConfigService::format() {
+    lfs.formatLFS();
+}
+
+void ConfigService::listFiles(const String& path) {
+    lfs.listFilesLong(path);
+}
+
 bool ConfigService::initializeConfig() {
     deserializeJson(configJsonDoc, "{}");
     return(saveConfig());

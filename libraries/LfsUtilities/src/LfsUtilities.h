@@ -10,9 +10,6 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#ifndef VERBOSE
-#define VERBOSE             0
-#endif
 
 #define NUM_ITEMS(arr)  ((unsigned int)(sizeof(arr) / sizeof(arr[0])))
 
@@ -21,6 +18,7 @@ class LfsUtilities {
 public:
     LfsUtilities();
     ~LfsUtilities();
+    static LfsUtilities &getInstance();
 
     void formatLFS();
 
@@ -39,12 +37,15 @@ public:
     void listFilesLong(const String& dirPath, uint8_t indent=2);
 
 private:
-    bool _verbose = VERBOSE;
+    bool _verbose = true;
 
     String _indent(uint8_t num);
     void _print(String str);
     void _println(String str);
 };
+
+
+extern LfsUtilities &lfs;
 
 
 #endif /*LFS_UTILITIES_H*/

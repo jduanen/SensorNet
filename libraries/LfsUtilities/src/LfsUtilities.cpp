@@ -16,6 +16,11 @@ LfsUtilities::~LfsUtilities() {
     unmountLFS();
 }
 
+LfsUtilities &LfsUtilities::getInstance() {
+    static LfsUtilities instance;
+    return(instance);
+}
+
 void LfsUtilities::formatLFS() {
     _println("Formatting -- erasing all local files");
     LittleFS.format();
@@ -183,3 +188,6 @@ void LfsUtilities::_println(String str) {
     Serial.println(str);
   }
 }
+
+
+LfsUtilities &lfs {LfsUtilities::getInstance()};

@@ -8,12 +8,8 @@
 #include "LfsUtilities.h"
 
 
-#define VERBOSE         1
 #define APP_NAME        "lfsTest"
 #define APP_VERSION     "1.0.0"
-
-
-LfsUtilities lfs;
 
 
 void halt() {

@@ -9,13 +9,9 @@
 #include "LfsUtilities.h"
 
 
-#ifndef VERBOSE
-#define VERBOSE         1
-#endif
 #define APP_NAME        "ConfigServiceTest"
 #define APP_VERSION     "1.0.0"
 #define CONFIG_PATH     "/config.json"
-
 
 
 typedef struct {
@@ -54,42 +50,42 @@ void halt() {
 
 //// TODO move this to subclass of ConfigService and call them as methods
 // Use values from local struct if corresponding value not found in config doc
-void initConfig(ConfigService *csPtr, ConfigState *structPtr) {
-    if (!csPtr->configJsonDoc.containsKey("str")) {
-        csPtr->configJsonDoc["str"] = structPtr->str;
+void initConfig(ConfigState *structPtr) {
+    if (!cs.configJsonDoc.containsKey("str")) {
+        cs.configJsonDoc["str"] = structPtr->str;
     }
-    if (!csPtr->configJsonDoc.containsKey("i")) {
-        csPtr->configJsonDoc["i"] = structPtr->i;
+    if (!cs.configJsonDoc.containsKey("i")) {
+        cs.configJsonDoc["i"] = structPtr->i;
     }
-    if (!csPtr->configJsonDoc.containsKey("a")) {
-        csPtr->configJsonDoc["a"] = structPtr->a;
+    if (!cs.configJsonDoc.containsKey("a")) {
+        cs.configJsonDoc["a"] = structPtr->a;
     }
-    if (!csPtr->configJsonDoc.containsKey("b")) {
-        csPtr->configJsonDoc["b"] = structPtr->b;
+    if (!cs.configJsonDoc.containsKey("b")) {
+        cs.configJsonDoc["b"] = structPtr->b;
     }
-    if (!csPtr->configJsonDoc.containsKey("c")) {
-        csPtr->configJsonDoc["c"] = structPtr->c;
+    if (!cs.configJsonDoc.containsKey("c")) {
+        cs.configJsonDoc["c"] = structPtr->c;
     }
 }
 
 //// TODO move this to subclass of ConfigService and call them as methods
 // Load config doc with values from local struct
-void setConfig(ConfigService *csPtr, ConfigState *structPtr) {
-    csPtr->configJsonDoc["str"] = structPtr->str;
-    csPtr->configJsonDoc["i"] = structPtr->i;
-    csPtr->configJsonDoc["a"] = structPtr->a;
-    csPtr->configJsonDoc["b"] = structPtr->b;
-    csPtr->configJsonDoc["c"] = structPtr->c;
+void setConfig(ConfigState *structPtr) {
+    cs.configJsonDoc["str"] = structPtr->str;
+    cs.configJsonDoc["i"] = structPtr->i;
+    cs.configJsonDoc["a"] = structPtr->a;
+    cs.configJsonDoc["b"] = structPtr->b;
+    cs.configJsonDoc["c"] = structPtr->c;
 }
 
 //// TODO move this to subclass of ConfigService and call them as methods
 // Load local struct with values from config doc
-void getConfig(ConfigService *csPtr, ConfigState *structPtr) {
+void getConfig(ConfigState *structPtr) {
 //    structPtr->str = csPtr->configJsonDoc["str"];
-    structPtr->i = csPtr->configJsonDoc["i"];
-    structPtr->a = csPtr->configJsonDoc["a"];
-    structPtr->b = csPtr->configJsonDoc["b"];
-    structPtr->c = csPtr->configJsonDoc["c"];
+    structPtr->i = cs.configJsonDoc["i"];
+    structPtr->a = cs.configJsonDoc["a"];
+    structPtr->b = cs.configJsonDoc["b"];
+    structPtr->c = cs.configJsonDoc["c"];
 }
 
 void setup() {
@@ -100,77 +96,83 @@ void setup() {
     Serial.println(APP_NAME);
     Serial.println("==========================");
 
-    if (true) {
+    if (false) {
         Serial.println("Formatting LittleFS");
-        formatLFS();
+        lfs.formatLFS();
     }
-    listDir("/");
+    lfs.listFilesLong("/");
     Serial.println("==========================");
 
     if (true) {
         // should create an empty config file as none exists
         Serial.println("1vvvvvvvvvvvvvvvvvvvvvvvvvv1");
-        ConfigService cs = ConfigService(CONFIG_PATH);
-        listDir("/");
+        cs.open(CONFIG_PATH);
+        lfs.listFilesLong("/");
+        cs.close();
     }
 
     if (true) {
         // initialize the config file with a subset of the fields
         Serial.println("2vvvvvvvvvvvvvvvvvvvvvvvvvv2");
-        ConfigService cs = ConfigService(CONFIG_PATH);
+        cs.open(CONFIG_PATH);
         Serial.println("Contents of config file:");
         cs.printConfig();
         Serial.println("Initialize subset of the config");
         cs.configJsonDoc["i"] = configSubState.i;
         cs.configJsonDoc["c"] = configSubState.c;
         cs.saveConfig();
-        listDir("/");
+        lfs.listFilesLong("/");
+        cs.close();
     }
 
     if (true) {
         Serial.println("3vvvvvvvvvvvvvvvvvvvvvvvvvv3");
-        ConfigService cs = ConfigService(CONFIG_PATH);
-        listDir("/");
+        cs.open(CONFIG_PATH);
+        lfs.listFilesLong("/");
         Serial.print("Contents of config file: ");
         cs.printConfig();
         Serial.println("Initialize with the full config");
-        initConfig(&cs, &configState);
+        initConfig(&configState);
         cs.saveConfig();
-        listDir("/");
+        lfs.listFilesLong("/");
+        cs.close();
     }
 
     if (true) {
         Serial.println("4vvvvvvvvvvvvvvvvvvvvvvvvvv4");
-        ConfigService cs = ConfigService(CONFIG_PATH);
-        listDir("/");
+        cs.open(CONFIG_PATH);
+        lfs.listFilesLong("/");
         Serial.print("Contents of config file: ");
         cs.printConfig();
         Serial.println("Initialize with the full config");
-        setConfig(&cs, &configState);
+        setConfig(&configState);
         cs.saveConfig();
-        listDir("/");
+        lfs.listFilesLong("/");
+        cs.close();
     }
 
     if (true) {
         Serial.println("5vvvvvvvvvvvvvvvvvvvvvvvvvv5");
-        ConfigService cs = ConfigService(CONFIG_PATH);
-        listDir("/");
+        cs.open(CONFIG_PATH);
+        lfs.listFilesLong("/");
         Serial.print("Contents of complete config file: ");
         cs.printConfig();
         Serial.println("Update the config");
-        getConfig(&cs, &configState);
+        getConfig(&configState);
         configState.i++;
         configState.b = !configState.b;
-        setConfig(&cs, &configState);
+        setConfig(&configState);
         cs.saveConfig();
-        listDir("/");
+        lfs.listFilesLong("/");
+        cs.close();
     }
 
     if (true) {
         // read the new config file
-        ConfigService cs = ConfigService(CONFIG_PATH);
+        cs.open(CONFIG_PATH);
         Serial.print("Config file after update: ");
         cs.printConfig();
+        cs.close();
         Serial.println("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 }

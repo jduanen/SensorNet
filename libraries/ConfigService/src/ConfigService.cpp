@@ -9,27 +9,44 @@
 
 
 //// FIXME throw exception on failure
-ConfigService::ConfigService(const String& configPath) {
-    configPath.toCharArray(_configPath, sizeof(_configPath));
-    if (!mountLFS()) {
+ConfigService::ConfigService() {
+    if (!lfs.mountLFS()) {
         Serial.println("ERROR: failed to mount LittleFS");
-        return;
-    }
-    if (!LittleFS.exists(_configPath)) {
-        if (VERBOSE) {
-            Serial.println("WARNING: No config file; initializing config file with an empty JSON object");
-        }
-        if (!initializeConfig()) {
-            return;
-        }
-    }
-    if (!_readConfig()) {
         return;
     }
 }
 
 ConfigService::~ConfigService() {
-    unmountLFS();
+    lfs.unmountLFS();
+}
+
+ConfigService &ConfigService::getInstance() {
+    static ConfigService instance;
+    return(instance);
+}
+
+bool ConfigService::open(const String& configPath) {
+    if (!lfs.mountLFS()) {
+        Serial.println("ERROR: failed to mount LittleFS");
+        return(false);
+    }
+    configPath.toCharArray(_configPath, sizeof(_configPath));
+    if (!LittleFS.exists(_configPath)) {
+        _println("WARNING: No config file; initializing config file with an empty JSON object");
+        if (!initializeConfig()) {
+            return(false);
+        }
+    }
+    if (!_readConfig()) {
+        Serial.println("ERROR: failed to read file: ");
+        Serial.println(_configPath);
+        return(false);
+    }
+    return(true);
+}
+
+void ConfigService::close() {
+    lfs.unmountLFS();
 }
 
 bool ConfigService::initializeConfig() {
@@ -44,7 +61,7 @@ bool ConfigService::saveConfig() {
         return(false);
     }
     serializeJson(configJsonDoc, f);
-    if (VERBOSE) {
+    if (_verbose) {
         Serial.printf("Wrote serialized JSON to config file: %s\n", _configPath);
         printConfig();
         Serial.println("");
@@ -54,10 +71,8 @@ bool ConfigService::saveConfig() {
 }
 
 void ConfigService::printConfig() {
-    if (VERBOSE) {
-        Serial.printf("Read and print config file: %s\n", _configPath);
-    }
-    printFile(_configPath);
+    _println(String("Read and print config file: ") + _configPath);
+    lfs.printFile(_configPath);
 }
 
 bool ConfigService::deleteConfig() {
@@ -66,9 +81,7 @@ bool ConfigService::deleteConfig() {
         return(false);
     }
     configJsonDoc.clear();
-    if (VERBOSE) {
-        Serial.printf("Removed config file: %s\n", _configPath);
-    }
+    _println(String("Removed config file: ") + _configPath);
     return(true);
 }
 
@@ -79,9 +92,7 @@ bool ConfigService::_readConfig() {
         return(false);
     }
     deserializeJson(configJsonDoc, f);
-    if (VERBOSE) {
-        Serial.println("Read config file and deserialized JSON");
-    }
+    _println("Read config file and deserialized JSON");
     f.close();
     return(true);
 }
@@ -89,3 +100,17 @@ bool ConfigService::_readConfig() {
 void ConfigService::_displayConfigDoc() {
     serializeJsonPretty(configJsonDoc, Serial);
 }
+
+void ConfigService::_print(String str) {
+  if (_verbose) {
+    Serial.print(str);
+  }
+}
+
+void ConfigService::_println(String str) {
+  if (_verbose) {
+    Serial.println(str);
+  }
+}
+
+ConfigService &cs {ConfigService::getInstance()};

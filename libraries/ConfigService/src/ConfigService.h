@@ -12,12 +12,8 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <LfsUtilities.h>
+#include "LfsUtilities.h"
 
-
-#ifndef VERBOSE
-#define VERBOSE                 0
-#endif
 
 #define LIB_VERSION             "1.0"
 
@@ -33,20 +29,31 @@ public:
     String libVersion = LIB_VERSION;
     ConfigJsonDoc configJsonDoc;
 
-	ConfigService(const String& configPath);
+    ConfigService();
     ~ConfigService();
+    static ConfigService &getInstance();
+
+    bool open(const String& configPath);
+    void close();
     bool initializeConfig();
     bool saveConfig();
     void printConfig();
     bool deleteConfig();
 
 private:
+    bool _verbose = true;
     char _configPath[MAX_PATH_LENGTH];
 
     bool _readConfig();
 
     void _displayConfigDoc();
+
+    void _print(String str);
+    void _println(String str);
 };
+
+
+extern ConfigService &cs;
 
 
 #endif /*CONFIG_SERVICE_H*/

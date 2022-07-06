@@ -10,13 +10,8 @@
 #include "wifi.h"
 #include "WiFiUtilities.h"
 #include "WebServices.h"
-#include "LfsUtilities.h"
 #include "ConfigService.h"
 
-
-#ifndef VERBOSE
-#define VERBOSE             1
-#endif
 
 #define APPL_NAME           "WebServicesTest"
 #define APPL_VERSION        "1.0.0"
@@ -83,7 +78,7 @@ String processPage(const String& var) {
 
 void config() {
     bool dirty = false;
-    ConfigService cs = ConfigService(CONFIG_PATH);
+    cs.open(CONFIG_PATH);
 
     if (!cs.configJsonDoc.containsKey("ssid")) {
         cs.configJsonDoc["ssid"] = configState.ssid;
@@ -111,16 +106,12 @@ void setup() {
     //// FIXME 
     if (false) {
         // clear the local file system
-        formatLFS();
+        cs.format();
     }
     config();
 
     Serial.println("Local Files:");
-    mountLFS();
-    listFiles("/");
-    Serial.println("----");
-    listFilesLong("/");
-    unmountLFS();
+    cs.listFiles("/");
 
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 

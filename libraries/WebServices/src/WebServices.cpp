@@ -35,78 +35,6 @@ WebServices::WebServices(const String& applName, const uint16_t portNum, const S
     }
 }
 
-/*
-void WebServices::addPage(const String& htmlPath, const String& stylePath, const String& scriptsPath, AwsTemplateProcessor processor) {
-    if ((htmlPath == "") && (stylePath == "") && (scriptsPath == "")) {
-        Serial.println("ERROR: all paths are empty");
-        return;
-    }
-    _print("addPage: " + htmlPath + ", stylePage: " + stylePath + ", scriptsPage: " + scriptsPath);
-    if ((htmlPath != "") && !LittleFS.exists(htmlPath)) {
-        Serial.println("ERROR: invalid HTML page path -- " + htmlPath);
-        return;
-    }
-    if ((stylePath != "") && !LittleFS.exists(stylePath)) {
-        Serial.println("ERROR: invalid style page path -- " + stylePath);
-        return;
-    }
-    if ((scriptsPath != "") && !LittleFS.exists(scriptsPath)) {
-        Serial.println("ERROR: invalid scripts page path -- " + scriptsPath);
-        return;
-    }
-
-    if (_socketPtr == NULL) {
-        _socketPtr = new AsyncWebSocket("/ws");
-        _socketPtr->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len) {_onEvent(server, client, type, arg, data, len);});
-        _serverPtr->addHandler(_socketPtr);
-    }
-
-    // "/index.html"
-    if (htmlPath != "") {
-        //// FIXME figure out how to make pre-processing work
-        if (processor == nullptr) {
-            _serverPtr->on(htmlPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, htmlPath.c_str(), "text/html");
-            });
-        } else {
-            _serverPtr->on(htmlPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, htmlPath.c_str(), "text/html", false, processor);
-            });
-        }
-        _msgHandlers[0] = &WebServices::commonMsgHandler; //// TMP TMP TMP
-    }
-    // "/common/wsStyle.css"
-    if (stylePath != "") {
-        _serverPtr->on(stylePath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
-            request->send(LittleFS, stylePath.c_str(), "text/css");
-        });
-    }
-    // "/common/wsScripts.js"
-    if (scriptsPath != "") {
-        //// FIXME figure out how to make pre-processing work
-        if (processor == nullptr) {
-            _serverPtr->on(scriptsPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, scriptsPath.c_str(), "text/javascript");
-            });
-        } else {
-            _serverPtr->on(scriptsPath.c_str(), HTTP_GET, [=](AsyncWebServerRequest *request){
-                request->send(LittleFS, scriptsPath.c_str(), "text/javascript", false, processor);
-            });
-        }
-    }
-//
-//        _serverPtr->on(htmlPath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
-//            request->send_P(200, "text/html", index_html);
-//            request->send_P(200, "text/html", index_html, _commonProcessor);
-//        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
-//            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
-//        });
-//    }
-//
-}
-*/
-
 bool WebServices::addPage(const WebPageDef& pageDef) {
     if (_numPages >= MAX_NUM_PAGES) {
         Serial.println("ERROR: too many pages");
@@ -197,17 +125,15 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
         };
         String m;
         serializeJsonPretty(_wsMsg, m);
-        _println("Msg: " + m);
+        _println("Rx Msg: " + m);  //// TMP TMP TMP
 
         // notify clients of current state via a stringified JSON object
         String msg = "{\"applName\": \"" + _applName + "\"";
-        Serial.println("AAAAAAAA");
-        for (int i = 0; (i < MAX_NUM_PAGES); i++) {
-            Serial.println("BBBBBBBBB");
+        for (int i = 0; (i < _numPages); i++) {
             msg += _pageDefs[i].msgHandler(_wsMsg);
         }
         msg += "}";
-        Serial.println("MSG: " + msg); //// TMP TMP TMP
+        Serial.println("Tx Msg: " + msg);  //// TMP TMP TMP
         _socketPtr->textAll(msg);
     }
 }

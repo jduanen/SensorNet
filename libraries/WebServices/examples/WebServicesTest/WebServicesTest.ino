@@ -14,16 +14,15 @@
 
 
 #define APPL_NAME           "WebServicesTest"
-#define APPL_VERSION        "1.0.0"
+#define APPL_VERSION        "1.0.1"
 #define WEB_SERVER_PORT     80
-#define WIFI_AP_SSID        "prcDisplay"
+#define WIFI_AP_SSID        "WebServices"
 
 //#define USER_NAME           "name"
 //#define PASSWD              "passwd"
 
 #define CONFIG_PATH         "/config.json"
 
-#define COMMON_PAGE_PATH    "/index.html"
 #define APPL_PAGE_PATH      "/appl"
 
 #define FW_UPDATE           (1 << 0)    // test OTA firmware update feature
@@ -55,7 +54,8 @@ String commonHandlerWrapper(StaticJsonDocument<WS_JSON_DOC_SIZE> wsMsg) {
 }
 */
 
-String processPage(const String& var) {
+String indexPageProcessor(const String& var) {
+    Serial.println(var);
     if (var == "APPL_NAME") {
         return (String(APPL_NAME));
     } else if (var == "VERSION") {
@@ -74,7 +74,38 @@ String processPage(const String& var) {
         return (WIFI_AP_SSID);
     }
     return String();
-}
+};
+
+String indexPageMsgHandler(const JsonDocument& wsMsg) {
+    Serial.print("COMMONMSGHANDLER: ");
+    String msgType = String(wsMsg["msgType"]);
+    if (msgType.equals("query")) {
+        // NOP
+    } else if (msgType.equals("saveConf")) {
+        //// FIXME add code here
+    }
+
+    String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
+    msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
+    msg += ", \"connected\": \"" + WiFi.SSID() + "\"";
+    msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
+    Serial.println(msg);
+    return(msg);
+};
+
+
+WebPageDef commonIndexPage = {
+    COMMON_HTML_PATH,
+    COMMON_SCRIPTS_PATH,
+    COMMON_STYLE_PATH,
+    indexPageProcessor,
+    indexPageMsgHandler
+};
+
+
+void halt() {
+    while (true) {};
+};
 
 void config() {
     bool dirty = false;
@@ -116,8 +147,15 @@ void setup() {
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
     if ((testMode & COMMON_GUI) == COMMON_GUI) {
-        webSvcs.addPage(COMMON_PAGE_PATH, COMMON_STYLE_PATH, COMMON_SCRIPT_PATH, processPage);
+//        webSvcs.addPage(COMMON_PAGE_PATH, COMMON_STYLE_PATH, COMMON_SCRIPT_PATH, processPage);
+        if (!webSvcs.addPage(commonIndexPage)) {
+            Serial.println("ERROR: halting");
+            halt();
+        }
     }
+    cs.listFiles(COMMON_HTML_PATH);
+    cs.listFiles(COMMON_STYLE_PATH);
+    cs.listFiles(COMMON_SCRIPTS_PATH);
 
     if ((testMode & APPL_GUI) == APPL_GUI) {
 //        applPagePath = APPL_PAGE_PATH;

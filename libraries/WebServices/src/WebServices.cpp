@@ -6,13 +6,13 @@
 
 
 void WebServices::_print(String str) {
-  if (VERBOSE) {
+  if (_verbose) {
     Serial.print(str);
   }
 }
 
 void WebServices::_println(String str) {
-  if (VERBOSE) {
+  if (_verbose) {
     Serial.println(str);
   }
 }
@@ -35,6 +35,7 @@ WebServices::WebServices(const String& applName, const uint16_t portNum, const S
     }
 }
 
+/*
 void WebServices::addPage(const String& htmlPath, const String& stylePath, const String& scriptsPath, AwsTemplateProcessor processor) {
     if ((htmlPath == "") && (stylePath == "") && (scriptsPath == "")) {
         Serial.println("ERROR: all paths are empty");
@@ -73,6 +74,7 @@ void WebServices::addPage(const String& htmlPath, const String& stylePath, const
                 request->send(LittleFS, htmlPath.c_str(), "text/html", false, processor);
             });
         }
+        _msgHandlers[0] = &WebServices::commonMsgHandler; //// TMP TMP TMP
     }
     // "/common/wsStyle.css"
     if (stylePath != "") {
@@ -93,15 +95,69 @@ void WebServices::addPage(const String& htmlPath, const String& stylePath, const
             });
         }
     }
-/*
-        _serverPtr->on(htmlPath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
-            request->send_P(200, "text/html", index_html);
+//
+//        _serverPtr->on(htmlPath.c_str(), HTTP_GET, [&](AsyncWebServerRequest *request){
+//            request->send_P(200, "text/html", index_html);
 //            request->send_P(200, "text/html", index_html, _commonProcessor);
 //        _serverPtr->on(rootPagePath.c_str(), HTTP_GET, [this](AsyncWebServerRequest *request){
 //            request->send_P(200, "text/html", index_html, [this](String str) -> String { _commonProcessor(str); });
-        });
-    }
+//        });
+//    }
+//
+}
 */
+
+bool WebServices::addPage(const WebPageDef& pageDef) {
+    if (_numPages >= MAX_NUM_PAGES) {
+        Serial.println("ERROR: too many pages");
+        return(false);
+    }
+    if (pageDef.msgHandler == nullptr) {
+        Serial.println("ERROR: page must include WS message handler");
+        return(false);
+    }
+    if (pageDef.htmlPath == nullptr) {
+        Serial.println("ERROR: page must include HTML");
+        return(false);
+    }
+
+    if (_socketPtr == NULL) {
+        _socketPtr = new AsyncWebSocket("/ws");
+        _socketPtr->onEvent([this](AsyncWebSocket *server,
+                                   AsyncWebSocketClient *client,
+                                   AwsEventType type,
+                                   void *arg,
+                                   uint8_t *data,
+                                   size_t len) {_onEvent(server, client, type, arg, data, len);});
+        _serverPtr->addHandler(_socketPtr);
+    }
+
+    if (pageDef.htmlProcessor == nullptr) {
+        _serverPtr->on(pageDef.htmlPath,
+                       HTTP_GET,
+                       [=](AsyncWebServerRequest *request) {
+                            request->send(LittleFS, pageDef.htmlPath, "text/html");});
+    } else {
+        _serverPtr->on(pageDef.htmlPath,
+                       HTTP_GET,
+                       [=](AsyncWebServerRequest *request){
+                            request->send(LittleFS, pageDef.htmlPath, "text/html", false, pageDef.htmlProcessor);});
+    }
+    if (pageDef.scriptsPath != nullptr) {
+        _serverPtr->on(pageDef.stylePath,
+                       HTTP_GET,
+                       [=](AsyncWebServerRequest *request){
+                            request->send(LittleFS, pageDef.stylePath, "text/css");});
+    }
+    if (pageDef.scriptsPath != nullptr) {
+        _serverPtr->on(pageDef.scriptsPath,
+                       HTTP_GET,
+                       [=](AsyncWebServerRequest *request) {
+                            request->send(LittleFS, pageDef.scriptsPath, "text/javascript");});
+    }
+
+    _pageDefs[_numPages++] = pageDef;
+    return(true);
 }
 
 void WebServices::run() {
@@ -129,32 +185,6 @@ void WebServices::_onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
   }
 }
 
-/*
-//// FIXME figure out how to make processing work and then add to addPage()
-static String WebServices::_commonProcessor(const String& var) {
-  if (var == "APPL_NAME") {
-    return (_applName);
-  } else if (var == "LIB_VERSION") {
-    return (libVersion);
-  } else if (var == "IP_ADDR") {
-    return (WiFi.localIP().toString());
-  } else if (var == "SSID") {
-    return (WiFi.SSID());
-  } else if (var == "RSSI") {
-    return (String(WiFi.RSSI()));
-  }
-  return String();
-}
-*/
-
-/*
-String WebServices::_applProcessor(const String& var) {
-    // N.B. This is to be overridden by application-specific code
-    // returns the actual string to be used in place of the given template value
-    return String();
-}
-*/
-
 void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -171,64 +201,13 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
 
         // notify clients of current state via a stringified JSON object
         String msg = "{\"applName\": \"" + _applName + "\"";
-        for (wsMsgHandler hdlr : _msgHandlers) {
-            msg += hdlr(_wsMsg);
+        Serial.println("AAAAAAAA");
+        for (int i = 0; (i < MAX_NUM_PAGES); i++) {
+            Serial.println("BBBBBBBBB");
+            msg += _pageDefs[i].msgHandler(_wsMsg);
         }
         msg += "}";
         Serial.println("MSG: " + msg); //// TMP TMP TMP
         _socketPtr->textAll(msg);
     }
 }
-
-String WebServices::commonMsgHandler(StaticJsonDocument<WS_JSON_DOC_SIZE> wsMsg) {
-    String msgType = String(wsMsg["msgType"]);
-    if (msgType.equals("query")) {
-        // NOP
-    } else if (msgType.equals("saveConf")) {
-        //// FIXME add code here
-    }
-
-    String msg = ", \"libVersion\": \"" + libVersion + "\"";
-    msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
-    msg += ", \"connected\": \"" + WiFi.SSID() + "\"";
-    msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
-    return(msg);
-}
-
-/*
-String WebServices::_applWSMsgHandler() {
-    // N.B. This is to be overridden by application-specific code
-    // returns serialized JSON object to be sent in client notification message
-    String msg = ", \"applName\": " + String("\"?\"");
-    msg += ", \"applVersion\": " + String("\"?\"");
-    return(msg);
-}
-*/
-
-        /*
-        String msgType = String(wsMsg["msgType"]);
-        if (msgType.equals("led")) {
-            configState.ledState = !configState.ledState;
-        } else if (msgType.equals("el")) {
-            configState.elState = !configState.elState;
-        } else {
-            Serial.println("Error: unknown message type: " + msgType);
-            return;
-        }
-        */
-
-/*
-private:
-    AsyncWebServer *_serverPtr;
-    AsyncWebSocket *_socketPtr;
-
-    ConfigStorage *_csPtr;
-    StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
-*/
-
-/*
-const rot13 = str => str.split('')
-    .map(char => String.fromCharCode(char.charCodeAt(0) + (char.toLowerCase() < 'n' ? 13 : -13)))
-    .join('');
-*/
-

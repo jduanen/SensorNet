@@ -19,35 +19,6 @@ function onClose(event) {
 function onLoad(event) {
   initWebSocket();
 }
-function initView() {
-  var jsonMsg = JSON.stringify({"msgType": "query"});
-  websocket.send(jsonMsg);
-  var wifiMode = "%WIFI_MODE%";
-  var elem;
-  switch (wifiMode) {
-    case "STA":
-      elem = document.getElementById("ipAddr");
-      if (elem == null) {
-        var p1 = "<p class=\"staticState\">IP Address: <span style=\"color:blue\" id=\"ipAddr\">%IP_ADDR%</span></p>";
-        document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
-      }
-      elem = document.getElementById("connection");
-      if (elem == null) {
-        var p2 = "<p class=\"staticState\">Connection: <span style=\"color:blue\" id=\"connection\">%CONNECTION%</span></p>";
-        document.getElementById("ipAddr").insertAdjacentHTML('afterend', p2);
-      }
-      break;
-    case "A_P":
-      elem = document.getElementById("wifiApSsid");
-      if (elem == null) {
-        var p1 = "<p class=\"staticState\">AP SSID: <span style=\"color:blue\" id=\"wifiApSsid\">%WIFI_AP_SSID%</span></p>";
-        document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
-      }
-      break;
-    default:
-      console.log("WARNING: invalid WIFI mode: " + wifiMode);
-  }
-}
 function onMessage(event) {
   var state;
   var elem;

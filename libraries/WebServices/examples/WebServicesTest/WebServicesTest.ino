@@ -9,8 +9,10 @@
 
 #include "wifi.h"
 #include "WiFiUtilities.h"
-#include "WebServices.h"
 #include "ConfigService.h"
+#include "WebServices.h"
+
+#include "WebPages.h"
 
 
 #define APPL_NAME           "WebServicesTest"
@@ -22,8 +24,9 @@
 //#define PASSWD              "passwd"
 
 #define CONFIG_PATH         "/config.json"
-
-#define APPL_PAGE_PATH      "/appl"
+#define APPL_HTML_PATH      "/appl/appl.html"
+#define APPL_STYLE_PATH     "/appl/style.css"
+#define APPL_SCRIPTS_PATH   "/appl/scripts.js"
 
 #define FW_UPDATE           (1 << 0)    // test OTA firmware update feature
 #define COMMON_GUI          (1 << 1)    // test common GUI
@@ -42,20 +45,13 @@ ConfigState configState = {
 
 WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
-////int testMode = FW_UPDATE;
-int testMode = FW_UPDATE | COMMON_GUI;
-////int testMode = FW_UPDATE | COMMON_GUI | APPL_GUI;
+//int testMode = FW_UPDATE;
+//int testMode = FW_UPDATE | COMMON_GUI;
+int testMode = FW_UPDATE | COMMON_GUI | APPL_GUI;
 
 int loopCnt = 0;
 
-/*
-String commonHandlerWrapper(StaticJsonDocument<WS_JSON_DOC_SIZE> wsMsg) {
-    return(webSvcs.commonMsgHandler(wsMsg));
-}
-*/
-
-String indexPageProcessor(const String& var) {
-    Serial.println(var);
+String commonPageProcessor(const String& var) {
     if (var == "APPL_NAME") {
         return (String(APPL_NAME));
     } else if (var == "VERSION") {
@@ -76,8 +72,7 @@ String indexPageProcessor(const String& var) {
     return String();
 };
 
-String indexPageMsgHandler(const JsonDocument& wsMsg) {
-    Serial.print("COMMONMSGHANDLER: ");
+String commonPageMsgHandler(const JsonDocument& wsMsg) {
     String msgType = String(wsMsg["msgType"]);
     if (msgType.equals("query")) {
         // NOP
@@ -87,19 +82,52 @@ String indexPageMsgHandler(const JsonDocument& wsMsg) {
 
     String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
     msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
-    msg += ", \"connected\": \"" + WiFi.SSID() + "\"";
+    msg += ", \"ssid\": \"" + WiFi.SSID() + "\"";
     msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
-    Serial.println(msg);
+    //Serial.println(msg);
     return(msg);
 };
 
 
-WebPageDef commonIndexPage = {
+WebPageDef commonPage = {
     COMMON_HTML_PATH,
     COMMON_SCRIPTS_PATH,
     COMMON_STYLE_PATH,
-    indexPageProcessor,
-    indexPageMsgHandler
+    commonPageProcessor,
+    commonPageMsgHandler
+};
+
+
+String applPageProcessor(const String& var) {
+    if (var == "?") {
+        return (String(?));
+    } else if (var == "?") {
+        return (String(?));
+    }
+    return String();
+};
+
+String applPageMsgHandler(const JsonDocument& wsMsg) {
+    String msgType = String(wsMsg["msgType"]);
+    if (msgType.equals("query")) {
+        // NOP
+    } else if (msgType.equals("saveConf")) {
+        //// FIXME add code here
+    }
+
+    String msg = ", \"?\": \"" + ? + "\"";
+    msg += ", \"?\": \"" + ? + "\"";
+    //Serial.println(msg);
+    return(msg);
+};
+
+
+WebPageDef applPage = {
+    APPL_HTML_PATH,
+    APPL_SCRIPTS_PATH,
+    APPL_STYLE_PATH,
+    applPageProcessor,
+    applPageMsgHandler
 };
 
 
@@ -147,18 +175,17 @@ void setup() {
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
     if ((testMode & COMMON_GUI) == COMMON_GUI) {
-//        webSvcs.addPage(COMMON_PAGE_PATH, COMMON_STYLE_PATH, COMMON_SCRIPT_PATH, processPage);
-        if (!webSvcs.addPage(commonIndexPage)) {
-            Serial.println("ERROR: halting");
+        if (!webSvcs.addPage(commonPage)) {
+            Serial.println("ERROR: failed to add common page; halting");
             halt();
         }
     }
-    cs.listFiles(COMMON_HTML_PATH);
-    cs.listFiles(COMMON_STYLE_PATH);
-    cs.listFiles(COMMON_SCRIPTS_PATH);
 
     if ((testMode & APPL_GUI) == APPL_GUI) {
-//        applPagePath = APPL_PAGE_PATH;
+        if (!webSvcs.addPage(applPage)) {
+            Serial.println("ERROR: failed to add appl page; halting");
+            halt();
+        }
     }
 }
 

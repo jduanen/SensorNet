@@ -15,8 +15,6 @@
 #include "LfsUtilities.h"
 
 
-#define LIB_VERSION             "1.0"
-
 #define JSON_OBJ_SIZE           512
 #define MAX_PATH_LENGTH         80
 
@@ -26,7 +24,7 @@ typedef StaticJsonDocument<JSON_OBJ_SIZE> ConfigJsonDoc;
 
 class ConfigService {
 public:
-    String libVersion = LIB_VERSION;
+    String libVersion = "1.1";
     ConfigJsonDoc configJsonDoc;
 
     ConfigService();

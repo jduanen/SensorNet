@@ -11,15 +11,21 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "SensorNet.h"
+
 #include "wifi.h"
+#include "SensorNet.h"
+#include "WiFiUtilities.h"
+#include "ConfigService.h"
+//#include "WebServices.h"
 
 
 #define VERBOSE                     1
 
 #define APP_NAME                    "WaterHeater"
-#define APP_VERSION                 "1.2.1"
+#define APP_VERSION                 "2.0.0"
 #define REPORT_SCHEMA               "waterDegC:3.2f,ambientDegC:3.2f"
+
+#define CONFIG_PATH         "/config.json"
 
 #define ONE_WIRE_BUS                2
 
@@ -41,6 +47,24 @@
 
 #define COMMAND_NAMES               "Precision"
 
+typedef struct {
+  String    ssid;
+  String    passwd;
+  String    mqttServer;
+  uint16_t  mqttPort;
+  uint32_t  reportInterval;
+  uint8_t   tempPrecision;
+} ConfigState;
+
+ConfigState configState = {
+    String(WLAN_SSID),
+    String(rot47(WLAN_PASS)),
+    MQTT_SERVER,
+    MQTT_PORT,
+    DEF_REPORT_INTERVAL,
+    DEF_TEMPERATURE_PRECISION
+};
+
 
 SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA, COMMAND_NAMES);
 
@@ -53,10 +77,15 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
     String respMsg;
     char msgType = SensorNet::RESPONSE;
     SensorNet::callbackMessage cbMsg = sn.baseCallback(topic, payload, length);
+    bool dirty = false;
 
     if (cbMsg.handled == true) {
-        sn.consolePrintln("Callback message handled by baseCallback");
-        // N.B. you can do other stuff in addition to what's done in the base hander here
+        if (cbMsg.cmd.equalsIgnoreCase("rate") && (cbMsg.val != NULL)) {
+            sn.reportInterval = cbMsg.val.toInt();
+            configState.reportInterval = sn.reportInterval;
+            cs.configJsonDoc["reportInterval"] = configState.reportInterval;
+            dirty = true;
+        }
     } else {
         if (cbMsg.cmd.equalsIgnoreCase("Precision")) {
             uint8_t precision;
@@ -68,6 +97,10 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
                     sn.consolePrintln("Set precision to: " + cbMsg.val);
                     sensors.setResolution(ambientThermometer, precision);
                     sensors.setResolution(waterThermometer, precision);
+
+                    configState.tempPrecision = precision;
+                    cs.configJsonDoc["tempPrecision"] = configState.tempPrecision;
+                    dirty = true;
                 }
             }
             uint8_t ambPrec = sensors.getResolution(ambientThermometer);
@@ -89,6 +122,58 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
         sn.consolePrintln("Response Message: " + respMsg);
         sn.mqttPub(msgType, respMsg);
     }
+    if (dirty) {
+        cs.saveConfig();
+        if (VERBOSE) {
+            cs.listFiles(CONFIG_PATH);
+            cs.printConfig();
+        }
+    }
+}
+
+void config() {
+    bool dirty = false;
+    cs.open(CONFIG_PATH);
+
+    if (!cs.configJsonDoc.containsKey("ssid")) {
+        cs.configJsonDoc["ssid"] = configState.ssid;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("passwd")) {
+        cs.configJsonDoc["passwd"] = configState.passwd;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("mqttServer")) {
+        cs.configJsonDoc["mqttServer"] = configState.mqttServer;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("mqttPort")) {
+        cs.configJsonDoc["mqttPort"] = configState.mqttPort;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("reportInterval")) {
+        cs.configJsonDoc["reportInterval"] = configState.reportInterval;
+        dirty = true;
+    }
+    if (!cs.configJsonDoc.containsKey("tempPrecision")) {
+        cs.configJsonDoc["tempPrecision"] = configState.tempPrecision;
+        dirty = true;
+    }
+    if (dirty) {
+        cs.saveConfig();
+    }
+
+    configState.ssid = cs.configJsonDoc["ssid"].as<String>();
+    configState.passwd = cs.configJsonDoc["passwd"].as<String>();
+    configState.mqttServer = cs.configJsonDoc["mqttServer"].as<String>();
+    configState.mqttPort = cs.configJsonDoc["mqttPort"].as<unsigned int>();
+    configState.reportInterval = cs.configJsonDoc["reportInterval"].as<unsigned int>();
+    configState.tempPrecision = cs.configJsonDoc["tempPrecision"].as<unsigned int>();
+    cs.saveConfig();
+    if (VERBOSE) {
+        cs.listFiles(CONFIG_PATH);
+        cs.printConfig();
+    }
 }
 
 void setup() {
@@ -98,9 +183,12 @@ void setup() {
     sn.serialStart(&Serial, 19200, true);
     sn.consolePrintln(APP_NAME);
 
-    sn.wifiStart(WLAN_SSID, WLAN_PASS);
+    config();
+    sn.reportInterval = configState.reportInterval;
 
-    sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
+    sn.wifiStart(configState.ssid, rot47(configState.passwd));
+
+    sn.mqttSetup(configState.mqttServer, configState.mqttPort, TOPIC_PREFIX, myCallback);
 
     sn.consolePrintln("Init temp sensors");
     sensors = DallasTemperature(&oneWire);
@@ -123,8 +211,8 @@ void setup() {
         delay(60000);
         sn.systemReset();
     }
-    if (!sensors.setResolution(ambientThermometer, DEF_TEMPERATURE_PRECISION) ||
-        !sensors.setResolution(waterThermometer, DEF_TEMPERATURE_PRECISION)) {
+    if (!sensors.setResolution(ambientThermometer, configState.tempPrecision) ||
+        !sensors.setResolution(waterThermometer, configState.tempPrecision)) {
         msg = "ERROR: Failed to set temperature precision";
         sn.consolePrintln(msg);
         sn.mqttPub(SensorNet::ERROR, msg);

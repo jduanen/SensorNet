@@ -11,9 +11,9 @@
 
 
 #define NUM_SERIALS             2
-#define MAX_MQTT_PUB_MSG_LEN    180
-#define MAX_MQTT_TOPIC_LEN      128
-#define BUF_SIZE                64
+//#define MAX_MQTT_PUB_MSG_LEN    180
+//#define MAX_MQTT_TOPIC_LEN      128
+//#define BUF_SIZE                64
 #define NUM_SUB_TOPICS          5
 #define DEF_REPORT_INTERVAL     60000  // one report every minute
 #define LIB_VERSION             "2.0"
@@ -61,26 +61,21 @@ public:
         bool handled;
     } callbackMessage;
 
-    SensorNet();
-    SensorNet(String name);
-    SensorNet(String name, String version);
-    SensorNet(String name, String version, String schema);
-    SensorNet(String name, String version, String schema, String cmdNames);
+    SensorNet(const String& name="", const String& version="", const String& schema="", const String& cmdNames="");
 
     void(* systemReset)(void) = 0;
 
-    void serialStart(HardwareSerial *portPtr, uint16 baud, bool console);
-    void consolePrint(String str);
-    void consolePrintln(String str);
+    void serialStart(HardwareSerial *portPtr, uint16_t baud, bool console);
+    void consolePrint(const String& str);
+    void consolePrintln(const String& str);
     void consoleWaitForInput();
 
-    void wifiStart(String ssid, String password);
+    void wifiStart(const String& ssid, const String& password);
     WIFI_STATE wifiState();
 
-    void mqttSetup(String server, int port, String prefix);
-    void mqttSetup(String server, int port, String prefix, callback *cb);
+    void mqttSetup(const String& server, uint16_t port, const String& prefix, callback *cb=nullptr);
     bool mqttRun();
-    bool mqttPub(pubType type, String msg);
+    bool mqttPub(pubType type, const String& msg);
     MQTT_STATE mqttState();
 
     callbackMessage baseCallback(char* topic, byte* payload, unsigned int length);
@@ -88,22 +83,20 @@ public:
     String commandNames();
 
 private:
-    byte _mac[6];
-    String _macAddr;
-    IPAddress _ipAddr;
-    char _clientName[BUF_SIZE];
-    char _mqttServer[BUF_SIZE];
-    int _mqttPort;
-    String _baseTopic;
-    char _pubMsg[MAX_MQTT_PUB_MSG_LEN];
-    String _commandNames = "Rate,Reset,RSSI,Schema,Version";
+    byte        _mac[6];
+    String      _macAddr;
+    IPAddress   _ipAddr;
+    String      _clientName;
+    String      _mqttServer;
+    uint16_t    _mqttPort;
+    String      _baseTopic;
+    String      _topics[NUM_SUB_TOPICS];
+    String      _commandNames = "Rate,Reset,RSSI,Schema,Version";
 
     WiFiClient _espClient;
     PubSubClient _mqttClient = PubSubClient(_espClient);  //// FIXME dynamically allocate this
 
-    char _topics[NUM_SUB_TOPICS][MAX_MQTT_TOPIC_LEN];
-
-    void _topicSubscribe(String topic);
+    void _topicSubscribe(const String& topic);
 };
 
 #endif /*SENSOR_NET_H*/

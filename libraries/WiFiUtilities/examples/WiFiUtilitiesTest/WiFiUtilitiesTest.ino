@@ -28,7 +28,7 @@ void println(String s) {
 void setup() {
     sn.serialStart(&Serial, 9600, true);
     delay(500);
-   println(APP_NAME);
+    println(APP_NAME);
 }
 
 void loop() {

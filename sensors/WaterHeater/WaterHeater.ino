@@ -16,16 +16,19 @@
 #include "SensorNet.h"
 #include "WiFiUtilities.h"
 #include "ConfigService.h"
-//#include "WebServices.h"
+#include "WebServices.h"
 
 
 #define VERBOSE                     1
 
-#define APP_NAME                    "WaterHeater"
-#define APP_VERSION                 "2.0.0"
+#define APPL_NAME                   "WaterHeater"
+#define APPL_VERSION                "2.0.0"
 #define REPORT_SCHEMA               "waterDegC:3.2f,ambientDegC:3.2f"
 
-#define CONFIG_PATH         "/config.json"
+#define CONFIG_PATH                 "/config.json"
+
+#define WIFI_AP_SSID                "waterHeater"
+#define WEB_SERVER_PORT             80
 
 #define ONE_WIRE_BUS                2
 
@@ -47,6 +50,11 @@
 
 #define COMMAND_NAMES               "Precision"
 
+#define WH_HTML_PATH                "/index.html"
+#define WH_STYLE_PATH               "/style.css"
+#define WH_SCRIPTS_PATH             "/scripts.js"
+
+
 typedef struct {
   String    ssid;
   String    passwd;
@@ -65,12 +73,118 @@ ConfigState configState = {
     DEF_TEMPERATURE_PRECISION
 };
 
+float waterTemp, ambientTemp;
 
-SensorNet sn(APP_NAME, APP_VERSION, REPORT_SCHEMA, COMMAND_NAMES);
+SensorNet sn(APPL_NAME, APPL_VERSION, REPORT_SCHEMA, COMMAND_NAMES);
+
+WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors;
 DeviceAddress waterThermometer, ambientThermometer;
+
+
+void(* reboot)(void) = 0;
+
+String webpageProcessor(const String& var) {
+    if (var == "APPL_NAME") {
+        return (String(APPL_NAME));
+    } else if (var == "VERSION") {
+        return (String(APPL_VERSION));
+    } else if (var == "LIB_VERSION") {
+        return (webSvcs.libVersion);
+    } else if (var == "IP_ADDR") {
+        return (WiFi.localIP().toString());
+    } else if (var == "SSID") {
+        return (configState.ssid);
+    } else if (var == "RSSI") {
+        return (String(WiFi.RSSI()));
+    } else if (var == "WIFI_MODE") {
+        return getWiFiMode();
+    } else if (var == "WIFI_AP_SSID") {
+        return (WIFI_AP_SSID);
+    } else if (var == "MQTT_SERVER") {
+        return (String(configState.mqttServer));
+    } else if (var == "MQTT_PORT") {
+        return (String(configState.mqttPort));
+    } else if (var == "RATE") {
+        return (String(sn.reportInterval));
+    } else if (var == "PRECISION") {
+        return (String(configState.tempPrecision));
+    } else if (var == "WATER_TEMP") {
+        return (String(waterTemp));
+    } else if (var == "AMBIENT_TEMP") {
+        return (String(ambientTemp));
+    }
+    return String();
+};
+
+String webpageMsgHandler(const JsonDocument& wsMsg) {
+    String msgType = String(wsMsg["msgType"]);
+    if (msgType.equals("query")) {
+        // NOP
+    } else if (msgType.equals("rate")) {
+        unsigned int rate = wsMsg["rate"];
+        sn.reportInterval = rate;
+        configState.reportInterval = rate;
+    } else if (msgType.equals("precision")) {
+        unsigned int precision = wsMsg["precision"];
+        configState.tempPrecision = precision;
+        sn.consolePrintln("Set precision to: " + precision);
+        sensors.setResolution(ambientThermometer, precision);
+        sensors.setResolution(waterThermometer, precision);
+    } else if (msgType.equals("saveConf")) {
+        String ssid = String(wsMsg["ssid"]);
+        configState.ssid = String(ssid);
+        cs.configJsonDoc["ssid"] = ssid;
+        String passwd = String(wsMsg["passwd"]);
+        configState.passwd = passwd;
+        cs.configJsonDoc["passwd"] = passwd;
+
+        String mqttServer = String(wsMsg["mqttServer"]);
+        configState.mqttServer = mqttServer;
+        cs.configJsonDoc["mqttServer"] = mqttServer;
+        unsigned int mqttPort = wsMsg["mqttPort"];
+        configState.mqttPort = mqttPort;
+        cs.configJsonDoc["mqttPort"] = mqttPort;
+
+        unsigned int rate = wsMsg["rate"];
+        configState.reportInterval = rate;
+        cs.configJsonDoc["reportInterval"] = rate;
+
+        unsigned int precision = wsMsg["precision"];
+        configState.tempPrecision = precision;
+        cs.configJsonDoc["tempPrecision"] = precision;
+    
+        cs.saveConfig();
+    } else if (msgType.equals("reboot")) {
+        sn.consolePrintln("REBOOTING...");
+        reboot();
+    }
+
+    String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
+    msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
+    msg += ", \"ssid\": \"" + configState.ssid + "\"";
+    msg += ", \"passwd\": \"" + configState.passwd + "\"";
+    msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
+    msg += ", \"mqttServer\": \"" + configState.mqttServer  + "\"";
+    msg += ", \"mqttPort\": \"" + String(configState.mqttPort)  + "\"";
+    msg += ", \"rate\": \"" + String(sn.reportInterval) + "\"";
+    msg += ", \"precision\": \"" + String(configState.tempPrecision) + "\"";
+    msg += ", \"waterTemp\": \"" + String(waterTemp) + "\"";
+    msg += ", \"ambientTemp\": \"" + String(ambientTemp) + "\"";
+    //Serial.println(msg);
+    return(msg);
+};
+
+
+WebPageDef webPage = {
+    WH_HTML_PATH,
+    WH_SCRIPTS_PATH,
+    WH_STYLE_PATH,
+    webpageProcessor,
+    webpageMsgHandler
+};
 
 
 void myCallback(char* topic, byte* payload, unsigned int length) {
@@ -85,9 +199,17 @@ void myCallback(char* topic, byte* payload, unsigned int length) {
             configState.reportInterval = sn.reportInterval;
             cs.configJsonDoc["reportInterval"] = configState.reportInterval;
             dirty = true;
+        } else if (cbMsg.cmd.equalsIgnoreCase("mqttServer") && (cbMsg.val != NULL)) {
+            configState.mqttServer = cbMsg.val;
+            cs.configJsonDoc["mqttServer"] = configState.mqttServer;
+            dirty = true;
+        } else if (cbMsg.cmd.equalsIgnoreCase("mqttPort") && (cbMsg.val != NULL)) {
+            configState.mqttPort = cbMsg.val.toInt();
+            cs.configJsonDoc["mqttPort"] = configState.mqttPort;
+            dirty = true;
         }
     } else {
-        if (cbMsg.cmd.equalsIgnoreCase("Precision")) {
+        if (cbMsg.cmd.equalsIgnoreCase("precision")) {
             uint8_t precision;
             if (cbMsg.val != NULL) {
                 precision = cbMsg.val.toInt();
@@ -169,8 +291,8 @@ void config() {
     configState.mqttPort = cs.configJsonDoc["mqttPort"].as<unsigned int>();
     configState.reportInterval = cs.configJsonDoc["reportInterval"].as<unsigned int>();
     configState.tempPrecision = cs.configJsonDoc["tempPrecision"].as<unsigned int>();
-    cs.saveConfig();
     if (VERBOSE) {
+        sn.consolePrintln("Config File:");
         cs.listFiles(CONFIG_PATH);
         cs.printConfig();
     }
@@ -181,14 +303,29 @@ void setup() {
     String msg;
 
     sn.serialStart(&Serial, 19200, true);
-    sn.consolePrintln(APP_NAME);
+    sn.consolePrintln(APPL_NAME);
+
+    //// FIXME 
+    if (false) {
+        // clear the local file system
+        cs.format();
+    }
+
+    if (VERBOSE) {
+        sn.consolePrintln("Local Files:");
+        cs.listFiles("/");
+    }
 
     config();
     sn.reportInterval = configState.reportInterval;
 
-    sn.wifiStart(configState.ssid, rot47(configState.passwd));
+    wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
     sn.mqttSetup(configState.mqttServer, configState.mqttPort, TOPIC_PREFIX, myCallback);
+
+    if (!webSvcs.addPage(webPage)) {
+        sn.consolePrintln("ERROR: failed to add common page; continuing anyway");
+    }
 
     sn.consolePrintln("Init temp sensors");
     sensors = DallasTemperature(&oneWire);
@@ -219,12 +356,16 @@ void setup() {
         delay(60000);
         sn.systemReset();
     }
+
+    // read and discard first values from both sensors
+    (void)sensors.getTempC(waterThermometer);
+    (void)sensors.getTempC(ambientThermometer);
+    sn.consolePrintln("READY");
 }
 
 void loop() {
     String inMsg;
     String msg;
-    float tempC;
     unsigned long now = millis();
     unsigned long deltaT = now - sn.lastReport;
 
@@ -234,21 +375,22 @@ void loop() {
         sn.consolePrintln("Reading sensors");
 
         sensors.requestTemperatures();
-        tempC = sensors.getTempC(waterThermometer);
-        if (tempC != DEVICE_DISCONNECTED_C) {
-            msg = String(tempC);
+        waterTemp = sensors.getTempC(waterThermometer);
+        if (waterTemp != DEVICE_DISCONNECTED_C) {
+            msg = String(waterTemp);
         } else {
             msg = "N/A";
         }
-        tempC = sensors.getTempC(ambientThermometer);
-        if (tempC != DEVICE_DISCONNECTED_C) {
-            msg += "," + String(tempC);
+        ambientTemp = sensors.getTempC(ambientThermometer);
+        if (ambientTemp != DEVICE_DISCONNECTED_C) {
+            msg += "," + String(ambientTemp);
         } else {
             msg += ",N/A";
         }
 
         sn.mqttPub(SensorNet::DATA, msg);
         sn.consolePrintln(msg);
+        webSvcs.updateClients();
         sn.consolePrintln("Sleep until next report");
 
         sn.lastReport = now;

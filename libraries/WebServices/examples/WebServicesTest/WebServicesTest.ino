@@ -2,17 +2,12 @@
  *
  * SensorNet WebServices library test
  *
- * Notes:
- *   - ?
- *
  ***************************************************************************/
 
 #include "wifi.h"
 #include "WiFiUtilities.h"
 #include "ConfigService.h"
 #include "WebServices.h"
-
-#include "WebPages.h"
 
 
 #define APPL_NAME           "WebServicesTest"
@@ -34,20 +29,20 @@
 
 
 typedef struct {
-  String ssid;
-  String passwd;
+    String ssid;
+    String passwd;
 } ConfigState;
 
 ConfigState configState = {
-  String(WLAN_SSID),
-  String(rot47(WLAN_PASS)),
+    String(WLAN_SSID),
+    String(rot47(WLAN_PASS))
 };
 
 WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
 //int testMode = FW_UPDATE;
-//int testMode = FW_UPDATE | COMMON_GUI;
-int testMode = FW_UPDATE | COMMON_GUI | APPL_GUI;
+int testMode = FW_UPDATE | COMMON_GUI;
+//int testMode = FW_UPDATE | COMMON_GUI | APPL_GUI;
 
 int loopCnt = 0;
 
@@ -97,7 +92,7 @@ WebPageDef commonPage = {
     commonPageMsgHandler
 };
 
-
+/*
 String applPageProcessor(const String& var) {
     if (var == "?") {
         return (String(?));
@@ -129,7 +124,7 @@ WebPageDef applPage = {
     applPageProcessor,
     applPageMsgHandler
 };
-
+*/
 
 void halt() {
     while (true) {};
@@ -181,12 +176,14 @@ void setup() {
         }
     }
 
+/*
     if ((testMode & APPL_GUI) == APPL_GUI) {
         if (!webSvcs.addPage(applPage)) {
             Serial.println("ERROR: failed to add appl page; halting");
             halt();
         }
     }
+*/
 }
 
 void loop() {

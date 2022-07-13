@@ -5,29 +5,7 @@
 #include "SensorNet.h"
 
 
-SensorNet::SensorNet() {
-    consolePtr = NULL;
-}
-
-SensorNet::SensorNet(String name) {
-    consolePtr = NULL;
-    appName = name;
-}
-
-SensorNet::SensorNet(String name, String version) {
-    consolePtr = NULL;
-    appName = name;
-    appVersion = version;
-}
-
-SensorNet::SensorNet(String name, String version, String schema) {
-    consolePtr = NULL;
-    appName = name;
-    appVersion = version;
-    reportSchema = schema;
-}
-
-SensorNet::SensorNet(String name, String version, String schema, String cmdNames) {
+SensorNet::SensorNet(const String& name, const String& version, const String& schema, const String& cmdNames) {
     consolePtr = NULL;
     appName = name;
     appVersion = version;
@@ -37,7 +15,7 @@ SensorNet::SensorNet(String name, String version, String schema, String cmdNames
 
 // Initialize a serial port
 //// TODO figure out default parameters
-void SensorNet::serialStart(HardwareSerial *portPtr, uint16 baud, bool console) {
+void SensorNet::serialStart(HardwareSerial *portPtr, uint16_t baud, bool console) {
     portPtr->begin(baud);
     portPtr->println("INIT SERIAL");
     if (console) {
@@ -46,14 +24,14 @@ void SensorNet::serialStart(HardwareSerial *portPtr, uint16 baud, bool console) 
 }
 
 // Print on console (if one is enabled)
-void SensorNet::consolePrint(String str) {
+void SensorNet::consolePrint(const String& str) {
     if (consolePtr != NULL) {
         consolePtr->print(str);
     }
 }
 
 // Println on console (if one is enabled)
-void SensorNet::consolePrintln(String str) {
+void SensorNet::consolePrintln(const String& str) {
     if (consolePtr != NULL) {
         consolePtr->println(str);
     }
@@ -68,7 +46,7 @@ void SensorNet::consoleWaitForInput() {
 }
 
 // Initialize the WiFi connection
-void SensorNet::wifiStart(String ssid, String password) {
+void SensorNet::wifiStart(const String& ssid, const String& password) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     consolePrint("Starting WIFI...");
@@ -86,7 +64,7 @@ void SensorNet::wifiStart(String ssid, String password) {
                String(_mac[3], HEX) + ":" +
                String(_mac[4], HEX) + ":" +
                String(_mac[5], HEX);
-    String(appName + "_" + _macAddr).toCharArray(_clientName, BUF_SIZE);
+    _clientName = String(appName + "_" + _macAddr);
     consolePrintln("Connected to the WiFi network: " + _macAddr + " @ " + _ipAddr.toString());
 }
 
@@ -101,49 +79,42 @@ SensorNet::WIFI_STATE SensorNet::wifiState() {
     return status;
 }
 
-void SensorNet::_topicSubscribe(String topic) {
-    char t[MAX_MQTT_TOPIC_LEN];
-    topic.toCharArray(t, MAX_MQTT_TOPIC_LEN);
+void SensorNet::_topicSubscribe(const String& topic) {
     consolePrintln("topic: " + topic);
 
-    if (_mqttClient.subscribe(t) == false) {
+    if (_mqttClient.subscribe(topic.c_str()) == false) {
         String msg = "ERROR: failed to subscribe to topic (" + topic + ")";
         consolePrintln(msg);
-        msg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
-        _mqttClient.publish(_topics[ERROR], _pubMsg);
+        _mqttClient.publish(_topics[ERROR].c_str(), msg.c_str());
     } else {
         consolePrintln("Subscribed to: " + topic);
     }
 }
 
-void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) {
-    server.toCharArray(_mqttServer, BUF_SIZE);
+void SensorNet::mqttSetup(const String& server, uint16_t port, const String& prefix, callback *cb) {
+    _mqttServer = server;
     _mqttPort = port;
-    _mqttClient.setServer(_mqttServer, _mqttPort);
+    _mqttClient.setServer(_mqttServer.c_str(), _mqttPort);
 //    _mqttClient.setSocketTimeout(?);
 //    _mqttClient.setKeepalive(?);
-    _mqttClient.setCallback(cb);
+    if (cb != nullptr) {
+        _mqttClient.setCallback(cb);
+    }
 
     _baseTopic = prefix + "/" + _macAddr;
-    String t = _baseTopic + "/data";
-    t.toCharArray(_topics[DATA], MAX_MQTT_TOPIC_LEN);
-    t = _baseTopic + "/cmd";
-    t.toCharArray(_topics[COMMAND], MAX_MQTT_TOPIC_LEN);
-    t = _baseTopic + "/response";
-    t.toCharArray(_topics[RESPONSE], MAX_MQTT_TOPIC_LEN);
-    t = _baseTopic + "/error";
-    t.toCharArray(_topics[ERROR], MAX_MQTT_TOPIC_LEN);
-    t = _baseTopic + "/startup";
-    t.toCharArray(_topics[STARTUP], MAX_MQTT_TOPIC_LEN);
+    _topics[DATA] = _baseTopic + "/data";
+    _topics[COMMAND] = _baseTopic + "/cmd";
+    _topics[RESPONSE] = _baseTopic + "/response";
+    _topics[ERROR] = _baseTopic + "/error";
+    _topics[STARTUP] = _baseTopic + "/startup";
 
     consolePrint("Connecting to MQTT...");
-    if (_mqttClient.connect(_clientName)) {
+    if (_mqttClient.connect(_clientName.c_str())) {
         consolePrintln("connected");
     } else {
         String msg = "ERROR: failed with state " + _mqttClient.state();
         consolePrintln(msg);
-        msg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
-        _mqttClient.publish(_topics[ERROR], _pubMsg);
+        _mqttClient.publish(_topics[ERROR].c_str(), msg.c_str());
     }
     _topicSubscribe(_baseTopic.substring(0, _baseTopic.indexOf('/')) + "/cmd");
     _topicSubscribe(_baseTopic.substring(0, _baseTopic.lastIndexOf('/')) + "/cmd");
@@ -154,10 +125,10 @@ void SensorNet::mqttSetup(String server, int port, String prefix, callback *cb) 
                         appVersion + "," +
                         reportSchema + "," +
                         wifiState().rssi;
-    startupMsg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
-    _mqttClient.publish(_topics[STARTUP], _pubMsg);
+    _mqttClient.publish(_topics[STARTUP].c_str(), startupMsg.c_str());
 }
 
+/*
 // Setup connection to MQTT server and make initial connection
 void SensorNet::mqttSetup(String server, int port, String prefix) {
     //// TODO assert that WiFi.status() == WL_CONNECTED
@@ -188,6 +159,7 @@ void SensorNet::mqttSetup(String server, int port, String prefix) {
     startupMsg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
     _mqttClient.publish(_topics[STARTUP], _pubMsg);
 }
+*/
 
 // Connect to the MQTT server
 bool SensorNet::mqttRun() {
@@ -195,13 +167,12 @@ bool SensorNet::mqttRun() {
     bool result = true;
     if (!_mqttClient.connected()) {
         consolePrint("Connecting to MQTT...");
-        if (_mqttClient.connect(_clientName)) {
+        if (_mqttClient.connect(_clientName.c_str())) {
             consolePrintln("connected");
         } else {
             String msg = "ERROR: failed with state " + _mqttClient.state();
             consolePrintln(msg);
-            msg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
-            _mqttClient.publish(_topics[ERROR], _pubMsg);
+            _mqttClient.publish(_topics[ERROR].c_str(), msg.c_str());
             result = false;
         }
     }
@@ -210,18 +181,17 @@ bool SensorNet::mqttRun() {
 }
 
 // Publish message to the given subtopic of the defined topic
-bool SensorNet::mqttPub(pubType type, String msg) {
+bool SensorNet::mqttPub(pubType type, const String& msg) {
     //// TODO assert that MQTT has been set up
-    bool result = true;
     if ((type < 0) || (type >= NUM_SUB_TOPICS)) {
-        msg = "ERROR: bad sub-topic: " + String(type);
-        type = ERROR;
+        _mqttClient.publish(_topics[ERROR].c_str(),
+                            String("ERROR: bad sub-topic: " + String(type)).c_str());
         consolePrintln(msg);
-        result = false;
+        return(false);
+    } else {
+        _mqttClient.publish(_topics[type].c_str(), msg.c_str());
+        return(true);
     }
-    msg.toCharArray(_pubMsg, MAX_MQTT_PUB_MSG_LEN);
-    _mqttClient.publish(_topics[type], _pubMsg);
-    return result;
 }
 
 SensorNet::MQTT_STATE SensorNet::mqttState() {
@@ -277,6 +247,10 @@ SensorNet::callbackMessage SensorNet::baseCallback(char* topic, byte* payload, u
         respMsg = "Schema=\"" + reportSchema + "\"";
     } else if (cbMsg.cmd.equalsIgnoreCase("version")) {
         respMsg = "Version=\"" + appVersion + "\"";
+    } else if (cbMsg.cmd.equalsIgnoreCase("mqttServer")) {
+        respMsg = "mqttServer=\"" + _mqttServer + "\"";
+    } else if (cbMsg.cmd.equalsIgnoreCase("mqttPort")) {
+        respMsg = "mqttPort=\"" + String(_mqttPort) + "\"";
     } else if (cbMsg.cmd.equals("?")) {
         respMsg = "CommandNames:" + _commandNames;
     } else {

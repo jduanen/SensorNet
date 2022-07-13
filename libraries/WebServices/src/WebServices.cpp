@@ -95,6 +95,16 @@ void WebServices::run() {
     }
 }
 
+void WebServices::updateClients() {
+    if (_numPages < 1) {
+        _println("WARNING: no pages registered, skipping updateClients");
+        return;
+    }
+    StaticJsonDocument<32> doc;
+    doc["msgType"] = "update";
+    _notifyClients(doc);
+}
+
 void WebServices::_onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {
   switch (type) {
@@ -126,14 +136,16 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
         String m;
         serializeJsonPretty(_wsMsg, m);
         _println("Rx Msg: " + m);  //// TMP TMP TMP
-
-        // notify clients of current state via a stringified JSON object
-        String msg = "{\"applName\": \"" + _applName + "\"";
-        for (int i = 0; (i < _numPages); i++) {
-            msg += _pageDefs[i].msgHandler(_wsMsg);
-        }
-        msg += "}";
-        Serial.println("Tx Msg: " + msg);  //// TMP TMP TMP
-        _socketPtr->textAll(msg);
+        _notifyClients(_wsMsg);
     }
+}
+
+void WebServices::_notifyClients(const JsonDocument& doc) {
+    String msg = "{\"applName\": \"" + _applName + "\"";
+    for (int i = 0; (i < _numPages); i++) {
+        msg += _pageDefs[i].msgHandler(doc);
+    }
+    msg += "}";
+    Serial.println("Notify Msg: " + msg);  //// TMP TMP TMP
+    _socketPtr->textAll(msg);
 }

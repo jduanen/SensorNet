@@ -48,6 +48,8 @@ public:
 
     void run();
 
+    void updateClients();
+
 private:
     String _applName;
     bool _verbose = true;
@@ -65,11 +67,10 @@ private:
     void _print(String str);
     void _println(String str);
 
-    void _notifyClients();
     void _onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
                   AwsEventType type, void *arg, uint8_t *data, size_t len);
     void _handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
-//    static String _commonProcessor(const String& var);
+    void _notifyClients(const JsonDocument& doc);
 };
 
 #endif /*WEB_SERVICES_H*/

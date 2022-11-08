@@ -6,8 +6,11 @@
 
 #ifndef WIFI_UTILITIES_H
 #define WIFI_UTILITIES_H
-
+#if !defined(ESP_PLATFORM)
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
+#endif
 
 
 #define MAX_WIFI_RETRIES    8 //64

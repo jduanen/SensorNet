@@ -2,6 +2,9 @@
 *
 * Library that handles Web Server, Web Sockets, and OTA updates for SensorNet devices
 *
+* TODO:
+*   - make json doc size be an constructor variable
+* 
 ****************************************************************************/
 
 #ifndef WEB_SERVICES_H
@@ -17,7 +20,7 @@
 #define DEF_CONFIG_PATH         "/config.json"
 #define DEF_PORT_NUM            80
 #define WEB_SOCKET_PATH         "/ws"
-#define WS_JSON_DOC_SIZE        256
+#define WS_JSON_DOC_SIZE        1024
 #define MAX_NUM_PAGES           3
 
 #define COMMON_HTML_PATH        "/index.html"

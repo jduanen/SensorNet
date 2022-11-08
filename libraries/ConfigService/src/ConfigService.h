@@ -15,10 +15,10 @@
 #include "LfsUtilities.h"
 
 
-#define JSON_OBJ_SIZE           512
+#define JSON_OBJ_SIZE           1024
 #define MAX_PATH_LENGTH         80
 
-
+//// FIXME make the size a constructor argument
 typedef StaticJsonDocument<JSON_OBJ_SIZE> ConfigJsonDoc;
 
 

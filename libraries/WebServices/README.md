@@ -4,6 +4,10 @@ This library includes support for OTA firmware updates, and (optionally) a
 Web-Sockets-based Web Server and a (local-file-system-based) configuration
 file feature.
 
+##Principles of Operation
+
+**TBD**
+
 ##Uploading Files to LittleFS on ESP8266
 
 * Install LittleFS Uploader Plugin in Arduino IDE (1.x only)

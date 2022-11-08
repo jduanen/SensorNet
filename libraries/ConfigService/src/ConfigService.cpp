@@ -58,7 +58,11 @@ void ConfigService::listFiles(const String& path) {
 }
 
 bool ConfigService::initializeConfig() {
-    deserializeJson(configJsonDoc, "{}");
+    DeserializationError error = deserializeJson(configJsonDoc, "{}");
+    if (error) {
+        Serial.print("ERROR: initializeConfig() deserializeJson() failed: ");
+        Serial.println(error.f_str());
+    };
     return(saveConfig());
 }
 
@@ -99,7 +103,12 @@ bool ConfigService::_readConfig() {
         Serial.printf("ERROR: failed to read config file: %s\n", _configPath);
         return(false);
     }
-    deserializeJson(configJsonDoc, f);
+    DeserializationError error = deserializeJson(configJsonDoc, f);
+    if (error) {
+        Serial.print("ERROR: _readConfig() deserializeJson() failed: ");
+        Serial.println(error.f_str());
+        return(false);
+    };
     _println("Read config file and deserialized JSON");
     f.close();
     return(true);

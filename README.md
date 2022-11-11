@@ -2,6 +2,9 @@
 
 Collection of ESP8266-based sensors that generate data via MQTT and a suite of tools for operating on the data
 
+**WIP**
+Converting the HW to use ESP32 and integrating with Home Assistant (using Seed Studio's ESPHome)
+
 ## Sensors
 
 ### AirQuality

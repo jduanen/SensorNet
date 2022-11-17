@@ -9,8 +9,15 @@
 
 
 #define APP_NAME        "ConfigServiceTest"
-#define APP_VERSION     "1.0.0"
-#define CONFIG_PATH     "/config.json"
+#define APP_VERSION     "2.0.0"
+
+#define CONFIG_FILE     CONFIG_FILE0
+#define CONFIG_FILE0    "/config.json"   // none
+#define CONFIG_FILE1    "/config1.json"  // empty
+#define CONFIG_FILE2    "/config2.json"  // partial
+#define CONFIG_FILE3    "/config3.json"  // full
+
+#define CS_DOC_SIZE     256
 
 
 typedef struct {
@@ -19,11 +26,11 @@ typedef struct {
 } ConfigSubState;
 
 ConfigSubState configSubState = {
-    -1,
-    1.0
+    -5,
+    5555.5
 };
 
-//// TODO include examples of using arrays
+//// TODO include examples of using arrays and nested arrays
 typedef struct {
     String  str;
     int     i;
@@ -42,130 +49,152 @@ ConfigState configState = {
     "char array"
 };
 
+ConfigService *csPtr;
+//ConfigService cs(CS_DOC_SIZE, CONFIG_FILE);
+
 
 void halt() {
     while (true) {};
 }
 
-//// TODO move this to subclass of ConfigService and call them as methods
+
 // Use values from local struct if corresponding value not found in config doc
-void initConfig(ConfigState *structPtr) {
-    if (!cs.configJsonDoc.containsKey("str")) {
-        cs.configJsonDoc["str"] = structPtr->str;
-    }
-    if (!cs.configJsonDoc.containsKey("i")) {
-        cs.configJsonDoc["i"] = structPtr->i;
-    }
-    if (!cs.configJsonDoc.containsKey("a")) {
-        cs.configJsonDoc["a"] = structPtr->a;
-    }
-    if (!cs.configJsonDoc.containsKey("b")) {
-        cs.configJsonDoc["b"] = structPtr->b;
-    }
-    if (!cs.configJsonDoc.containsKey("c")) {
-        cs.configJsonDoc["c"] = structPtr->c;
-    }
+void initConfig(ConfigService *csObj, ConfigState *structPtr) {
+    DynamicJsonDocument d = *(csObj->doc);
+    INIT_CONFIG(csObj, "str", structPtr->str);
+    INIT_CONFIG(csObj, "i", structPtr->i);
+    INIT_CONFIG(csObj, "a", structPtr->a);
+    INIT_CONFIG(csObj, "b", structPtr->b);
+    INIT_CONFIG(csObj, "c", structPtr->c);
+    INIT_CONFIG(csObj, "d", structPtr->d);
 }
 
-//// TODO move this to subclass of ConfigService and call them as methods
 // Load config doc with values from local struct
-void setConfig(ConfigState *structPtr) {
-    cs.configJsonDoc["str"] = structPtr->str;
-    cs.configJsonDoc["i"] = structPtr->i;
-    cs.configJsonDoc["a"] = structPtr->a;
-    cs.configJsonDoc["b"] = structPtr->b;
-    cs.configJsonDoc["c"] = structPtr->c;
+// N.B. This uses implicit casting
+void setConfig(ConfigService *csObj, ConfigState *structPtr) {
+    SET_CONFIG(csObj, "str", structPtr->str);
+    SET_CONFIG(csObj, "i", structPtr->i);
+    SET_CONFIG(csObj, "a", structPtr->a);
+    SET_CONFIG(csObj, "b", structPtr->b);
+    SET_CONFIG(csObj, "c", structPtr->c);
+    SET_CONFIG(csObj, "d", structPtr->d);
 }
 
-//// TODO move this to subclass of ConfigService and call them as methods
 // Load local struct with values from config doc
-void getConfig(ConfigState *structPtr) {
-//    structPtr->str = csPtr->configJsonDoc["str"];
-    structPtr->i = cs.configJsonDoc["i"];
-    structPtr->a = cs.configJsonDoc["a"];
-    structPtr->b = cs.configJsonDoc["b"];
-    structPtr->c = cs.configJsonDoc["c"];
+// N.B. This uses explicit casting
+void getConfig(ConfigService *csObj, ConfigState *structPtr) {
+    GET_CONFIG(structPtr->str, csObj, "str", String);
+    GET_CONFIG(structPtr->i, csObj, "i", int);
+    GET_CONFIG(structPtr->a, csObj, "a", char);
+    GET_CONFIG(structPtr->b, csObj, "b", bool);
+    GET_CONFIG(structPtr->c, csObj, "c", float);
+    //// FIXME
+//    GET_CONFIG(structPtr->d, csObj, "d", String);
 }
 
 void setup() {
     delay(500);
-    Serial.begin(19200);
+    Serial.begin(115200);
     delay(500);
     Serial.print("\nBEGIN: ");
     Serial.println(APP_NAME);
     Serial.println("==========================");
 
-    if (false) {
+    if (true) {
+        // should have created an empty config file as none exists after formatting
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        Serial.println("Initial contents");
+        csPtr->listFiles("/");
+        csPtr->printConfig();
         Serial.println("Formatting LittleFS");
-        cs.format();
+        csPtr->format();
+        // should be gone after formatting the fs
+        csPtr->listFiles("/");
+        csPtr-> printConfig();
+        Serial.println("==> Expect: \"ERROR: Failed to open file for reading\"");
     }
-    cs.listFiles("/");
     Serial.println("==========================");
 
     if (true) {
-        // should create an empty config file as none exists
+        // read and print contents of file
         Serial.println("1vvvvvvvvvvvvvvvvvvvvvvvvvv1");
-        cs.open(CONFIG_PATH);
-        cs.listFiles("/");
-        cs.close();
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        Serial.println("Expect: \"WARNING: No config file...\"");
+        csPtr->listFiles("/");
+        Serial.println("Contents of config file: " + String(CONFIG_FILE0));
+        csPtr->printConfig();
+        Serial.println("==> Expect: \"{}\"");
+    }
+
+    if (true) {
+        // initialize the config file (from compiled defaults) with an empty config file
+        Serial.println("2vvvvvvvvvvvvvvvvvvvvvvvvvv2");
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        Serial.println("Initialize missing parts of the config");
+        initConfig(csPtr, &configState);
+        csPtr->saveConfig();
+        csPtr->listFiles("/");
+        Serial.println("Contents of config file after update: " + String(CONFIG_FILE0));
+        csPtr->printConfig();
+        Serial.println("==> Expect: \"{str: Test String, i: 1234, a: 97, b: true, c: 3.14, d: char array}\"");
     }
 
     if (true) {
         // initialize the config file with a subset of the fields
-        Serial.println("2vvvvvvvvvvvvvvvvvvvvvvvvvv2");
-        cs.open(CONFIG_PATH);
-        Serial.println("Contents of config file:");
-        cs.printConfig();
-        Serial.println("Initialize subset of the config");
-        cs.configJsonDoc["i"] = configSubState.i;
-        cs.configJsonDoc["c"] = configSubState.c;
-        cs.saveConfig();
-        cs.listFiles("/");
-        cs.close();
+        Serial.println("3vvvvvvvvvvvvvvvvvvvvvvvvvv3");
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        Serial.println("Modify a subset of the config");
+        (*(csPtr->doc))["i"] = configSubState.i;
+        (*(csPtr->doc))["c"] = configSubState.c;
+        csPtr->saveConfig();
+        csPtr->listFiles("/");
+        Serial.println("Contents of config file after modification: " + String(CONFIG_FILE0));
+        csPtr->printConfig();
+        Serial.println("==> Expect: \"{\"str\":\"Test String\",\"i\":-5,\"a\":97,\"b\":true,\"c\":5555.5,\"d\":\"char array\"}\"");
     }
 
     if (true) {
         Serial.println("3vvvvvvvvvvvvvvvvvvvvvvvvvv3");
-        cs.open(CONFIG_PATH);
-        cs.listFiles("/");
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        csPtr->listFiles("/");
         Serial.print("Contents of config file: ");
-        cs.printConfig();
-        Serial.println("Initialize with the full config");
-        initConfig(&configState);
-        cs.saveConfig();
-        cs.listFiles("/");
-        cs.close();
-    }
-
-    if (true) {
-        Serial.println("4vvvvvvvvvvvvvvvvvvvvvvvvvv4");
-        cs.open(CONFIG_PATH);
-        cs.listFiles("/");
+        csPtr->printConfig();
+        Serial.println("\nWrite empty json object to config file: " + String(CONFIG_FILE0));
+        deserializeJson(*(csPtr->doc), "{}");
+        csPtr->saveConfig();
+        Serial.print("Contents of empty config file: ");
+        csPtr->printConfig();
+        Serial.println("\nInitialize with the full config");
+        initConfig(csPtr, &configState);
+        csPtr->saveConfig();
+        csPtr->listFiles("/");
         Serial.print("Contents of config file: ");
-        cs.printConfig();
-        Serial.println("Initialize with the full config");
-        setConfig(&configState);
-        cs.saveConfig();
-        cs.listFiles("/");
-        cs.close();
+        csPtr->printConfig();
+        Serial.println("==> Expect: \"{\"str\":\"Test String\",\"i\":1234,\"a\":97,\"b\":true,\"c\":3.140000105,\"d\":\"char array\"}\"");
     }
 
     if (true) {
         Serial.println("5vvvvvvvvvvvvvvvvvvvvvvvvvv5");
-        cs.open(CONFIG_PATH);
-        cs.listFiles("/");
+        csPtr = new ConfigService(CS_DOC_SIZE, CONFIG_FILE0);
+        csPtr->listFiles("/");
         Serial.print("Contents of complete config file: ");
-        cs.printConfig();
-        Serial.println("Update the config");
-        getConfig(&configState);
+        csPtr->printConfig();
+        Serial.println("==> Expect: \"{\"str\":\"Test String\",\"i\":1234,\"a\":97,\"b\":true,\"c\":3.140000105,\"d\":\"char array\"}\"");
+        Serial.println("\nUpdate the config");
+        getConfig(csPtr, &configState);
+        Serial.println("Before: i=" + String(configState.i) + ", b=" + configState.b);
         configState.i++;
         configState.b = !configState.b;
-        setConfig(&configState);
-        cs.saveConfig();
-        cs.listFiles("/");
-        cs.close();
+        Serial.println("After: i=" + String(configState.i) + ", b=" + configState.b);
+        setConfig(csPtr, &configState);
+        csPtr->saveConfig();
+        csPtr->listFiles("/");
+        Serial.print("\nContents of config file: ");
+        csPtr->printConfig();
+        Serial.println("=====> Expect: {\"str\":\"Test String\",\"i\":1235,\"a\":97,\"b\":false,\"c\":3.140000105,\"d\":\"char array\"}");
     }
 
+    /*
     if (true) {
         // read the new config file
         cs.open(CONFIG_PATH);
@@ -174,6 +203,7 @@ void setup() {
         cs.close();
         Serial.println("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
+    */
 }
 
 void loop() {

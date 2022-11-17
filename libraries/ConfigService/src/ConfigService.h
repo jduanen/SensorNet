@@ -15,45 +15,39 @@
 #include "LfsUtilities.h"
 
 
-#define JSON_OBJ_SIZE           1024
-#define MAX_PATH_LENGTH         80
+#define MAX_PATH_LENGTH         32
 
-//// FIXME make the size a constructor argument
-typedef StaticJsonDocument<JSON_OBJ_SIZE> ConfigJsonDoc;
+#define INIT_CONFIG(csObj, field, value)        if (!csObj->validEntry(field)) {(*(csObj->doc))[field] = value;}
+#define SET_CONFIG(csObj, field, value)         (*(csObj->doc))[field] = value
+#define GET_CONFIG(value, csObj, field, typ)    value = (*(csObj->doc))[field].as<typ>()
 
 
 class ConfigService {
 public:
-    String libVersion = "1.1";
-    ConfigJsonDoc configJsonDoc;
+    String libVersion = "2.0";
+    DynamicJsonDocument *doc;
 
-    ConfigService();
+    ConfigService(uint32_t docSize, const String& configFilePath);
     ~ConfigService();
     static ConfigService &getInstance();
 
-    bool open(const String& configPath);
-    void close();
     void format();
     void listFiles(const String& path);
     bool initializeConfig();
     bool saveConfig();
     void printConfig();
     bool deleteConfig();
+    bool validEntry(const String& key);
 
 private:
     bool _verbose = true;
     char _configPath[MAX_PATH_LENGTH];
 
     bool _readConfig();
-
-    void _displayConfigDoc();
+    void _printConfigDoc();
 
     void _print(String str);
     void _println(String str);
 };
-
-
-extern ConfigService &cs;
-
 
 #endif /*CONFIG_SERVICE_H*/

@@ -17,9 +17,13 @@
 
 #define MAX_PATH_LENGTH         32
 
-#define INIT_CONFIG(csObj, field, value)        if (!csObj->validEntry(field)) {(*(csObj->doc))[field] = value;}
-#define SET_CONFIG(csObj, field, value)         (*(csObj->doc))[field] = value
-#define GET_CONFIG(value, csObj, field, typ)    value = (*(csObj->doc))[field].as<typ>()
+#define INIT_CONFIG_PTR(csPtr, field, value)        if (!csPtr->validEntry(field)) {(*(csPtr->doc))[field] = value;}
+#define SET_CONFIG_PTR(csPtr, field, value)         (*(csPtr->doc))[field] = value
+#define GET_CONFIG_PTR(value, csPtr, field, typ)    value = (*(csPtr->doc))[field].as<typ>()
+
+#define INIT_CONFIG(csObj, field, value)        if (!csObj.validEntry(field)) {(*(csObj.doc))[field] = value;}
+#define SET_CONFIG(csObj, field, value)         (*(csObj.doc))[field] = value
+#define GET_CONFIG(value, csObj, field, typ)    value = (*(csObj.doc))[field].as<typ>()
 
 
 class ConfigService {

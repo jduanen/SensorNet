@@ -60,36 +60,35 @@ void halt() {
 
 // Use values from local struct if corresponding value not found in config doc
 void initConfig(ConfigService *csObj, ConfigState *structPtr) {
-    DynamicJsonDocument d = *(csObj->doc);
-    INIT_CONFIG(csObj, "str", structPtr->str);
-    INIT_CONFIG(csObj, "i", structPtr->i);
-    INIT_CONFIG(csObj, "a", structPtr->a);
-    INIT_CONFIG(csObj, "b", structPtr->b);
-    INIT_CONFIG(csObj, "c", structPtr->c);
-    INIT_CONFIG(csObj, "d", structPtr->d);
+    INIT_CONFIG_PTR(csObj, "str", structPtr->str);
+    INIT_CONFIG_PTR(csObj, "i", structPtr->i);
+    INIT_CONFIG_PTR(csObj, "a", structPtr->a);
+    INIT_CONFIG_PTR(csObj, "b", structPtr->b);
+    INIT_CONFIG_PTR(csObj, "c", structPtr->c);
+    INIT_CONFIG_PTR(csObj, "d", structPtr->d);
 }
 
 // Load config doc with values from local struct
 // N.B. This uses implicit casting
 void setConfig(ConfigService *csObj, ConfigState *structPtr) {
-    SET_CONFIG(csObj, "str", structPtr->str);
-    SET_CONFIG(csObj, "i", structPtr->i);
-    SET_CONFIG(csObj, "a", structPtr->a);
-    SET_CONFIG(csObj, "b", structPtr->b);
-    SET_CONFIG(csObj, "c", structPtr->c);
-    SET_CONFIG(csObj, "d", structPtr->d);
+    SET_CONFIG_PTR(csObj, "str", structPtr->str);
+    SET_CONFIG_PTR(csObj, "i", structPtr->i);
+    SET_CONFIG_PTR(csObj, "a", structPtr->a);
+    SET_CONFIG_PTR(csObj, "b", structPtr->b);
+    SET_CONFIG_PTR(csObj, "c", structPtr->c);
+    SET_CONFIG_PTR(csObj, "d", structPtr->d);
 }
 
 // Load local struct with values from config doc
 // N.B. This uses explicit casting
 void getConfig(ConfigService *csObj, ConfigState *structPtr) {
-    GET_CONFIG(structPtr->str, csObj, "str", String);
-    GET_CONFIG(structPtr->i, csObj, "i", int);
-    GET_CONFIG(structPtr->a, csObj, "a", char);
-    GET_CONFIG(structPtr->b, csObj, "b", bool);
-    GET_CONFIG(structPtr->c, csObj, "c", float);
+    GET_CONFIG_PTR(structPtr->str, csObj, "str", String);
+    GET_CONFIG_PTR(structPtr->i, csObj, "i", int);
+    GET_CONFIG_PTR(structPtr->a, csObj, "a", char);
+    GET_CONFIG_PTR(structPtr->b, csObj, "b", bool);
+    GET_CONFIG_PTR(structPtr->c, csObj, "c", float);
     //// FIXME
-//    GET_CONFIG(structPtr->d, csObj, "d", String);
+//    GET_CONFIG_PTR(structPtr->d, csObj, "d", String);
 }
 
 void setup() {

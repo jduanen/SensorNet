@@ -4,9 +4,6 @@
  * 
  ***************************************************************************/
 
-#include "WebServices.h"
-
-
 template<int maxMsgSize>
 void WebServices<maxMsgSize>::_print(String str) {
   if (_verbose) {

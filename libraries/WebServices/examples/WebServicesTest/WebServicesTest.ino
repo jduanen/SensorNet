@@ -11,40 +11,40 @@
 
 
 #define APPL_NAME           "WebServicesTest"
-#define APPL_VERSION        "1.0.1"
-#define WEB_SERVER_PORT     80
+#define APPL_VERSION        "2.0.0"
 #define WIFI_AP_SSID        "WebServices"
+#define WEB_SERVER_PORT     80
+#define MAX_WS_MSG_SIZE     512
 
-//#define USER_NAME           "name"
-//#define PASSWD              "passwd"
-
-#define CONFIG_PATH         "/config.json"
-#define APPL_HTML_PATH      "/appl/appl.html"
-#define APPL_STYLE_PATH     "/appl/style.css"
-#define APPL_SCRIPTS_PATH   "/appl/scripts.js"
-
-#define FW_UPDATE           (1 << 0)    // test OTA firmware update feature
-#define COMMON_GUI          (1 << 1)    // test common GUI
-#define APPL_GUI            (1 << 2)    // test application-specific GUI
+#define CONFIG_FILE_PATH    "/config.json"
+#define CS_DOC_SIZE         1024
 
 
 typedef struct {
     String ssid;
     String passwd;
+
+    bool        flag;
+    uint32_t    intVal;
 } ConfigState;
+
 
 ConfigState configState = {
     String(WLAN_SSID),
-    String(rot47(WLAN_PASS))
+    String(rot47(WLAN_PASS)),
+
+    false,
+    0
 };
 
-WebServices webSvcs(APPL_NAME, WEB_SERVER_PORT);
-
-//int testMode = FW_UPDATE;
-int testMode = FW_UPDATE | COMMON_GUI;
-//int testMode = FW_UPDATE | COMMON_GUI | APPL_GUI;
-
 int loopCnt = 0;
+
+ConfigService cs(CS_DOC_SIZE, CONFIG_FILE_PATH);
+
+WebServices<MAX_WS_MSG_SIZE> webSvcs(APPL_NAME, WEB_SERVER_PORT);
+
+
+void(* reboot)(void) = 0;
 
 String commonPageProcessor(const String& var) {
     if (var == "APPL_NAME") {
@@ -68,21 +68,70 @@ String commonPageProcessor(const String& var) {
 };
 
 String commonPageMsgHandler(const JsonDocument& wsMsg) {
+    if (true) { //// TMP TMP TMP
+        Serial.println("MSG:");
+        if (false) {
+            serializeJsonPretty(wsMsg, Serial);
+        } else {
+            serializeJson(wsMsg, Serial);
+        }
+        Serial.println("");
+    }
+
+    // handle changes in GUI; update HW and reflect it in the configState
     String msgType = String(wsMsg["msgType"]);
     if (msgType.equals("query")) {
         // NOP
+    } else if (msgType.equals("set")) {
+        configState.flag = wsMsg["flag"];
+        configState.intVal = wsMsg["intVal"];
     } else if (msgType.equals("saveConf")) {
-        //// FIXME add code here
+        String ssidStr = String(wsMsg["ssid"]);
+        configState.ssid = ssidStr;
+        SET_CONFIG(cs, "ssid", ssidStr);
+        String passwdStr = String(wsMsg["passwd"]);
+        configState.passwd = passwdStr;
+        SET_CONFIG(cs, "passwd", passwdStr);
+
+        bool flag = wsMsg["flag"];
+        configState.flag = flag;
+        SET_CONFIG(cs, "flag", flag);
+        uint32_t intVal = wsMsg["intVal"];
+        configState.intVal = intVal;
+        SET_CONFIG(cs, "intVal", intVal);
+
+        if (!cs.saveConfig()) {
+            Serial.println("ERROR: Failed to write config file");
+        }
+        if (true) {
+            Serial.println("Config File: XXXXXXXXXXXXXXXXXX");
+            serializeJson(*(cs.doc), Serial);
+            cs.listFiles("/");
+            cs.printConfig();
+            Serial.println("...\nXXXXXXXXXXXXXXXXX\n");
+        }
+    } else if (msgType.equalsIgnoreCase("reboot")) {
+        Serial.println("REBOOTING...");
+        reboot();
+    } else if (msgType.equalsIgnoreCase("update")) {
+        //// FIXME
+        Serial.println("FIXME do the right thing here");
+    } else {
+        Serial.println("ERROR: unknown WS message type -- " + msgType);
     }
 
+    // send contents of configState (which should reflect the state of the HW)
     String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
     msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
     msg += ", \"ssid\": \"" + WiFi.SSID() + "\"";
     msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
-    //Serial.println(msg);
+    msg += ", \"flag\": \"" + String(configState.flag ? "true" : "false") + "\"";
+    msg += ", \"intVal\": " + String(configState.intVal);
+    if (false) {  //// TMP TMP TMP
+        Serial.println(msg);
+    }
     return(msg);
 };
-
 
 WebPageDef commonPage = {
     COMMON_HTML_PATH,
@@ -92,68 +141,36 @@ WebPageDef commonPage = {
     commonPageMsgHandler
 };
 
-/*
-String applPageProcessor(const String& var) {
-    if (var == "?") {
-        return (String(?));
-    } else if (var == "?") {
-        return (String(?));
-    }
-    return String();
-};
-
-String applPageMsgHandler(const JsonDocument& wsMsg) {
-    String msgType = String(wsMsg["msgType"]);
-    if (msgType.equals("query")) {
-        // NOP
-    } else if (msgType.equals("saveConf")) {
-        //// FIXME add code here
-    }
-
-    String msg = ", \"?\": \"" + ? + "\"";
-    msg += ", \"?\": \"" + ? + "\"";
-    //Serial.println(msg);
-    return(msg);
-};
-
-
-WebPageDef applPage = {
-    APPL_HTML_PATH,
-    APPL_SCRIPTS_PATH,
-    APPL_STYLE_PATH,
-    applPageProcessor,
-    applPageMsgHandler
-};
-*/
-
-void halt() {
-    while (true) {};
-};
-
 void config() {
+    bool flag;
+    uint32_t intVal;
     bool dirty = false;
-    cs.open(CONFIG_PATH);
 
-    if (!cs.configJsonDoc.containsKey("ssid")) {
-        cs.configJsonDoc["ssid"] = configState.ssid;
-        dirty = true;
-    }
-    if (!cs.configJsonDoc.containsKey("passwd")) {
-        cs.configJsonDoc["passwd"] = configState.passwd;
-        dirty = true;
-    }
+    // use value from defaults struct if a valid field not in config file
+    INIT_CONFIG(cs, "ssid", configState.ssid);
+    INIT_CONFIG(cs, "passwd", configState.passwd);
+    INIT_CONFIG(cs, "flag", configState.flag);
+    INIT_CONFIG(cs, "intVal", configState.intVal);
     if (dirty) {
         cs.saveConfig();
     }
-    cs.printConfig();
 
-    configState.ssid = cs.configJsonDoc["ssid"].as<String>();
-    configState.passwd = cs.configJsonDoc["passwd"].as<String>();
+    GET_CONFIG(configState.ssid, cs, "ssid", String);
+    GET_CONFIG(configState.passwd, cs, "passwd", String);
+    GET_CONFIG(configState.flag, cs, "flag", bool);
+    GET_CONFIG(configState.intVal, cs, "intVal", unsigned int);
+    if (false) {
+        Serial.println("Config File: vvvvvvvvvvvvvvvvvvv");
+        serializeJson(*(cs.doc), Serial);
+        cs.listFiles("/");
+        cs.printConfig();
+        Serial.println("...\n^^^^^^^^^^^^^^^^^^^^^\n");
+    }
 }
 
 void setup() {
     delay(500);
-    Serial.begin(19200);
+    Serial.begin(115200);
     delay(500);
     Serial.println("\nBEGIN");
 
@@ -162,32 +179,40 @@ void setup() {
         // clear the local file system
         cs.format();
     }
-    config();
+
+    //// TMP TMP TMP
+    if (true) {
+        // clear the config file
+        Serial.print("Contents of config file: ");
+        cs.printConfig();
+        Serial.println("\nWrite empty json object to config file: " + String(CONFIG_FILE_PATH));
+        deserializeJson(*(cs.doc), "{}");
+        cs.saveConfig();
+        Serial.print("Contents of empty config file: ");
+        cs.printConfig();
+        Serial.println("^^^^^^^^^^^^^^^^^^^^^^^^^");
+    }
 
     Serial.println("Local Files:");
     cs.listFiles("/");
 
+    config();
+
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
-    if ((testMode & COMMON_GUI) == COMMON_GUI) {
-        if (!webSvcs.addPage(commonPage)) {
-            Serial.println("ERROR: failed to add common page; halting");
-            halt();
-        }
+    if (!webSvcs.addPage(commonPage)) {
+        Serial.println("ERROR: failed to add common page; halting");
+        while (true) {};
     }
 
-/*
-    if ((testMode & APPL_GUI) == APPL_GUI) {
-        if (!webSvcs.addPage(applPage)) {
-            Serial.println("ERROR: failed to add appl page; halting");
-            halt();
-        }
-    }
-*/
-}
+    webSvcs.updateClients();  //// FIXME remove this?
+
+    Serial.println("READY");
+};
 
 void loop() {
     webSvcs.run();
+
     if ((loopCnt % 5000000) == 0) {
         Serial.printf("loop: %d\n", loopCnt);
     }

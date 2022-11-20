@@ -15,6 +15,8 @@
 #include "LfsUtilities.h"
 
 
+#define CONFIG_SERVICE_VERSION  "2.0"
+
 #define MAX_PATH_LENGTH         32
 
 #define INIT_CONFIG_PTR(csPtr, field, value)        if (!csPtr->validEntry(field)) {(*(csPtr->doc))[field] = value;}
@@ -28,7 +30,7 @@
 
 class ConfigService {
 public:
-    String libVersion = "2.0";
+    String libVersion = CONFIG_SERVICE_VERSION;
     DynamicJsonDocument *doc;
 
     ConfigService(uint32_t docSize, const String& configFilePath);

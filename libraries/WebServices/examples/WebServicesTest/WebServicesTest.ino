@@ -19,6 +19,10 @@
 #define CONFIG_FILE_PATH    "/config.json"
 #define CS_DOC_SIZE         1024
 
+#define WS_HTML_PATH        "/index.html"
+#define WS_STYLE_PATH       "/style.css"
+#define WS_SCRIPTS_PATH     "/scripts.js"
+
 
 typedef struct {
     String ssid;
@@ -46,7 +50,7 @@ WebServices<MAX_WS_MSG_SIZE> webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
 void(* reboot)(void) = 0;
 
-String commonPageProcessor(const String& var) {
+String pageProcessor(const String& var) {
     if (var == "APPL_NAME") {
         return (String(APPL_NAME));
     } else if (var == "VERSION") {
@@ -67,7 +71,7 @@ String commonPageProcessor(const String& var) {
     return String();
 };
 
-String commonPageMsgHandler(const JsonDocument& wsMsg) {
+String pageMsgHandler(const JsonDocument& wsMsg) {
     if (true) { //// TMP TMP TMP
         Serial.println("MSG:");
         if (false) {
@@ -133,12 +137,12 @@ String commonPageMsgHandler(const JsonDocument& wsMsg) {
     return(msg);
 };
 
-WebPageDef commonPage = {
-    COMMON_HTML_PATH,
-    COMMON_SCRIPTS_PATH,
-    COMMON_STYLE_PATH,
-    commonPageProcessor,
-    commonPageMsgHandler
+WebPageDef webPage = {
+    WS_HTML_PATH,
+    WS_SCRIPTS_PATH,
+    WS_STYLE_PATH,
+    pageProcessor,
+    pageMsgHandler
 };
 
 void config() {
@@ -200,10 +204,11 @@ void setup() {
 
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 
-    if (!webSvcs.addPage(commonPage)) {
-        Serial.println("ERROR: failed to add common page; halting");
+    if (!webSvcs.addPage(webPage)) {
+        Serial.println("ERROR: failed to add web page; halting");
         while (true) {};
     }
+    webSvcs.addPage(CONFIG_FILE_PATH, "application/json");
 
     webSvcs.updateClients();  //// FIXME remove this?
 

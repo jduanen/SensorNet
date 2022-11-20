@@ -6,14 +6,15 @@ h1 {
   font-size: 1.9rem;
   color: white;
 }
-h2{
+h2 {
   margin: 5px;
   font-size: 1.7rem;
   font-weight: bold;
   color: #143642;
 }
-h3{
-  margin-top: 10px;
+h3 {
+  margin-top: 18px;
+  margin-bottom: 8px;
   font-size: 1.5rem;
   font-weight: bold;
   color: #143642;
@@ -33,19 +34,27 @@ body {
 .card {
   background-color: #F8F7F9;
   box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-  padding-top:10px;
-  padding-bottom:20px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  line-height: 12px;
 }
-.staticState {
-  margin: 5px;
+.staticStateName {
   font-size: 1.2rem;
-  color:black;
+  color: black;
   font-weight: bold;
 }
-.state {
+.stateName {
   font-size: 1.2rem;
-  color:#8c8c8c;
+  color: #8c8c8c;
   font-weight: bold;
+}
+.staticStateValue {
+  font-size: 1.2rem;
+  color: blue;
+}
+.stateValue {
+  font-size: 1.2rem;
+  color: blue;
 }
 .switch {
   position: relative;
@@ -83,16 +92,25 @@ body {
   color:#8c8c8c;
   font-weight: bold;
 }
+.vertical-right {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  line-height: 1.5em;
+  font-size: 1.2rem;
+  color: #8c8c8c;
+  font-weight: bold;
+  text-align: right;
+}
 .center {
   font-size: 1.2rem;
-  color:#8c8c8c;
+  color: #8c8c8c;
   font-weight: bold;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 input:checked+.slider {
-  background-color: #00b300;
+  background-color: #28C999;
 }
 input:checked+.slider:before {
   -webkit-transform: translateX(26px);
@@ -100,8 +118,7 @@ input:checked+.slider:before {
   transform: translateX(26px);
 }
 .green-button {
-  background-color: #4CAF50;
-  border: 10px;
+  background-color: #28C999;
   color: white;
   padding: 5px 8px;
   text-align: center;
@@ -112,4 +129,30 @@ input:checked+.slider:before {
 .green-button:disabled {
   background: #F5F5F5;
   color : #C3C3C3;
+}
+.blue-button {
+  background-color: #1E85C9;
+  color: white;
+  padding: 5px 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.2rem;
+}
+.blue-button:disabled {
+  background: #F5F5F5;
+  color: #C3C3C3;
+}
+.colorsButton {
+  width:30px;
+  height:30px;
+  border:1px solid;
+}
+.box{
+  width: 274px;
+  height: 233px;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  position: relative;
 }

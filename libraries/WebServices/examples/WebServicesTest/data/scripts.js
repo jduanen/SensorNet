@@ -24,26 +24,39 @@ function onMessage(event) {
   var elem;
   const msgObj = JSON.parse(event.data);
   console.log("msgObj: " + JSON.stringify(msgObj));
-  elem = document.getElementById("ssid");
-  elem.value = msgObj.ssid;
+
+  document.getElementById('ssid').value = msgObj.ssid;
+
   elem = document.getElementById("password");
   if (msgObj.passwd != null) {
     elem.value = rot47(msgObj.passwd);
   } else {
     elem.value = "";
   }
-  document.getElementById("save").disabled = false;
+
+  document.getElementById('flag').checked = (msgObj.flag == "true");
+
+  elem = document.getElementById('intVal');
+  elem.value = msgObj.intVal;
 }
 function toggleCheckbox(element) {
   element.innerHTML = element.checked ? "ON" : "OFF";
-  var jsonMsg = JSON.stringify({"msgType": element.id, "state": element.innerHTML});
+  setValues();
+}
+function setValues() {
+  var flag = document.getElementById('flag').checked;
+  var intVal = document.getElementById('intVal').value;
+  var jsonMsg = JSON.stringify({"msgType": "setValues", "flag": flag, "intVal": intVal});
   websocket.send(jsonMsg);
 }
 function saveConfiguration() {
-  var ssid = document.getElementById("ssid").value;
-  var passwd = document.getElementById("password").value;
-  var jsonMsg = JSON.stringify({"msgType": "saveConf", "ssid": ssid, "passwd": rot47(passwd)});
-  document.getElementById("save").disabled = true;
+  var jsonMsg = JSON.stringify({'msgType': 'saveConf',
+                                'ssid': document.getElementById('ssid').value,
+                                'passwd': rot47(document.getElementById('password').value),
+                                'flag': document.getElementById('flag').checked,
+                                'intVal': document.getElementById('intVal').value
+                              });
+  document.getElementById('save').disabled = true;
   websocket.send(jsonMsg);
 }
 function escapeHTML(s) {

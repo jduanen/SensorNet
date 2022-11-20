@@ -86,7 +86,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     String msgType = String(wsMsg["msgType"]);
     if (msgType.equals("query")) {
         // NOP
-    } else if (msgType.equals("set")) {
+    } else if (msgType.equals("setValues")) {
         configState.flag = wsMsg["flag"];
         configState.intVal = wsMsg["intVal"];
     } else if (msgType.equals("saveConf")) {

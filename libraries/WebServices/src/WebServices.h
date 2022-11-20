@@ -1,14 +1,10 @@
 /***************************************************************************
 *
-* Library that handles Web Server, Web Sockets, and OTA updates for SensorNet devices
-*
-* TODO:
-*   - make json doc size be an constructor variable
+* Library that handles Web Server, Web Sockets, and OTA updates
 * 
 ****************************************************************************/
 
-#ifndef WEB_SERVICES_H
-#define WEB_SERVICES_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -17,10 +13,11 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#define DEF_CONFIG_PATH         "/config.json"
+
+#define WEB_SERVICES_VERSION    "2.0"
+
 #define DEF_PORT_NUM            80
 #define WEB_SOCKET_PATH         "/ws"
-#define WS_JSON_DOC_SIZE        1024
 #define MAX_NUM_PAGES           3
 
 #define COMMON_HTML_PATH        "/index.html"
@@ -41,9 +38,10 @@ typedef struct WebPageDefStruct {
 } WebPageDef;
 
 
+template<int maxMsgSize>
 class WebServices {
 public:
-    String libVersion = "1.1";
+    String libVersion = WEB_SERVICES_VERSION;
 
     WebServices(const String& applName, const uint16_t portNum=DEF_PORT_NUM, const String& configPath="");
 
@@ -64,7 +62,7 @@ private:
     AsyncWebServer *_serverPtr = NULL;
     AsyncWebSocket *_socketPtr = NULL;
 
-    StaticJsonDocument<WS_JSON_DOC_SIZE> _wsMsg;
+    DynamicJsonDocument *_wsMsgPtr;
 
     WebPageDef _pageDefs[MAX_NUM_PAGES];
 
@@ -77,4 +75,4 @@ private:
     void _notifyClients(const JsonDocument& doc);
 };
 
-#endif /*WEB_SERVICES_H*/
+#include "WebServices.hpp"

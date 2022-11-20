@@ -20,10 +20,6 @@
 #define WEB_SOCKET_PATH         "/ws"
 #define MAX_NUM_PAGES           3
 
-#define COMMON_HTML_PATH        "/index.html"
-#define COMMON_STYLE_PATH       "/common/wsStyle.css"
-#define COMMON_SCRIPTS_PATH     "/common/wsScripts.js"
-
 #define CALL_MEMBER_FUNC(obj, memberPtr)    ((obj).*(memberPtr))
 
 

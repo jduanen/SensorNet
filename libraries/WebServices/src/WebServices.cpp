@@ -88,6 +88,29 @@ bool WebServices::addPage(const WebPageDef& pageDef) {
     return(true);
 }
 
+bool WebServices::addPage(const char* filePath, const char* mimeType) {
+    if ((filePath == nullptr) || (mimeType == nullptr)) {
+        Serial.println("ERROR: page must include path to file and mime type strings");
+        return(false);
+    }
+    if (_socketPtr == NULL) {
+        _socketPtr = new AsyncWebSocket("/ws");
+        _socketPtr->onEvent([this](AsyncWebSocket *server,
+                                   AsyncWebSocketClient *client,
+                                   AwsEventType type,
+                                   void *arg,
+                                   uint8_t *data,
+                                   size_t len) {_onEvent(server, client, type, arg, data, len);});
+        _serverPtr->addHandler(_socketPtr);
+    }
+    _serverPtr->on(filePath,
+                   HTTP_GET,
+                   [=](AsyncWebServerRequest *request) {
+                        request->send(LittleFS, filePath, mimeType);});
+	return(true);
+}
+
+
 void WebServices::run() {
 //    _println("webServices::run");
     if (_socketPtr != NULL) {
@@ -135,7 +158,10 @@ void WebServices::_handleWebSocketMessage(void *arg, uint8_t *data, size_t len) 
         };
         String m;
         serializeJsonPretty(_wsMsg, m);
-        _println("Rx Msg: " + m);  //// TMP TMP TMP
+        //// TMP TMP TMP
+        if (true) {
+            Serial.println("Rx Msg: " + m);
+        }
         _notifyClients(_wsMsg);
     }
 }
@@ -146,6 +172,9 @@ void WebServices::_notifyClients(const JsonDocument& doc) {
         msg += _pageDefs[i].msgHandler(doc);
     }
     msg += "}";
-    Serial.println("Notify Msg: " + msg);  //// TMP TMP TMP
+    //// TMP TMP TMP
+    if (true) {
+        Serial.println("Notify Msg: " + msg);
+    }
     _socketPtr->textAll(msg);
 }

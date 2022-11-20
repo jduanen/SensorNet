@@ -48,6 +48,7 @@ public:
     WebServices(const String& applName, const uint16_t portNum=DEF_PORT_NUM, const String& configPath="");
 
     bool addPage(const WebPageDef& pageDef);
+    bool addPage(const char* filePath, const char* mimeType);
 
     void run();
 

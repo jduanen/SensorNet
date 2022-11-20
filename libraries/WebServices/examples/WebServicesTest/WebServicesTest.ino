@@ -128,6 +128,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
     msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
     msg += ", \"ssid\": \"" + WiFi.SSID() + "\"";
+    msg += ", \"passwd\": \"" + configState.passwd + "\"";
     msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
     msg += ", \"flag\": \"" + String(configState.flag ? "true" : "false") + "\"";
     msg += ", \"intVal\": " + String(configState.intVal);

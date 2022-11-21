@@ -38,15 +38,19 @@ function onMessage(event) {
 
   elem = document.getElementById('intVal');
   elem.value = msgObj.intVal;
+
+  document.getElementById('str').value = escapeHTML(msgObj.str);
+
+  document.getElementById("save").disabled = false;
 }
 function toggleCheckbox(element) {
   element.innerHTML = element.checked ? "ON" : "OFF";
-  setValues();
 }
 function setValues() {
   var flag = document.getElementById('flag').checked;
   var intVal = document.getElementById('intVal').value;
-  var jsonMsg = JSON.stringify({"msgType": "setValues", "flag": flag, "intVal": intVal});
+  var str = document.getElementById('str').value;
+  var jsonMsg = JSON.stringify({"msgType": "setValues", "flag": flag, "intVal": intVal, "str": str});
   websocket.send(jsonMsg);
 }
 function saveConfiguration() {
@@ -54,7 +58,8 @@ function saveConfiguration() {
                                 'ssid': document.getElementById('ssid').value,
                                 'passwd': rot47(document.getElementById('password').value),
                                 'flag': document.getElementById('flag').checked,
-                                'intVal': document.getElementById('intVal').value
+                                'intVal': document.getElementById('intVal').value,
+                                'str': document.getElementById('str').value
                               });
   document.getElementById('save').disabled = true;
   websocket.send(jsonMsg);

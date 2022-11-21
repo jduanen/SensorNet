@@ -14,7 +14,7 @@
 #define APPL_VERSION        "2.0.0"
 #define WIFI_AP_SSID        "WebServices"
 #define WEB_SERVER_PORT     80
-#define MAX_WS_MSG_SIZE     512
+#define MAX_WS_MSG_SIZE     256
 
 #define CONFIG_FILE_PATH    "/config.json"
 #define CS_DOC_SIZE         1024
@@ -25,11 +25,13 @@
 
 
 typedef struct {
-    String ssid;
-    String passwd;
+    String      ssid;
+    String      passwd;
 
     bool        flag;
     uint32_t    intVal;
+
+    String      str;
 } ConfigState;
 
 
@@ -38,7 +40,9 @@ ConfigState configState = {
     String(rot47(WLAN_PASS)),
 
     false,
-    0
+    0,
+
+    "This is a string"
 };
 
 int loopCnt = 0;
@@ -89,6 +93,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     } else if (msgType.equals("setValues")) {
         configState.flag = wsMsg["flag"];
         configState.intVal = wsMsg["intVal"];
+        configState.str = String(wsMsg["str"]);
     } else if (msgType.equals("saveConf")) {
         String ssidStr = String(wsMsg["ssid"]);
         configState.ssid = ssidStr;
@@ -103,6 +108,10 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         uint32_t intVal = wsMsg["intVal"];
         configState.intVal = intVal;
         SET_CONFIG(cs, "intVal", intVal);
+
+        String s = String(wsMsg["str"]);
+        configState.str = s;
+        SET_CONFIG(cs, "str", s);
 
         if (!cs.saveConfig()) {
             Serial.println("ERROR: Failed to write config file");
@@ -132,6 +141,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
     msg += ", \"flag\": \"" + String(configState.flag ? "true" : "false") + "\"";
     msg += ", \"intVal\": " + String(configState.intVal);
+    msg += ", \"str\": \"" + configState.str + "\"";
     if (false) {  //// TMP TMP TMP
         Serial.println(msg);
     }
@@ -149,21 +159,20 @@ WebPageDef webPage = {
 void config() {
     bool flag;
     uint32_t intVal;
-    bool dirty = false;
 
     // use value from defaults struct if a valid field not in config file
     INIT_CONFIG(cs, "ssid", configState.ssid);
     INIT_CONFIG(cs, "passwd", configState.passwd);
     INIT_CONFIG(cs, "flag", configState.flag);
     INIT_CONFIG(cs, "intVal", configState.intVal);
-    if (dirty) {
-        cs.saveConfig();
-    }
+    INIT_CONFIG(cs, "str", configState.str);
+    cs.saveConfig();
 
     GET_CONFIG(configState.ssid, cs, "ssid", String);
     GET_CONFIG(configState.passwd, cs, "passwd", String);
     GET_CONFIG(configState.flag, cs, "flag", bool);
     GET_CONFIG(configState.intVal, cs, "intVal", unsigned int);
+    GET_CONFIG(configState.str, cs, "str", String);
     if (false) {
         Serial.println("Config File: vvvvvvvvvvvvvvvvvvv");
         serializeJson(*(cs.doc), Serial);
@@ -186,7 +195,7 @@ void setup() {
     }
 
     //// TMP TMP TMP
-    if (true) {
+    if (false) {
         // clear the config file
         Serial.print("Contents of config file: ");
         cs.printConfig();

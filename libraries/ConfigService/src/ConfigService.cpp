@@ -82,7 +82,6 @@ bool ConfigService::deleteConfig() {
 }
 
 bool ConfigService::validEntry(const String& key) {
-    DynamicJsonDocument d = *doc;
     return ((*doc).containsKey(key) && !(*doc)[key].isNull());
 }
 

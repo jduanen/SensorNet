@@ -7,8 +7,7 @@
  *
  ***************************************************************************/
 
-#ifndef CONFIG_SERVICE_H
-#define CONFIG_SERVICE_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -56,4 +55,4 @@ private:
     void _println(String str);
 };
 
-#endif /*CONFIG_SERVICE_H*/
+#include "ConfigService.hpp"

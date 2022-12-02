@@ -158,6 +158,7 @@ void WebServices<maxMsgSize>::_handleWebSocketMessage(void *arg, uint8_t *data, 
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         data[len] = 0;
+//        DeserializationError error = deserializeJson(_wsMsg, (char *)data);
         DeserializationError error = deserializeJson(*_wsMsgPtr, (char *)data);
         if (error) {
             Serial.print("_handleWebSocketMessage: deserializeJson() failed: ");
@@ -167,9 +168,11 @@ void WebServices<maxMsgSize>::_handleWebSocketMessage(void *arg, uint8_t *data, 
         //// TMP TMP TMP
         if (true) {
             String m;
-            serializeJsonPretty(*_wsMsgPtr, m);
+//            serializeJsonPretty(_wsMsg, m);
+            serializeJsonPretty(_wsMsgPtr, m);
             Serial.println("Rx Msg: " + m);
         }
+//        _notifyClients(_wsMsg);
         _notifyClients(*_wsMsgPtr);
     }
 }

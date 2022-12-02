@@ -58,6 +58,7 @@ private:
     AsyncWebServer *_serverPtr = NULL;
     AsyncWebSocket *_socketPtr = NULL;
 
+//    StaticJsonDocument<maxMsgSize> _wsMsg;
     DynamicJsonDocument *_wsMsgPtr;
 
     WebPageDef _pageDefs[MAX_NUM_PAGES];

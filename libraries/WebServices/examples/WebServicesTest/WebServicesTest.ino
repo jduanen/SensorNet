@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * SensorNet WebServices library test
+ * SensorNet WebServices Library Test
  *
  ***************************************************************************/
 
@@ -11,7 +11,7 @@
 
 
 #define APPL_NAME           "WebServicesTest"
-#define APPL_VERSION        "2.0.0"
+#define APPL_VERSION        "2.1.0"
 #define WIFI_AP_SSID        "WebServices"
 #define WEB_SERVER_PORT     80
 #define MAX_WS_MSG_SIZE     1024
@@ -78,6 +78,14 @@ ConfigService cs(CS_DOC_SIZE, CONFIG_FILE_PATH);
 WebServices<MAX_WS_MSG_SIZE> webSvcs(APPL_NAME, WEB_SERVER_PORT);
 
 
+void halt() {
+    Serial.println("HALT");
+    while (true) {
+        wdt_reset();
+        delay(100);
+    }
+};
+
 void(* reboot)(void) = 0;
 
 String pageProcessor(const String& var) {
@@ -123,26 +131,34 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         configState.intVal = wsMsg["intVal"];
         configState.str = String(wsMsg["str"]);
         copyArray(wsMsg["tuples"], configState.tuples);
-        printTuples(configState.tuples);
+        printTuples("Tuples:", configState.tuples);
     } else if (msgType.equals("saveConf")) {
-        String ssidStr = String(wsMsg["ssid"]);
-        configState.ssid = ssidStr;
-        SET_CONFIG(cs, "ssid", ssidStr);
-        String passwdStr = String(wsMsg["passwd"]);
-        configState.passwd = passwdStr;
-        SET_CONFIG(cs, "passwd", passwdStr);
+        String jsonStr;
+        JSON_START(jsonStr);
+        jsonStr.concat("\"ssid\": \"" + configState.ssid + "\", ");
+        jsonStr.concat("\"passwd\": \"" + configState.passwd + "\", ");
+        jsonStr.concat("\"flag\": " + String(configState.flag ? true : false) + ", ");
+        jsonStr.concat("\"intVal\": " + String(configState.intVal) + ", ");
+        jsonStr.concat("\"str\": \"" + configState.str + "\", ");
 
-        bool flag = wsMsg["flag"];
-        configState.flag = flag;
-        SET_CONFIG(cs, "flag", flag);
-        uint32_t intVal = wsMsg["intVal"];
-        configState.intVal = intVal;
-        SET_CONFIG(cs, "intVal", intVal);
+        //// TODO add tuples
+        jsonStr.concat("\"tuples\": \"[[0, 0]]\"");
 
-        String s = String(wsMsg["str"]);
-        configState.str = s;
-        SET_CONFIG(cs, "str", s);
+        /*
+        jsonStr.concat("\"\": \"" + configState. + "\", ");
+        jsonStr.concat("\"\": " + String(configState. ? true : false) + ", ");
+        jsonStr.concat("\"\": " + String(configState.) + ", ");
+        */
 
+        JSON_END(jsonStr);
+
+        Serial.println("XXXX: " + jsonStr);  //// TMP TMP TMP
+
+        cs.setConfig(jsonStr);
+        cs.listFiles("/");  //// TMP TMP TMP
+        cs.printConfigFile();  //// TMP TMP TMP
+
+        /*
         for (int i = 0; (i < NUM_TUPLES); i++) {
             (*(cs.doc))["tuples"][i][0] = configState.tuples[i][0];
             (*(cs.doc))["tuples"][i][1] = configState.tuples[i][1];
@@ -158,6 +174,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
             cs.printConfig();
             Serial.println("...\nXXXXXXXXXXXXXXXXX\n");
         }
+        */
     } else if (msgType.equalsIgnoreCase("reboot")) {
         Serial.println("REBOOTING...");
         reboot();
@@ -192,14 +209,14 @@ WebPageDef webPage = {
     pageMsgHandler
 };
 
-void printTuples(uint32_t tuples[][2]) {
-    Serial.print("Tuple: [");
-    //// FIXME use array length -- foreach?
+void printTuples(String hdr, uint32_t tuples[][2]) {
+    Serial.print(hdr);
+    //// use forall/iterator instead?
     for (int i = 0; (i < NUM_TUPLES); i++) {
         if (i > 0) {
             Serial.print(", ");
         }
-        Serial.print("[0x" + String(tuples[i][0], HEX) + ", 0x" + String(tuples[i][0], HEX) + "]");
+        Serial.print("[0x" + String(tuples[i][0], HEX) + ", 0x" + String(tuples[i][1], HEX) + "]");
     }
     Serial.println("]");
 };
@@ -220,7 +237,16 @@ void config() {
     bool flag;
     uint32_t intVal;
 
+    configState.ssid = cs.getConfigValue<String>("ssid", configState.ssid);
+    configState.passwd = cs.getConfigValue<String>("passwd", configState.passwd);
+    configState.flag = cs.getConfigValue<bool>("flag", configState.flag);
+    configState.intVal = cs.getConfigValue<int>("intVal", configState.intVal);
+    configState.str = cs.getConfigValue<String>("str", configState.str);
+
+    //// TODO add in the tuples
+
     // use value from defaults struct if a valid field not in config file
+    /*
     INIT_CONFIG(cs, "ssid", configState.ssid);
     INIT_CONFIG(cs, "passwd", configState.passwd);
     INIT_CONFIG(cs, "flag", configState.flag);
@@ -249,35 +275,36 @@ void config() {
         cs.printConfig();
         Serial.println("...\n^^^^^^^^^^^^^^^^^^^^^\n");
     }
+    */
 }
 
 void setup() {
     delay(500);
     Serial.begin(115200);
     delay(500);
-    Serial.println("\nBEGIN");
+    Serial.print("\nBEGIN: "); Serial.println(APPL_NAME);
+    cs.printConfigFile();
 
-    //// FIXME 
-    if (false) {
+    if (false) {  //// TMP TMP TMP
         // clear the local file system
-        cs.format();
+        cs.formatFS();
     }
 
     if (false) {  //// TMP TMP TMP
         // disregard the contents of the saved config file
-        deserializeJson(*(cs.doc), "{}");
+        cs.initializeConfig();
     }
 
     //// TMP TMP TMP
     if (false) {
         // clear the config file
         Serial.print("Contents of config file: ");
-        cs.printConfig();
+        cs.printConfigFile();
         Serial.println("\nWrite empty json object to config file: " + String(CONFIG_FILE_PATH));
-        deserializeJson(*(cs.doc), "{}");
+        deserializeJson(*(cs.docPtr), "{}");
         cs.saveConfig();
         Serial.print("Contents of empty config file: ");
-        cs.printConfig();
+        cs.printConfigFile();
         Serial.println("^^^^^^^^^^^^^^^^^^^^^^^^^");
     }
 
@@ -285,6 +312,7 @@ void setup() {
     cs.listFiles("/");
 
     config();
+    cs.printConfigFile();  //// TMP TMP TMP
 
     wiFiConnect(configState.ssid, rot47(configState.passwd), WIFI_AP_SSID);
 

@@ -142,7 +142,14 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         jsonStr.concat("\"str\": \"" + configState.str + "\", ");
 
         //// TODO add tuples
-        jsonStr.concat("\"tuples\": \"[[0, 0]]\"");
+        jsonStr.concat("\"tuples\": [");
+        for (int i = 0; (i < NUM_TUPLES); i++) {
+            if (i > 0) {
+                jsonStr.concat(", ");
+            }
+            jsonStr.concat("[" + String(configState.tuples[i][0]) + ", " + String(configState.tuples[i][1]) + "]");
+        }
+        jsonStr.concat("]}");
 
         /*
         jsonStr.concat("\"\": \"" + configState. + "\", ");
@@ -154,7 +161,9 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
 
         Serial.println("XXXX: " + jsonStr);  //// TMP TMP TMP
 
-        cs.setConfig(jsonStr);
+        if (!cs.setConfig(jsonStr)) {
+            Serial.println("ERROR: failed to save config");
+        }
         cs.listFiles("/");  //// TMP TMP TMP
         cs.printConfigFile();  //// TMP TMP TMP
 
@@ -244,6 +253,28 @@ void config() {
     configState.str = cs.getConfigValue<String>("str", configState.str);
 
     //// TODO add in the tuples
+    uint16_t numTuples = (*(cs.docPtr))["tuples"].size();
+    Serial.println("> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
+    if (!cs.validEntry("tuples")) {
+        cs.docPtr->createNestedArray("tuples");
+        numTuples = 0;
+    }
+    Serial.println(">> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
+    if (numTuples != NUM_TUPLES) {
+        Serial.println("ERROR: wrong number of tuples");
+        //// FIXME
+    }
+    if (cs.validEntry("tuples") && (numTuples == NUM_TUPLES)) {
+        copyArray((*(cs.docPtr))["tuples"], configState.tuples);
+        if (cs.docPtr->overflowed()) {
+            Serial.println("ERROR: overflowed config JsonDocument");
+        }
+        numTuples = (*(cs.docPtr))["tuples"].size();
+        if (numTuples != NUM_TUPLES) {
+            Serial.println("ERROR: incorrect number of tuples: " + String(numTuples));
+        }
+    }
+    Serial.println(">>> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
 
     // use value from defaults struct if a valid field not in config file
     /*

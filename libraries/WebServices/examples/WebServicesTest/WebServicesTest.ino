@@ -141,7 +141,6 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         jsonStr.concat("\"intVal\": " + String(configState.intVal) + ", ");
         jsonStr.concat("\"str\": \"" + configState.str + "\", ");
 
-        //// TODO add tuples
         jsonStr.concat("\"tuples\": [");
         for (int i = 0; (i < NUM_TUPLES); i++) {
             if (i > 0) {
@@ -150,40 +149,16 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
             jsonStr.concat("[" + String(configState.tuples[i][0]) + ", " + String(configState.tuples[i][1]) + "]");
         }
         jsonStr.concat("]}");
-
+        JSON_END(jsonStr);
         /*
         jsonStr.concat("\"\": \"" + configState. + "\", ");
         jsonStr.concat("\"\": " + String(configState. ? true : false) + ", ");
         jsonStr.concat("\"\": " + String(configState.) + ", ");
         */
 
-        JSON_END(jsonStr);
-
-        Serial.println("XXXX: " + jsonStr);  //// TMP TMP TMP
-
         if (!cs.setConfig(jsonStr)) {
             Serial.println("ERROR: failed to save config");
         }
-        cs.listFiles("/");  //// TMP TMP TMP
-        cs.printConfigFile();  //// TMP TMP TMP
-
-        /*
-        for (int i = 0; (i < NUM_TUPLES); i++) {
-            (*(cs.doc))["tuples"][i][0] = configState.tuples[i][0];
-            (*(cs.doc))["tuples"][i][1] = configState.tuples[i][1];
-        }
-
-        if (!cs.saveConfig()) {
-            Serial.println("ERROR: Failed to write config file");
-        }
-        if (true) {
-            Serial.println("Config File: XXXXXXXXXXXXXXXXXX");
-            serializeJson(*(cs.doc), Serial);
-            cs.listFiles("/");
-            cs.printConfig();
-            Serial.println("...\nXXXXXXXXXXXXXXXXX\n");
-        }
-        */
     } else if (msgType.equalsIgnoreCase("reboot")) {
         Serial.println("REBOOTING...");
         reboot();
@@ -203,7 +178,7 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     msg.concat(", \"intVal\": "); msg.concat(configState.intVal);
     msg.concat(", \"str\": \""); msg.concat(configState.str + "\"");
     msg.concat(", \"tuples\": "); msg.concat(tuples2String(configState.tuples));
-    if (true) {  //// TMP TMP TMP
+    if (false) {  //// TMP TMP TMP
         Serial.print("msg: ");
         Serial.println(msg);
     }
@@ -252,14 +227,13 @@ void config() {
     configState.intVal = cs.getConfigValue<int>("intVal", configState.intVal);
     configState.str = cs.getConfigValue<String>("str", configState.str);
 
-    //// TODO add in the tuples
     uint16_t numTuples = (*(cs.docPtr))["tuples"].size();
-    Serial.println("> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
+//    Serial.println("> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
     if (!cs.validEntry("tuples")) {
         cs.docPtr->createNestedArray("tuples");
         numTuples = 0;
     }
-    Serial.println(">> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
+//    Serial.println(">> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
     if (numTuples != NUM_TUPLES) {
         Serial.println("ERROR: wrong number of tuples");
         //// FIXME
@@ -274,39 +248,7 @@ void config() {
             Serial.println("ERROR: incorrect number of tuples: " + String(numTuples));
         }
     }
-    Serial.println(">>> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
-
-    // use value from defaults struct if a valid field not in config file
-    /*
-    INIT_CONFIG(cs, "ssid", configState.ssid);
-    INIT_CONFIG(cs, "passwd", configState.passwd);
-    INIT_CONFIG(cs, "flag", configState.flag);
-    INIT_CONFIG(cs, "intVal", configState.intVal);
-    INIT_CONFIG(cs, "str", configState.str);
-    if (!cs.validEntry("tuples")) {
-        JsonArray arr = (*(cs.doc)).createNestedArray("tuples");
-        bool r = copyArray(configState.tuples, arr);
-        if (r != true) {
-            Serial.println("copyArray FAILED");
-        }
-    }
-    cs.saveConfig();
-
-    GET_CONFIG(configState.ssid, cs, "ssid", String);
-    GET_CONFIG(configState.passwd, cs, "passwd", String);
-    GET_CONFIG(configState.flag, cs, "flag", bool);
-    GET_CONFIG(configState.intVal, cs, "intVal", unsigned int);
-    GET_CONFIG(configState.str, cs, "str", String);
-    copyArray((*(cs.doc))["tuples"], configState.tuples);
-    if (true) {
-        Serial.println("Config File: vvvvvvvvvvvvvvvvvvv");
-        printTuples(configState.tuples);
-        serializeJson(*(cs.doc), Serial);
-        cs.listFiles("/");
-        cs.printConfig();
-        Serial.println("...\n^^^^^^^^^^^^^^^^^^^^^\n");
-    }
-    */
+//    Serial.println(">>> #Tuples: " + String(numTuples) + ", OVFL: " + String(cs.docPtr->overflowed()) + ", VALID: " + cs.validEntry("tuples"));
 }
 
 void setup() {

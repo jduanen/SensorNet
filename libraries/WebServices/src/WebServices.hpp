@@ -169,7 +169,7 @@ void WebServices<maxMsgSize>::_handleWebSocketMessage(void *arg, uint8_t *data, 
         if (true) {
             String m;
 //            serializeJsonPretty(_wsMsg, m);
-            serializeJsonPretty(_wsMsgPtr, m);
+            serializeJsonPretty(*_wsMsgPtr, m);
             Serial.println("Rx Msg: " + m);
         }
 //        _notifyClients(_wsMsg);

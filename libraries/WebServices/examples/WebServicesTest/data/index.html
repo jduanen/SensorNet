@@ -42,9 +42,38 @@
           String:
           <input id="str" name="str">
           <br>
-          <button id="setStr" name="setStr" onclick="setValues()" value="Set">
         </div>
-
+        <br>
+        <div id="customPatternDiv">
+          Start Color: <input type="color" id="startColor" name="startColor">
+          <br>
+          End Color: <input type="color" id="endColor" name="endColor">
+          <br>
+          <br>
+          Tuples:
+          <div class="box">
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb0" id="cb0"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb1" id="cb1"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb2" id="cb2"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb3" id="cb3"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb4" id="cb4"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb5" id="cb5"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb6" id="cb6"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb7" id="cb7"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb8" id="cb8"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb9" id="cb9"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb10" id="cb10"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb11" id="cb11"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb12" id="cb12"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb13" id="cb13"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb14" id="cb14"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb15" id="cb15"></button>
+          </div>
+          <button type="button" onclick="clearCustomColors()" name="clearAll" id="clearAll">Clear All</button>
+        </div>
+        <br>
+        <button id="setStr" name="setStr" onclick="setValues()">Set</button>
+        <br>
         <div class="vertical-center">
           <p><button class="green-button" id="save" onclick="saveConfiguration()">Save Configuration</button></p>
         </div>
@@ -56,6 +85,7 @@
     </div>
     <script src="/scripts.js"></script>
     <script>
+      var NUMBER_OF_TUPLES = %NUM_TUPLES%;
       function initView() {
         var wifiMode = "%WIFI_MODE%";
         switch (wifiMode) {

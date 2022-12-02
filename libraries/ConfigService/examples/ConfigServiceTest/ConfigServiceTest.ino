@@ -165,11 +165,9 @@ void saveConfig(ConfigService *csPtr, ConfigState *structPtr) {
     }
     jsonStr.concat("]");
     jsonStr.concat("}");
-    DeserializationError error = deserializeJson(*(csPtr->docPtr), jsonStr);
-    if (error) {
-        Serial.print("ERROR: saveConfig() deserializeJson() failed: ");
-        Serial.println(error.f_str());
-    };
+    if (!csPtr->setConfig(jsonStr)) {
+        Serial.println("ERROR: failed to save config");
+    }
 };
 
 void printConfFiles() {

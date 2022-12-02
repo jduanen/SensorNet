@@ -41,6 +41,8 @@ function onMessage(event) {
 
   document.getElementById('str').value = escapeHTML(msgObj.str);
 
+  setCustomColors(msgObj.tuples);
+
   document.getElementById("save").disabled = false;
 }
 function toggleCheckbox(element) {
@@ -50,7 +52,7 @@ function setValues() {
   var flag = document.getElementById('flag').checked;
   var intVal = document.getElementById('intVal').value;
   var str = document.getElementById('str').value;
-  var jsonMsg = JSON.stringify({"msgType": "setValues", "flag": flag, "intVal": intVal, "str": str});
+  var jsonMsg = JSON.stringify({"msgType": "setValues", "flag": flag, "intVal": intVal, "str": str, 'tuples': getCustomColors()});
   websocket.send(jsonMsg);
 }
 function saveConfiguration() {
@@ -59,7 +61,8 @@ function saveConfiguration() {
                                 'passwd': rot47(document.getElementById('password').value),
                                 'flag': document.getElementById('flag').checked,
                                 'intVal': document.getElementById('intVal').value,
-                                'str': document.getElementById('str').value
+                                'str': document.getElementById('str').value,
+                                'tuples': getCustomColors()
                               });
   document.getElementById('save').disabled = true;
   websocket.send(jsonMsg);
@@ -86,4 +89,44 @@ function rot47(x) {
     }
   }
   return s.join('');
+}
+function setCustomColors(tuples) {
+  for (var i = 0; (i < NUMBER_OF_TUPLES); i++) {
+    var elemId = 'cb' + i;
+    var bkg = "linear-gradient(" + rgbIntToHex(tuples[i][0]) + ", " + rgbIntToHex(tuples[i][1]) + ")";
+    document.getElementById(elemId).style.background = bkg;
+  }
+}
+function getCustomColors() {
+  var customColors = [];
+  for (var i = 0; (i < NUMBER_OF_TUPLES); i++) {
+    var btn = document.getElementById('cb' + i);
+    if (btn.style.background == "") {
+      btn.style.background = "linear-gradient(#ff0000, #0000ff)";
+    }
+    var s = [];
+    for (m of btn.style.background.matchAll(/rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g)) {
+      s.push(rgbToInt(m[1], m[2], m[3]));
+    }
+    customColors.push(s);
+  }
+  return customColors;
+}
+function colorsButtonClick(element) {
+  var startColor = parseInt(document.getElementById('startColor').value.substr(1), 16);
+  var endColor = parseInt(document.getElementById('endColor').value.substr(1), 16);
+  element.style.background = "linear-gradient(#" + startColor.toString(16).padStart(6, 0) + ", #" + endColor.toString(16).padStart(6, 0) + ")";
+//  var jsonMsg = JSON.stringify({'msgType': 'tuples', 'tuples': getCustomColors()});
+//  websocket.send(jsonMsg);
+}
+function clearCustomColors() {
+  for (var i = 0; (i < NUMBER_OF_TUPLES); i++) {
+    document.getElementById('cb' + i).style.background = "linear-gradient(#00ff00, #00ff00)";
+  }
+}
+function rgbToInt(r, g, b) {
+  return ((parseInt(r) << 16) + (parseInt(g) << 8) + parseInt(b));
+}
+function rgbIntToHex(c) {
+  return "#" + c.toString(16).padStart(6, 0);
 }

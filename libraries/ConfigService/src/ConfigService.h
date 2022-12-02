@@ -18,28 +18,20 @@
 
 #define MAX_PATH_LENGTH         32
 
-/*
-#define INIT_CONFIG_PTR(csPtr, field, value)        if (!csPtr->validEntry(field)) {(*(csPtr->docPtr))[field] = value;}
-#define SET_CONFIG_PTR(csPtr, field, value)         (*(csPtr->docPtr))[field] = value
-#define GET_CONFIG_PTR(value, csPtr, field, typ)    value = (*(csPtr->docPtr))[field].as<typ>()
-
-#define INIT_CONFIG(csObj, field, value)            if (!csObj.validEntry(field)) {(*(csObj.docPtr))[field] = value;}
-#define SET_CONFIG(csObj, field, value)             (*(csObj.docPtr))[field] = value
-*/
 #define CS_DOC(cs)                              (*(cs.docPtr))
 #define CSPTR_DOC(csPtr)                        (*(csPtr->docPtr))
 #define GET_CONFIG(csPtr, field, value, typ)    value = (*(csPtr->docPtr))[field].as<typ>()
 #define INIT_STATE(csPtr, field, value, typ)    if (csPtr->validEntry(field)) {GET_CONFIG(csPtr, field, value, typ);}
 //#define INIT_STATE(csPtr, field, value, typ)    Serial.print(field); if (csPtr->validEntry(field)) {Serial.println(" from file"); GET_CONFIG(csPtr, field, value, typ);} else {Serial.println(" from defaults");}
 
-//// FIXME -- types: string, char, int/float, bool, tuples
+#define JSON_START(str)         str = "{"
 /*
-#define ADD_STRING_FIELD(jsonStr, field, value) jsonStr.concat(field: value)
-#define ADD_INT_FIELD(jsonStr, field, value)    jsonStr.concat(field: value)
-#define ADD_CHAR_FIELD(jsonStr, field, value)   jsonStr.concat(field: value)
-#define ADD_BOOL_FIELD(jsonStr, field, value)   jsonStr.concat(field: value)
-#define ADD_FLOAT_FIELD(jsonStr, field, value)  jsonStr.concat(field: value)
+#define JSON_ADD_STRING(str)    ?
+#define JSON_ADD_INT(str)       ?
+#define JSON_ADD_BOOL(str)      ?
+#define JSON_ADD_FLOAT(str)     ?
 */
+#define JSON_END(str)           str.concat("}")
 
 
 class ConfigService {
@@ -56,6 +48,9 @@ public:
 
     bool validEntry(const String& key);
     uint32_t configSize();
+
+    template <class T>
+    T getConfigValue(String field, T value);
 
     bool setConfig(const String& json);
     bool initializeConfig();

@@ -53,6 +53,17 @@ uint32_t ConfigService::configSize() {
     return(docPtr->memoryUsage());
 };
 
+template <class T>
+T ConfigService::getConfigValue(String field, T defaultValue) {
+    T v;
+    if ((*(docPtr))[field]) {
+        v = (*(docPtr))[field].as<T>();
+    } else {
+        v = defaultValue;
+    }
+    return(v);
+};
+
 bool ConfigService::setConfig(const String& json) {
     DeserializationError error = deserializeJson(*docPtr, json);
     if (error) {

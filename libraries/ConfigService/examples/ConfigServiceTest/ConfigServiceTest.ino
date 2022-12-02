@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * Configuration Service Test
+ * Configuration Service Library Test
  *
  ***************************************************************************/
 
@@ -81,7 +81,6 @@ ConfigState configState = {
 };
 
 ConfigService *csPtr;
-//ConfigService cs(CS_DOC_SIZE, CONFIG_FILE);
 
 
 void halt() {
@@ -190,8 +189,7 @@ void setup() {
     delay(500);
     Serial.begin(115200);
     delay(500);
-    Serial.print("\nBEGIN: ");
-    Serial.println(APP_NAME);
+    Serial.print("\nBEGIN: "); Serial.println(APP_NAME);
     Serial.println("VVVVVVVVVVVVVVVVVVVVVVVVVVV");
     printConfFiles();
 

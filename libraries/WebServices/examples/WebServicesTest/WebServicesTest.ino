@@ -14,7 +14,7 @@
 #define APPL_VERSION        "2.0.0"
 #define WIFI_AP_SSID        "WebServices"
 #define WEB_SERVER_PORT     80
-#define MAX_WS_MSG_SIZE     256
+#define MAX_WS_MSG_SIZE     1024
 
 #define CONFIG_FILE_PATH    "/config.json"
 #define CS_DOC_SIZE         1024
@@ -23,6 +23,13 @@
 #define WS_STYLE_PATH       "/style.css"
 #define WS_SCRIPTS_PATH     "/scripts.js"
 
+#define NUM_TUPLES          16
+
+
+typedef struct {
+    uint32_t start;
+    uint32_t end;
+} MyTuple;
 
 typedef struct {
     String      ssid;
@@ -32,6 +39,7 @@ typedef struct {
     uint32_t    intVal;
 
     String      str;
+    uint32_t    tuples[NUM_TUPLES][2];
 } ConfigState;
 
 
@@ -42,7 +50,25 @@ ConfigState configState = {
     false,
     0,
 
-    "This is a string"
+    "This is a string",
+    {
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080},
+        {0x808080, 0x808080}
+    }
 };
 
 int loopCnt = 0;
@@ -71,6 +97,8 @@ String pageProcessor(const String& var) {
         return getWiFiMode();
     } else if (var == "WIFI_AP_SSID") {
         return (WIFI_AP_SSID);
+    } else if (var == "NUM_TUPLES") {
+        return (String(NUM_TUPLES));
     }
     return String();
 };
@@ -94,6 +122,8 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         configState.flag = wsMsg["flag"];
         configState.intVal = wsMsg["intVal"];
         configState.str = String(wsMsg["str"]);
+        copyArray(wsMsg["tuples"], configState.tuples);
+        printTuples(configState.tuples);
     } else if (msgType.equals("saveConf")) {
         String ssidStr = String(wsMsg["ssid"]);
         configState.ssid = ssidStr;
@@ -113,6 +143,11 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
         configState.str = s;
         SET_CONFIG(cs, "str", s);
 
+        for (int i = 0; (i < NUM_TUPLES); i++) {
+            (*(cs.doc))["tuples"][i][0] = configState.tuples[i][0];
+            (*(cs.doc))["tuples"][i][1] = configState.tuples[i][1];
+        }
+
         if (!cs.saveConfig()) {
             Serial.println("ERROR: Failed to write config file");
         }
@@ -129,20 +164,21 @@ String pageMsgHandler(const JsonDocument& wsMsg) {
     } else if (msgType.equalsIgnoreCase("update")) {
         //// FIXME
         Serial.println("FIXME do the right thing here");
-    } else {
-        Serial.println("ERROR: unknown WS message type -- " + msgType);
+    } else {        Serial.println("ERROR: unknown WS message type -- " + msgType);
     }
 
     // send contents of configState (which should reflect the state of the HW)
     String msg = ", \"libVersion\": \"" + webSvcs.libVersion + "\"";
-    msg += ", \"ipAddr\": \"" + WiFi.localIP().toString() + "\"";
-    msg += ", \"ssid\": \"" + WiFi.SSID() + "\"";
-    msg += ", \"passwd\": \"" + configState.passwd + "\"";
-    msg += ", \"RSSI\": \"" + String(WiFi.RSSI()) + "\"";
-    msg += ", \"flag\": \"" + String(configState.flag ? "true" : "false") + "\"";
-    msg += ", \"intVal\": " + String(configState.intVal);
-    msg += ", \"str\": \"" + configState.str + "\"";
-    if (false) {  //// TMP TMP TMP
+    msg.concat(", \"ipAddr\": \""); msg.concat(WiFi.localIP().toString() + "\"");
+    msg.concat(", \"ssid\": \""); msg.concat(WiFi.SSID() + "\"");
+    msg.concat(", \"passwd\": \""); msg.concat(configState.passwd + "\"");
+    msg.concat(", \"RSSI\": "); msg.concat(WiFi.RSSI());
+    msg.concat(", \"flag\": "); msg.concat(configState.flag);
+    msg.concat(", \"intVal\": "); msg.concat(configState.intVal);
+    msg.concat(", \"str\": \""); msg.concat(configState.str + "\"");
+    msg.concat(", \"tuples\": "); msg.concat(tuples2String(configState.tuples));
+    if (true) {  //// TMP TMP TMP
+        Serial.print("msg: ");
         Serial.println(msg);
     }
     return(msg);
@@ -156,6 +192,30 @@ WebPageDef webPage = {
     pageMsgHandler
 };
 
+void printTuples(uint32_t tuples[][2]) {
+    Serial.print("Tuple: [");
+    //// FIXME use array length -- foreach?
+    for (int i = 0; (i < NUM_TUPLES); i++) {
+        if (i > 0) {
+            Serial.print(", ");
+        }
+        Serial.print("[0x" + String(tuples[i][0], HEX) + ", 0x" + String(tuples[i][0], HEX) + "]");
+    }
+    Serial.println("]");
+};
+
+String tuples2String(uint32_t tuples[][2]) {
+    String ccStr = "[";
+    for (int i = 0; (i < NUM_TUPLES); i++) {
+        if (i != 0) {
+            ccStr += ",";
+        }
+        ccStr.concat("[" + String(tuples[i][0]) + "," +  String(tuples[i][1]) + "]");
+    }
+    ccStr.concat("]");
+    return ccStr;
+};
+
 void config() {
     bool flag;
     uint32_t intVal;
@@ -166,6 +226,13 @@ void config() {
     INIT_CONFIG(cs, "flag", configState.flag);
     INIT_CONFIG(cs, "intVal", configState.intVal);
     INIT_CONFIG(cs, "str", configState.str);
+    if (!cs.validEntry("tuples")) {
+        JsonArray arr = (*(cs.doc)).createNestedArray("tuples");
+        bool r = copyArray(configState.tuples, arr);
+        if (r != true) {
+            Serial.println("copyArray FAILED");
+        }
+    }
     cs.saveConfig();
 
     GET_CONFIG(configState.ssid, cs, "ssid", String);
@@ -173,8 +240,10 @@ void config() {
     GET_CONFIG(configState.flag, cs, "flag", bool);
     GET_CONFIG(configState.intVal, cs, "intVal", unsigned int);
     GET_CONFIG(configState.str, cs, "str", String);
-    if (false) {
+    copyArray((*(cs.doc))["tuples"], configState.tuples);
+    if (true) {
         Serial.println("Config File: vvvvvvvvvvvvvvvvvvv");
+        printTuples(configState.tuples);
         serializeJson(*(cs.doc), Serial);
         cs.listFiles("/");
         cs.printConfig();
@@ -192,6 +261,11 @@ void setup() {
     if (false) {
         // clear the local file system
         cs.format();
+    }
+
+    if (false) {  //// TMP TMP TMP
+        // disregard the contents of the saved config file
+        deserializeJson(*(cs.doc), "{}");
     }
 
     //// TMP TMP TMP
@@ -220,7 +294,7 @@ void setup() {
     }
     webSvcs.addPage(CONFIG_FILE_PATH, "application/json");
 
-    webSvcs.updateClients();  //// FIXME remove this?
+    //webSvcs.updateClients();  //// FIXME remove this?
 
     Serial.println("READY");
 };

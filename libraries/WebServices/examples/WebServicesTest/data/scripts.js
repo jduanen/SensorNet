@@ -34,7 +34,7 @@ function onMessage(event) {
     elem.value = "";
   }
 
-  document.getElementById('flag').checked = (msgObj.flag == "true");
+  document.getElementById('flag').checked = msgObj.flag;
 
   elem = document.getElementById('intVal');
   elem.value = msgObj.intVal;

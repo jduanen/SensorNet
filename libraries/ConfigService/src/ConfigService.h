@@ -29,8 +29,8 @@
 #define CS_DOC(cs)                              (*(cs.docPtr))
 #define CSPTR_DOC(csPtr)                        (*(csPtr->docPtr))
 #define GET_CONFIG(csPtr, field, value, typ)    value = (*(csPtr->docPtr))[field].as<typ>()
-//#define INIT_STATE(csPtr, field, value, typ)    if (csPtr->validEntry(field)) {GET_CONFIG(csPtr, field, value, typ);}
-#define INIT_STATE(csPtr, field, value, typ)    Serial.print(field); if (csPtr->validEntry(field)) {Serial.println(" from file"); GET_CONFIG(csPtr, field, value, typ);} else {Serial.println(" from defaults");}
+#define INIT_STATE(csPtr, field, value, typ)    if (csPtr->validEntry(field)) {GET_CONFIG(csPtr, field, value, typ);}
+//#define INIT_STATE(csPtr, field, value, typ)    Serial.print(field); if (csPtr->validEntry(field)) {Serial.println(" from file"); GET_CONFIG(csPtr, field, value, typ);} else {Serial.println(" from defaults");}
 
 //// FIXME -- types: string, char, int/float, bool, tuples
 /*

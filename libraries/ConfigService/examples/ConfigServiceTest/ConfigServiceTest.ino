@@ -9,7 +9,7 @@
 
 
 #define APP_NAME        "ConfigServiceTest"
-#define APP_VERSION     "2.0.0"
+#define APP_VERSION     "2.1.0"
 
 #define CONFIG_FILE     "/config.json"   // none
 #define CONFIG_FILE1    "/config1.json"  // empty

@@ -7,7 +7,7 @@
 #include "PMS.h"
 
 #define APP_NAME        "AirQualityPMS"
-#define APP_VERSION     "1.2.0"
+#define APP_VERSION     "1.3.0"
 #define REPORT_SCHEMA   "pm1_0:d,pm2_5:d,pm10_0:d"
 
 #define TOPIC_PREFIX    "/sensors/AirQuality/PMS"
@@ -16,6 +16,9 @@
 
 #define MQTT_SERVER     "192.168.166.113"
 #define MQTT_PORT       1883
+
+#define PMS_SLEEP_PIN   5  // pin GPIO5/D1: low=sleep, high=run
+#define PMS_RESET_PIN   4  // pin GPIO4/D2: low=reset, high=run
 
 #define VERBOSE         0
 
@@ -47,6 +50,12 @@ void setup() {
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 
   sn.mqttSetup(MQTT_SERVER, MQTT_PORT, TOPIC_PREFIX, myCallback);
+
+  // start sensor in run mode
+  pinMode(PMS_SLEEP_PIN, OUTPUT);
+  digitalWrite(PMS_SLEEP_PIN, HIGH);
+  pinMode(PMS_RESET_PIN, OUTPUT);
+  digitalWrite(PMS_RESET_PIN, HIGH);
 
   pms.passiveMode();    // Switch to passive mode
 }

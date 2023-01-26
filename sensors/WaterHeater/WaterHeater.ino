@@ -56,12 +56,12 @@
 
 
 typedef struct {
-  String    ssid;
-  String    passwd;
-  String    mqttServer;
-  uint16_t  mqttPort;
-  uint32_t  reportInterval;
-  uint8_t   tempPrecision;
+    String    ssid;
+    String    passwd;
+    String    mqttServer;
+    uint16_t  mqttPort;
+    uint32_t  reportInterval;
+    uint8_t   tempPrecision;
 } ConfigState;
 
 ConfigState configState = {
@@ -135,7 +135,7 @@ String webpageMsgHandler(const JsonDocument& wsMsg) {
         sensors.setResolution(waterThermometer, precision);
     } else if (msgType.equals("saveConf")) {
         String ssid = String(wsMsg["ssid"]);
-        configState.ssid = String(ssid);
+        configState.ssid = ssid;
         cs.configJsonDoc["ssid"] = ssid;
         String passwd = String(wsMsg["passwd"]);
         configState.passwd = passwd;

@@ -5,16 +5,18 @@
 #include "SensorNet.h"
 #include "wifi.h"
 
-#define APP_NAME        "Radiation"
-#define APP_VERSION     "1.2.0"
-#define REPORT_SCHEMA   "CPM:d,uSv/h:.4f,Vcc:.2f"
+#define APP_NAME          "Radiation"
+#define APP_VERSION       "1.3.0"
+#define REPORT_SCHEMA     "CPM:d,uSv/h:.4f,Vcc:.2f"
 
-#define TOPIC_PREFIX    "/sensors/Radiation"
+#define TOPIC_PREFIX      "/sensors/Radiation"
 
-#define REPORT_INTERVAL 60000  // one report every minute -- defined by sensor
+#define REPORT_INTERVAL   60000  // one report every minute -- defined by sensor
 
-#define MQTT_SERVER     "192.168.166.113"
-#define MQTT_PORT       1883
+#define MQTT_SERVER       "192.168.166.113"
+#define MQTT_PORT         1883
+
+#define GK_RESET          2   // GPIO0 aka D4, active low
 
 
 unsigned int reportInterval = REPORT_INTERVAL;
@@ -38,6 +40,9 @@ void setup() {
   sn.serialStart(&Serial, 9600, false);
   sn.serialStart(&Serial1, 9600, true);
   sn.consolePrintln(APP_NAME);
+
+  pinMode(GK_RESET, OUTPUT);
+  digitalWrite(GK_RESET, HIGH);
 
   sn.wifiStart(WLAN_SSID, WLAN_PASS);
 

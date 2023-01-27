@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>%APPL_NAME% Web Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+  </head>
+  <body>
+    <div class="topnav">
+      <h1>%APPL_NAME% Web Server</h1>
+    </div>
+    <div class="content">
+      <div class="card">
+        <h2>Information</h2>
+        <p><span class="staticStateName">App Version: </span><span class="staticStateValue" id="version">%VERSION%</span></p>
+        <p><span class="staticStateName">Library Version: </span><span class="staticStateValue" id="libVersion">%LIB_VERSION%</span></p>
+        <p><span class="staticStateName">WIFI Mode: </span><span class="staticStateValue" id="wifiMode">%WIFI_MODE%</span></p>
+        <p><span class="staticStateName">IP Address: </span><span class="staticStateValue" id="ipAddr">%IP_ADDR%</span></p>
+        <p><span class="stateName">RSSI: </span><span class="stateValue" id="rssi">%RSSI%</span></p>
+        <p><span class="stateName">Water Temperature: </span><span class="stateValue" id="waterTemp">%WATER_TEMP%</span></p>
+        <p><span class="stateName">Ambient Temperature: </span><span class="stateValue" id="ambientTemp">%AMBIENT_TEMP%</span></p>
+      </div>
+      <br>
+      <div class="card">
+        <h2>Controls</h2>
+        <div class="vertical-right" style="padding-right: 90px; line-height: 1.5em;">
+          <p>
+            SSID: <input type="text" id="ssid" value="%SSID%">
+            <br>
+            Password: <input type="password" id="password">
+          </p>
+          <p>
+            MQTT Server: <input type="text" id="mqttServer" value="%MQTT_SERVER%">
+            <br>
+            MQTT Port: <input type="number" min=1 id="mqttPort" value="%MQTT_PORT%">
+          </p>
+          <p>
+            Update Interval: <input type="number", min=1 id="rate" onchange="setRate()" value="%RATE%">
+          </p>
+          <p>
+            Temp. Precision: <input type="number", min=9 max=12 id="precision" onchange="setPrecision()" value="%PRECISION%">
+          </p>
+        </div>
+        <div class="vertical-center">
+          <p><button class="green-button" id="save" onclick="saveConfiguration()">Save Configuration</button></p>
+        </div>
+        <div class="vertical-center">
+          <p><button class="blue-button" id="reboot" onclick="reboot()">Reboot</button></p>
+        </div>
+      </div>
+      <br>
+      <nav>
+      <a href="/update">Update Firmware</a>
+      </nav>
+    </div>
+    <script src="/scripts.js"></script>
+    <script>
+      function initView() {
+        var wifiMode = "%WIFI_MODE%";
+        var elem;
+        switch (wifiMode) {
+          case "STA":
+            elem = document.getElementById("ipAddr");
+            if (elem == null) {
+              var p1 = "<p class=\"staticState\">IP Address: <span style=\"color:blue\" id=\"ipAddr\">%IP_ADDR%</span></p>";
+              document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
+            }
+            elem = document.getElementById("connection");
+            if (elem == null) {
+              var p2 = "<p class=\"staticState\">Connection: <span style=\"color:blue\" id=\"connection\">%SSID%</span></p>";
+              document.getElementById("ipAddr").insertAdjacentHTML('afterend', p2);
+            }
+            break;
+          case "A_P":
+            elem = document.getElementById("wifiApSsid");
+            if (elem == null) {
+              var p1 = "<p class=\"staticState\">AP SSID: <span style=\"color:blue\" id=\"wifiApSsid\">%WIFI_AP_SSID%</span></p>";
+              document.getElementById("wifiMode").insertAdjacentHTML('afterend', p1);
+            }
+            break;
+          default:
+            console.log("WARNING: invalid WIFI mode: " + wifiMode);
+        }
+        var jsonMsg = JSON.stringify({"msgType": "query"});
+        websocket.send(jsonMsg);
+      }
+    </script>
+  </body>
+</html>

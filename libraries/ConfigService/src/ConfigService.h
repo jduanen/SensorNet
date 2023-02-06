@@ -59,7 +59,7 @@ public:
     bool deleteConfigFile();
 
 private:
-    bool _verbose = true;
+    bool _verbose = false;
     char _configPath[MAX_PATH_LENGTH];
 
     bool _readConfigFile();

@@ -158,7 +158,6 @@ void WebServices<maxMsgSize>::_handleWebSocketMessage(void *arg, uint8_t *data, 
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         data[len] = 0;
-//        DeserializationError error = deserializeJson(_wsMsg, (char *)data);
         DeserializationError error = deserializeJson(*_wsMsgPtr, (char *)data);
         if (error) {
             Serial.print("_handleWebSocketMessage: deserializeJson() failed: ");
@@ -166,13 +165,11 @@ void WebServices<maxMsgSize>::_handleWebSocketMessage(void *arg, uint8_t *data, 
             return;
         };
         //// TMP TMP TMP
-        if (true) {
+        if (false) {
             String m;
-//            serializeJsonPretty(_wsMsg, m);
             serializeJsonPretty(*_wsMsgPtr, m);
             Serial.println("Rx Msg: " + m);
         }
-//        _notifyClients(_wsMsg);
         _notifyClients(*_wsMsgPtr);
     }
 }
@@ -185,7 +182,7 @@ void WebServices<maxMsgSize>::_notifyClients(const JsonDocument& doc) {
     }
     msg += "}";
     //// TMP TMP TMP
-    if (true) {
+    if (false) {
         Serial.println("Notify Msg: " + msg);
     }
     _socketPtr->textAll(msg);

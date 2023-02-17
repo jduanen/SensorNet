@@ -4,3 +4,4 @@ wifi.h
 hold
 __pycache__
 undefined
+secrets.yaml

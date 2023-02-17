@@ -149,3 +149,138 @@
     entity_id: switch.on_off_outdoor_module_4c_a1_d1
     domain: switch
   mode: single
+- id: '1675886412177'
+  alias: Garden Gate Open
+  description: Garden Gate Open
+  trigger:
+  - type: opened
+    platform: device
+    device_id: 27ea1a2ea2ac79a48b59cdafddb1a60d
+    entity_id: binary_sensor.i_o_linc_3e_1e_c4_sensor
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Garden Gate Open
+      title: Home Assistant
+  mode: single
+- id: '1675886555616'
+  alias: Garden Gate Closed
+  description: Garden Gate Closed
+  trigger:
+  - type: not_opened
+    platform: device
+    device_id: 27ea1a2ea2ac79a48b59cdafddb1a60d
+    entity_id: binary_sensor.i_o_linc_3e_1e_c4_sensor
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Garden Gate Closed
+      title: Home Assistant
+  mode: single
+- id: '1675887183776'
+  alias: Garage Door Center Open
+  description: Garage Door Center Open
+  trigger:
+  - type: opened
+    platform: device
+    device_id: d3ef5b112b3768f848ccc9a529351215
+    entity_id: binary_sensor.i_o_linc_28_c5_7a_sensor
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Garage Door Center Open
+      title: Home Assistant
+  mode: single
+- id: '1675887252022'
+  alias: Garage Door Left Open
+  description: Garage Door Left Open
+  trigger:
+  - type: opened
+    platform: device
+    device_id: ce4e79a25aff6831e94351b9704361b7
+    entity_id: binary_sensor.i_o_linc_28_c7_1d_sensor
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Garage Door Left Open
+      title: Home Assistant
+  mode: single
+- id: '1675887352070'
+  alias: Electrical Closet Open
+  description: Electrical Closet Open
+  trigger:
+  - type: opened
+    platform: device
+    device_id: f98670488479e743bc6bf66358a4d234
+    entity_id: binary_sensor.open_close_sensor_2d_dd_34
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Electrical Closet Open
+      title: Home Assistant
+  mode: single
+- id: '1675887395282'
+  alias: Electrical Closet Closed
+  description: Electrical Closet Closed
+  trigger:
+  - type: not_opened
+    platform: device
+    device_id: f98670488479e743bc6bf66358a4d234
+    entity_id: binary_sensor.open_close_sensor_2d_dd_34
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Electrical Closet Closed
+      title: Home Assistant
+  mode: single
+- id: '1675887655494'
+  alias: Front Porch Light on motion detected
+  description: Front Porch Light on for 1min after motion detected after sundown
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 8e72725ed43c616e708a50fd8a52645c
+    entity_id: binary_sensor.motion_sensor_31_99_d0_motion
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  condition:
+  - condition: sun
+    before: sunrise
+    after: sunset
+  action:
+  - service: light.turn_on
+    data: {}
+    target:
+      device_id: 4d560c1186f347688f9a301b4a3a1399
+  mode: single
+- id: '1675887747117'
+  alias: Garage motion detected
+  description: Garage motion detected
+  trigger:
+  - type: motion
+    platform: device
+    device_id: c5f52d6540d2026ee9c7b30f879d2263
+    entity_id: binary_sensor.motion_sensor_2d_9a_db_motion
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: notify.notify
+    data:
+      message: Garage motion detected
+      title: Home Assistant
+  mode: single

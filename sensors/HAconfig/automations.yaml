@@ -1,0 +1,151 @@
+- id: '1675646554693'
+  alias: Dawn Off
+  description: Turn off lights at dawn (and turn on the fountain)
+  trigger:
+  - platform: sun
+    event: sunrise
+    offset: 0
+  condition: []
+  action:
+  - type: turn_off
+    device_id: 5f24733386ab313f49deb2690bf35d6f
+    entity_id: light.switchlinc_dimmer_57_bd_5c
+    domain: light
+  - type: turn_off
+    device_id: 434f4af7df585eb8f3ef46959a3ac794
+    entity_id: switch.on_off_module_2c_f4_ea
+    domain: switch
+  - type: turn_off
+    device_id: fc5c4103738220be97251610b90eeb35
+    entity_id: switch.on_off_module_54_7f_34
+    domain: switch
+  - type: turn_off
+    device_id: d2c596aefa283fd779d5f6997cbb4e08
+    entity_id: switch.switchlinc_relay_dual_band_3e_42_ea
+    domain: switch
+  - type: turn_off
+    device_id: 78fd24694724bc56e40e632fe1c6acd3
+    entity_id: light.switchlinc_dimmer_40_b3_e8
+    domain: light
+  - type: turn_off
+    device_id: 6d7d3fb3fd30913b141edc694ad5e756
+    entity_id: switch.on_off_module_47_c2_70
+    domain: switch
+  - type: turn_off
+    device_id: 45bc4f0b21b03af0c950efe95350b8df
+    entity_id: switch.on_off_module_47_c2_9d
+    domain: switch
+  - type: turn_off
+    device_id: 4d560c1186f347688f9a301b4a3a1399
+    entity_id: light.switchlinc_dimmer_42_78_97
+    domain: light
+  - type: turn_on
+    device_id: 7be7a2fdc5d723761a82d865a1875254
+    entity_id: switch.on_off_outdoor_module_4c_a1_d1
+    domain: switch
+  - type: turn_off
+    device_id: 7b372e7cadc531aac91174faec3afc5a
+    entity_id: switch.on_off_outdoor_module_37_e5_00
+    domain: switch
+  - type: turn_off
+    device_id: d7af4a7e078fe04fc7fa8e65d1082d28
+    entity_id: light.switchlinc_dimmer_57_e0_e6
+    domain: light
+  - type: turn_off
+    device_id: 1f23996cd19c97f0eda307d5d7b89789
+    entity_id: light.switchlinc_dimmer_40_b3_c5
+    domain: light
+  mode: single
+- id: '1675646941395'
+  alias: Dusk On
+  description: Turn on (mainly outside) lights and turn off fountain
+  trigger:
+  - platform: sun
+    event: sunset
+    offset: 0
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 5f24733386ab313f49deb2690bf35d6f
+    entity_id: light.switchlinc_dimmer_57_bd_5c
+    domain: light
+  - type: turn_on
+    device_id: 434f4af7df585eb8f3ef46959a3ac794
+    entity_id: switch.on_off_module_2c_f4_ea
+    domain: switch
+  - type: turn_on
+    device_id: fc5c4103738220be97251610b90eeb35
+    entity_id: switch.on_off_module_54_7f_34
+    domain: switch
+  - type: turn_on
+    device_id: 78fd24694724bc56e40e632fe1c6acd3
+    entity_id: light.switchlinc_dimmer_40_b3_e8
+    domain: light
+  - type: turn_on
+    device_id: 6d7d3fb3fd30913b141edc694ad5e756
+    entity_id: switch.on_off_module_47_c2_70
+    domain: switch
+  - type: turn_on
+    device_id: 45bc4f0b21b03af0c950efe95350b8df
+    entity_id: switch.on_off_module_47_c2_9d
+    domain: switch
+  - type: turn_off
+    device_id: 7be7a2fdc5d723761a82d865a1875254
+    entity_id: switch.on_off_outdoor_module_4c_a1_d1
+    domain: switch
+  - type: turn_on
+    device_id: 7b372e7cadc531aac91174faec3afc5a
+    entity_id: switch.on_off_outdoor_module_37_e5_00
+    domain: switch
+  - type: turn_on
+    device_id: d7af4a7e078fe04fc7fa8e65d1082d28
+    entity_id: light.switchlinc_dimmer_57_e0_e6
+    domain: light
+  - type: turn_on
+    device_id: 1f23996cd19c97f0eda307d5d7b89789
+    entity_id: light.switchlinc_dimmer_40_b3_c5
+    domain: light
+  mode: single
+- id: '1675647643855'
+  alias: Bedtime Off
+  description: 'Turn off some things late at night (mainly indoor lights)
+
+    '
+  trigger:
+  - platform: time
+    at: 02:13:00
+  condition: []
+  action:
+  - type: turn_off
+    device_id: 434f4af7df585eb8f3ef46959a3ac794
+    entity_id: switch.on_off_module_2c_f4_ea
+    domain: switch
+  - type: turn_off
+    device_id: fc5c4103738220be97251610b90eeb35
+    entity_id: switch.on_off_module_54_7f_34
+    domain: switch
+  - type: turn_off
+    device_id: d2c596aefa283fd779d5f6997cbb4e08
+    entity_id: switch.switchlinc_relay_dual_band_3e_42_ea
+    domain: switch
+  - type: turn_off
+    device_id: 78fd24694724bc56e40e632fe1c6acd3
+    entity_id: light.switchlinc_dimmer_40_b3_e8
+    domain: light
+  - type: turn_off
+    device_id: 6d7d3fb3fd30913b141edc694ad5e756
+    entity_id: switch.on_off_module_47_c2_70
+    domain: switch
+  - type: turn_off
+    device_id: 45bc4f0b21b03af0c950efe95350b8df
+    entity_id: switch.on_off_module_47_c2_9d
+    domain: switch
+  - type: turn_off
+    device_id: 4d560c1186f347688f9a301b4a3a1399
+    entity_id: light.switchlinc_dimmer_42_78_97
+    domain: light
+  - type: turn_off
+    device_id: 7be7a2fdc5d723761a82d865a1875254
+    entity_id: switch.on_off_outdoor_module_4c_a1_d1
+    domain: switch
+  mode: single

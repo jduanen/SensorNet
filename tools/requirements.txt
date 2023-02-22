@@ -3,5 +3,4 @@ numpy
 paho-mqtt
 pandas
 pytz
-queue
-yaml
+PyYaml

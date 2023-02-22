@@ -11,6 +11,8 @@ TBD: add cad files and images for enclosures
 
 TODO: refactor and put the common services in separate library projects/repos (or maybe not)
 
+![Radiation and AirQuality Sensors](RadiationAndAirQuality.png)
+
 # Software Framework
 
 The current version of this project uses ESPHome and Home Assistant.
@@ -52,6 +54,8 @@ Measure airborne particulate matter of different sizes.
 
 *TBD*
 
+![Air Quality SPS](sensors/AirQualitySPS/assets/AirQuality_SPS.png)
+
 Related Links:
   * https://cdn.sparkfun.com/assets/2/d/2/a/6/Sensirion_SPS30_Particulate_Matter_Sensor_v0.9_D1__1_.pdf
   * https://github.com/Sensirion/arduino-sps
@@ -63,11 +67,21 @@ Related Links:
 
 *TBD*
 
+![Air Quality PMS](sensors/AirQualityPMS/assets/AirQualityPMS.png)
+
+![Air Quality PMS](sensors/AirQualityPMS/assets/AirQualityPMS2.png)
+
+![Air Quality PMS](sensors/AirQualityPMS/assets/AirQuality_PMS.png)
+
 ### Radiation (Radiation)
 
 Measure alpha, beta, gamma radiation.
 
 *TBD*
+
+![Radiation Monitor](/sensors/Radiation/assets/radiation.png)
+
+![Radiation Monitor](/sensors/Radiation/assets/Radiation_SBT11A.png)
 
 Notes:
 * ESP8266 Board
@@ -142,6 +156,8 @@ pins (starting from side with usb connector):
 Measure weight of sugar water in hummingbird feeder.
 
 *TBD*
+
+
 
 ### Avue PZT Camera Platform (avue)
 

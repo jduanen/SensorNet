@@ -146,6 +146,8 @@ Measure temperature at the outlet of water heater and ambient temperature.
 
 *TBD*
 
+![Water Heater Temperature](sensors/WaterHeater/assets/WaterTempurature.png)
+
 pins (starting from side with usb connector):
   1: +5V
   2: D4/GPIO2 2.2KOhm pullup

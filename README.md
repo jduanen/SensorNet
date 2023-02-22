@@ -13,6 +13,8 @@ TODO: refactor and put the common services in separate library projects/repos (o
 
 ![Radiation and AirQuality Sensors](RadiationAndAirQuality.png)
 
+![Home Assistant and ESPHome](HomeAssistantESPHome.png)
+
 # Software Framework
 
 The current version of this project uses ESPHome and Home Assistant.

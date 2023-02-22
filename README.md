@@ -11,7 +11,11 @@ TBD: add cad files and images for enclosures
 
 TODO: refactor and put the common services in separate library projects/repos (or maybe not)
 
+#### Example Sensors
+
 ![Radiation and AirQuality Sensors](RadiationAndAirQuality.png)
+
+#### Example Home Assistant Dashboard
 
 ![Home Assistant and ESPHome](HomeAssistantESPHome.png)
 

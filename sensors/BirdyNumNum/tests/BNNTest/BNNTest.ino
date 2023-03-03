@@ -66,6 +66,14 @@ void setup(void) {
         //// restart
     }
 
+    Serial.print("Ambient Thermometer Address: ");
+    printDeviceAddress(ambientThermometer);
+    Serial.println("");
+
+    Serial.print("Loadcell Thermometer Address: ");
+    printDeviceAddress(loadcellThermometer);
+    Serial.println("");
+
     // read and discard first values from both sensors
     (void)sensors.getTempC(loadcellThermometer);
     (void)sensors.getTempC(ambientThermometer);

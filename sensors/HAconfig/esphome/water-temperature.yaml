@@ -22,7 +22,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Water Temperature Fallback Hotspot"
+    ssid: "Water Temperature"
     password: !secret wifi_ap_password
 
 captive_portal:

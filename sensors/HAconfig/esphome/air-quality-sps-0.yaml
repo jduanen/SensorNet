@@ -22,7 +22,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Air-Quality SPS Fallback Hotspot"
+    ssid: "Air Quality SPS"
     password: !secret wifi_ap_password
 
 captive_portal:

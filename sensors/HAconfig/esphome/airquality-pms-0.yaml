@@ -6,6 +6,8 @@ esp8266:
   board: esp01_1m
 
 logger:
+  level: DEBUG
+  baud_rate: 0
 
 # Enable Home Assistant API
 api:
@@ -31,30 +33,81 @@ uart:
   tx_pin: GPIO1
   baud_rate: 9600
 
+# N.B. must wait >=30s after waking up before reading value
 sensor:
   - platform: pmsx003
     type: PMSX003
     pm_1_0:
       name: "Particulate Matter <1.0µm"
+      id: pms1
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
     pm_2_5:
       name: "Particulate Matter <2.5µm"
+      id: pms2_5
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
     pm_10_0:
       name: "Particulate Matter <10.0µm"
+      id: pms10
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
+
+interval:
+  - interval: 5min
+    then:
+      - switch.turn_on: pmsSet
+      - delay: 30s
+      - switch.turn_on: readyToRead
+      - delay: 5s
+      - switch.turn_off: readyToRead
+      - switch.turn_off: pmsSet
 
 switch:
+  - platform: template
+    name: "PMSX003 Ready to Read Post Warm-Up"
+    id: readyToRead
+    optimistic: true
   - platform: gpio
-    pin: GPIO5
-    name: "Sleep"
-    id: PMS_Set
-
+    pin:
+      number: GPIO5
+    id: pmsSet
+  - platform: restart
+    name: "Restart"
   - platform: gpio
     pin: GPIO4
     name: "Reset"
     inverted: true
-
-interval:
-  - interval: 120s
-    then: 
-      - switch.turn_on: PMS_Set
-      - delay: 30s
-      - switch.turn_off: PMS_Set

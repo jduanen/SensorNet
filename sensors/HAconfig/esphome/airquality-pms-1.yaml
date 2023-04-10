@@ -21,14 +21,14 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Airquality-Pms-1 Fallback Hotspot"
+    ssid: "Air Quality PMS FR"
     password: !secret wifi_ap_password
 
 captive_portal:
 
 uart:
   rx_pin: GPIO3
-  tx_pin: GPIO5
+  tx_pin: GPIO1
   baud_rate: 9600
 
 sensor:

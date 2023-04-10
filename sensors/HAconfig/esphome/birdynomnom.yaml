@@ -23,7 +23,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Birdynomnom Fallback Hotspot"
+    ssid: "BirdyNomNom"
     password: !secret wifi_ap_password
 
 captive_portal:
@@ -41,10 +41,10 @@ sensor:
     id: loadcellTemp
   - platform: dallas
     address: 0xe90000000501cf28
-    name: "Ambient Temperature"
+    name: "Internal Temperature"
     state_class: "measurement"
     unit_of_measurement: "°C"
-    id: ambientTemp
+    id: internalTemp
   - platform: hx711
     name: "HX711 Value"
     dout_pin: GPIO4
@@ -53,20 +53,26 @@ sensor:
     update_interval: 10s
     id: loadcellValue
     unit_of_measurement: g
+    accuracy_decimals: 2
+    filters:
+      - calibrate_linear:
+        - 661799.6825 -> 0.0
+        - 1931087.1429 -> 100.0
+      - median:
 
-binary_sensor:
-  - platform: gpio
-    pin:
-      number: GPIO7
-      mode:
-        input: true
-        pullup: true
-      inverted: true
-    name: "Power Good"
-    id: PGOOD
-  - platform: gpio
-    pin:
-      number: GPIO3
-      inverted: True
-    name: "Charging"
-    id: CHG
+#binary_sensor:
+#  - platform: gpio
+#    pin:
+#      number: GPIO7
+#      mode:
+#        input: true
+#        pullup: true
+#      inverted: true
+#    name: "Power Good"
+#    id: PGOOD
+#  - platform: gpio
+#    pin:
+#      number: GPIO3
+#      inverted: True
+#    name: "Charging"
+#    id: CHG

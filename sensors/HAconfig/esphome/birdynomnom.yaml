@@ -59,8 +59,20 @@ sensor:
         - 661799.6825 -> 0.0
         - 1931087.1429 -> 100.0
       - median:
+          window_size: 3
+          send_every: 3
+          send_first_at: 1
 
-#binary_sensor:
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO3
+      inverted: True
+    name: "Charging"
+    id: CHG
+    filters:
+      - delayed_on: 10s
+
 #  - platform: gpio
 #    pin:
 #      number: GPIO7
@@ -70,9 +82,4 @@ sensor:
 #      inverted: true
 #    name: "Power Good"
 #    id: PGOOD
-#  - platform: gpio
-#    pin:
-#      number: GPIO3
-#      inverted: True
-#    name: "Charging"
-#    id: CHG
+

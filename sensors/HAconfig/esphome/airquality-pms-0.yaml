@@ -30,7 +30,7 @@ captive_portal:
 
 uart:
   rx_pin: GPIO3
-  tx_pin: GPIO1
+#  tx_pin: GPIO1
   baud_rate: 9600
 
 # N.B. must wait >=30s after waking up before reading value
@@ -98,7 +98,7 @@ interval:
 
 switch:
   - platform: template
-    name: "PMSX003 Ready to Read Post Warm-Up"
+    name: "Ready to Read Post Warm-Up"
     id: readyToRead
     optimistic: true
   - platform: gpio

@@ -38,24 +38,27 @@ uart:
   baud_rate: 9600
 
 sensor:
-- platform: custom
-  lambda: |-
-    auto radiation_sensor = new UartReadLineRadiation(id(uart_bus));
-    App.register_component(radiation_sensor);
-    return {radiation_sensor->countsPerMin_sensor, radiation_sensor->uSvPerHr_sensor, radiation_sensor->volts_sensor};
-  sensors:
-    - name: "CPM"
-      unit_of_measurement: "Counts/Minute"
-      accuracy_decimals: 0
-      state_class: "measurement"
-    - name: "uSieverts/Hour"
-      unit_of_measurement: "uSieverts/Hour"
-      accuracy_decimals: 4
-      state_class: "measurement"
-    - name: "Volts"
-      unit_of_measurement: "volts"
-      accuracy_decimals: 4
-      state_class: "measurement"
+  - platform: wifi_signal
+    name: "Radiation MBR WiFi Signal"
+    update_interval: 60s
+  - platform: custom
+    lambda: |-
+      auto radiation_sensor = new UartReadLineRadiation(id(uart_bus));
+      App.register_component(radiation_sensor);
+      return {radiation_sensor->countsPerMin_sensor, radiation_sensor->uSvPerHr_sensor, radiation_sensor->volts_sensor};
+    sensors:
+      - name: "CPM"
+        unit_of_measurement: "Counts/Minute"
+        accuracy_decimals: 0
+        state_class: "measurement"
+      - name: "uSieverts/Hour"
+        unit_of_measurement: "uSieverts/Hour"
+        accuracy_decimals: 4
+        state_class: "measurement"
+      - name: "Volts"
+        unit_of_measurement: "volts"
+        accuracy_decimals: 4
+        state_class: "measurement"
 
 switch:
   - platform: gpio

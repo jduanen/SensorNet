@@ -32,6 +32,12 @@ dallas:
     update_interval: 60s
 
 sensor:
+  - platform: wifi_signal
+    name: "Water Temperature WiFi Signal"
+    update_interval: 60s
+  - platform: wifi_signal
+    name: "Air Quality PMS DWR WiFi Signal"
+    update_interval: 60s
   - platform: dallas
     address: 0xd6000000070eb528
     name: "Water Heater Output Temperature"

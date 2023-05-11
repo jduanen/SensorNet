@@ -35,6 +35,9 @@ uart:
 
 # N.B. must wait >=30s after waking up before reading value
 sensor:
+  - platform: wifi_signal
+    name: "Air Quality PMS FR WiFi Signal"
+    update_interval: 60s
   - platform: pmsx003
     type: PMSX003
     pm_1_0:

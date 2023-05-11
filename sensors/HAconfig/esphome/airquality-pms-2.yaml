@@ -1,6 +1,6 @@
 esphome:
   name: airquality-pms-2
-  friendly_name: Air Quality Duane's Workroom
+  friendly_name: Air Quality Duane Workroom
 
 esp8266:
   board: esp01_1m
@@ -30,86 +30,81 @@ captive_portal:
 
 uart:
   rx_pin: GPIO3
-  tx_pin: GPIO1
+#  tx_pin: GPIO1
   baud_rate: 9600
 
 # N.B. must wait >=30s after waking up before reading value
 sensor:
   - platform: pmsx003
     type: PMSX003
-    update_interval: 0s
     pm_1_0:
       name: "Particulate Matter <1.0µm"
       id: pms1
       accuracy_decimals: 1
       filters:
         - lambda: |-
-            if (id(warmedUp).state) {
+            if (id(readyToRead).state) {
               return(x);
             } else {
               return {};
             }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
     pm_2_5:
       name: "Particulate Matter <2.5µm"
       id: pms2_5
       accuracy_decimals: 1
       filters:
         - lambda: |-
-            if (id(warmedUp).state) {
+            if (id(readyToRead).state) {
               return(x);
             } else {
               return {};
             }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
     pm_10_0:
       name: "Particulate Matter <10.0µm"
       id: pms10
       accuracy_decimals: 1
       filters:
         - lambda: |-
-            if (id(warmedUp).state) {
+            if (id(readyToRead).state) {
               return(x);
             } else {
               return {};
             }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
 
 interval:
-  - interval: 2min
+  - interval: 5min
     then:
-      - wait_until:
-          condition:
-            api.connected:
-      - switch.turn_on: measuring # Will turn itself off later
-
-binary_sensor:
-  - platform: template
-    name: "Warmed Up"
-    id: warmedUp
-    filters:
-      - delayed_on: 30s
-    on_press:
-      - delay: 10s
-      - switch.turn_off: measuring
+      - switch.turn_on: pmsSet
+      - delay: 30s
+      - switch.turn_on: readyToRead
+      - delay: 5s
+      - switch.turn_off: readyToRead
+      - switch.turn_off: pmsSet
 
 switch:
-  - platform: gpio
-    name: "Measuring"
-    id: measuring
-    pin:
-      number: GPIO5
-    restore_mode: ALWAYS_OFF
-    on_turn_on:
-      - binary_sensor.template.publish:
-          id: warmedUp
-          state: ON
-    on_turn_off:
-      - binary_sensor.template.publish:
-          id: warmedUp
-          state: OFF
+  - platform: template
+    name: "Ready to Read Post Warm-Up"
+    id: readyToRead
+    optimistic: true
   - platform: gpio
     pin:
       number: GPIO5
     id: pmsSet
-    restore_mode: ALWAYS_OFF
   - platform: restart
     name: "Restart"
   - platform: gpio

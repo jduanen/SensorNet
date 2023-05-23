@@ -2,11 +2,14 @@ esphome:
   name: kittycam
   friendly_name: Kitty Camera
 
-esp32:
-#  board: adafruit_feather_esp32s3  # esp32dev espcam adafruit_feather_esp32s3
-  board: esp32cam
+esp32:  #### FIXME
+#  board: seeed_xiao_esp32s3
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
   framework:
     type: arduino
+#    version: 2.0.3
+    platform_version: 6.0.1
 
 # Enable logging
 logger:
@@ -29,6 +32,15 @@ wifi:
     ssid: "Kitty Cam"
     password: !secret wifi_ap_password
 
+captive_portal:
+
+#microphone:
+#  platform: i2s_audio
+#  i2s_audio_id: kc_mic
+#  adc_type: external
+#  i2s_din_pin: 42  # MTDI/IO41/PDM_DATA
+#  pdm: true
+
 sensor:
   - platform: wifi_signal
     name: "Kitty Cam WiFi Signal"
@@ -36,47 +48,17 @@ sensor:
 
 esp32_camera:
   name: Kitty Cam
-  # ESP_CAM (AI THINKER)
-  external_clock:
-    pin: GPIO0
-    frequency: 10MHz
-  i2c_pins:
-    sda: GPIO26
-    scl: GPIO27
-  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
-  vsync_pin: GPIO25
-  href_pin: GPIO23
-  pixel_clock_pin: GPIO22
-  power_down_pin: GPIO32
-  max_framerate: 1.0fps
-  idle_framerate: 0.2fps
-  vertical_flip: true
-  horizontal_mirror: false
-  brightness: 2 # -2 to 2
-  contrast: 1 # -2 to 2
-  special_effect: none
-  # exposure settings
-  aec_mode: auto
-  aec2: false
-  ae_level: 0
-  aec_value: 300
-  # gain settings
-  agc_mode: auto
-  agc_gain_ceiling: 2x
-  agc_value: 0
-  # white balance setting
-  wb_mode: auto
   # XIAO SENSE
-#  external_clock:
-#    pin: GPIO10
-#    frequency: 20MHz
-#  i2c_pins:
-#    sda: GPIO40
-#    scl: GPIO39
-#  data_pins: [GPIO48, GPIO11, GPIO12, GPIO14, GPIO16, GPIO18, GPIO17, GPIO15]
-#  vsync_pin: GPIO38
-#  href_pin: GPIO47
-#  pixel_clock_pin: GPIO13
+  external_clock:
+    pin: GPIO10
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO40
+    scl: GPIO39
+  data_pins: [GPIO15, GPIO17, GPIO18, GPIO16, GPIO14, GPIO12, GPIO11, GPIO48]
+  vsync_pin: GPIO38
+  href_pin: GPIO47
+  pixel_clock_pin: GPIO13
   resolution: 640x480  # 800x600 1024x768 1280x1024 1600x1200 1920x1080
   jpeg_quality: 10
 #  reset_pin: GPIO??
@@ -99,31 +81,18 @@ esp32_camera_web_server:
   - port: 8081
     mode: snapshot
 
-output:
-  # white LED
-  - platform: ledc
-    channel: 2
-    pin: GPIO4
-    id: espCamLED
-  # red status light
+binary_sensor:
   - platform: gpio
-    pin:
-      number: GPIO33
-      inverted: True
-    id: gpio_33
+    pin: GPIO4
+    name: "Kittycam PIR Sensor"
+    device_class: PRESENCE
+
+output:
+  - platform: ledc
+    pin: GPIO2    # white LED
+    id: kittyCamLED
 
 light:
   - platform: monochromatic
-    output: espCamLED
-    name: esp-cam light
-  - platform: binary
-    output: gpio_33
-    name: esp-cam led
-
-switch:
-  - platform: restart
-    name: esp-cam restart
-
-binary_sensor:
-  - platform: status
-    name: esp-cam status
+    output: kittyCamLED
+    name: "Kittycam Light"

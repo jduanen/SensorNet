@@ -6,6 +6,7 @@
 
 #include <Arduino.h>
 #include "WiFiUtilities.h"
+#include "wifi.h"
 
 
 #define VERBOSE         1
@@ -13,23 +14,26 @@
 #define APP_VERSION     "1.0.0"
 
 
-void print(String s) {
-    if (VERBOSE) {
-      sn.consolePrint(s);
-    }
-}
+const char *ssid = WLAN_SSID;
+const char *password = WLAN_PASS;
 
-void println(String s) {
-    if (VERBOSE) {
-      sn.consolePrintln(s);
-    }
-}
+uint32_t    loopCnt = 0;
+
 
 void setup() {
-    sn.serialStart(&Serial, 9600, true);
-    delay(500);
-    println(APP_NAME);
+    Serial.begin(115200);
+    while (!Serial) {
+        delay(10);
+    }
+    delay(1000);
+    Serial.print(APP_NAME); Serial.println(": BEGIN");
+    wiFiConnect(ssid, password);
+    Serial.print(APP_NAME); Serial.println(": READY");
 }
 
 void loop() {
+    if ((loopCnt++ % 100) == 0) {
+        Serial.println("loopCnt: " + String(loopCnt));
+    }
+    delay(100);
 };

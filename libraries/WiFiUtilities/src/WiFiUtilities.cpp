@@ -67,6 +67,10 @@ String getWiFiMode() {
     return String(wifiModes[wifiMode]);
 }
 
+void wiFiConnect(const String& staSSID, const String& passwd) {
+    wiFiConnect(staSSID, passwd, "");
+}
+
 void wiFiConnect(const String& staSSID, const String& passwd, const String& apSSID) {
     wifiMode = WIFI_STA;
     WiFi.mode(wifiMode);

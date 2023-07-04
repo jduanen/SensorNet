@@ -24,6 +24,8 @@ void setWiFiMode(uint8_t mode);
 
 String getWiFiMode();
 
+void wiFiConnect(const String& staSSID, const String& passwd);
+
 void wiFiConnect(const String& staSSID, const String& passwd, const String& apSSID);
 
 

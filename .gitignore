@@ -5,3 +5,4 @@ hold
 __pycache__
 undefined
 secrets.yaml
+.esphome

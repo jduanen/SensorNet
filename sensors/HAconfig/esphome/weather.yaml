@@ -62,6 +62,13 @@ sensor:
     update_interval: 10s
     id: adc_0
     resolution: 16 bits
+  - platform: ads1115
+    multiplexer: A1_GND
+    gain: 2.048
+    name: "ADC Channel 1"
+    update_interval: 10s
+    id: adc_1
+    resolution: 16 bits
   - platform: dps310
     temperature:
       name: Weather Temperature

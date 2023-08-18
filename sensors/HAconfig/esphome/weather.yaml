@@ -6,6 +6,8 @@ esp32:
   board: seeed_xiao_esp32c3
   framework:
     type: arduino
+    version: latest
+    platform_version: 6.3.2
 
 # Enable logging
 logger:
@@ -55,20 +57,42 @@ sensor:
       name: "Temperature"
     humidity:
       name: "Humidity"
+    update_interval: 60s
   - platform: ads1115
     multiplexer: A0_GND
     gain: 2.048
     name: "ADC Channel 0"
-    update_interval: 10s
     id: adc_0
     resolution: 16 bits
+    filters:
+      - offset: 0
+      - multiply: 1.0
+      - sliding_window_moving_average:
+          window_size: 6
+          send_every: 6
+    update_interval: 10s
   - platform: ads1115
     multiplexer: A1_GND
     gain: 2.048
     name: "ADC Channel 1"
-    update_interval: 10s
     id: adc_1
     resolution: 16 bits
+    filters:
+      - offset: 0
+      - multiply: 1.0
+      - sliding_window_moving_average:
+          window_size: 6
+          send_every: 6
+    update_interval: 10s
+  - platform: template
+    name: "Wind Direction"
+    lambda: |-
+      if (adc_0->state && adc_1->state) {
+        return (adc_0->state + adc_1->state);
+      } else {
+        return {};
+      }
+    update_interval: 60s
   - platform: dps310
     temperature:
       name: Weather Temperature
@@ -77,7 +101,7 @@ sensor:
       name: Weather Pressure
       id: weather_pressure
     address: 0x77
-    update_interval: 10s
+    update_interval: 60s
 
 
 #  - platform: as3935

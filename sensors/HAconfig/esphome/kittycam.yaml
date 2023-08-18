@@ -3,13 +3,11 @@ esphome:
   friendly_name: Kitty Camera
 
 esp32:  #### FIXME
-#  board: seeed_xiao_esp32s3
-  board: esp32-s3-devkitc-1
+  board: seeed_xiao_esp32s3
   variant: esp32s3
   framework:
     type: arduino
-#    version: 2.0.3
-    platform_version: 6.0.1
+    platform_version: 6.3.0
 
 # Enable logging
 logger:
@@ -46,9 +44,8 @@ sensor:
     name: "Kitty Cam WiFi Signal"
     update_interval: 60s
 
-esp32_camera:
+esp32_camera:  # XIAO SENSE
   name: Kitty Cam
-  # XIAO SENSE
   external_clock:
     pin: GPIO10
     frequency: 20MHz

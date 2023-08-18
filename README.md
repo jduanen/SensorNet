@@ -50,7 +50,7 @@ Notes:
 Related Links:
   * https://github.com/espressif/
   * https://escapequotes.net/esp8266-wemos-d1-min-pins-and-diagram/
-
+  * https://wiki.seeedstudio.com/Connect-Grove-to-Home-Assistant-ESPHome/
 
 ### AirQuality
 
@@ -165,7 +165,9 @@ Measure weight of sugar water in hummingbird feeder.
 
 *TBD*
 
+### Weather Sensor Platform
 
+*TBD*
 
 ### Avue PZT Camera Platform (avue)
 

@@ -30,7 +30,7 @@ captive_portal:
 
 dallas:
   - pin: GPIO6
-    update_interval: 10s
+    update_interval: 30s
 
 sensor:
   - platform: dallas
@@ -50,13 +50,13 @@ sensor:
     dout_pin: GPIO4
     clk_pin: GPIO5
     gain: 128
-    update_interval: 10s
+    update_interval: 30s
     id: loadcellValue
     unit_of_measurement: g
     accuracy_decimals: 2
     filters:
       - calibrate_linear:
-        - 661799.6825 -> 0.0
+        - 658467.5238 -> 0.0
         - 1931087.1429 -> 100.0
       - median:
           window_size: 3

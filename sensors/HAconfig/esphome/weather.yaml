@@ -43,23 +43,25 @@ ads1115:
 
 sensor:
   - platform: wifi_signal
-    name: Weather Platform WiFi Signal
+    name: "Weather Platform WiFi Signal"
     update_interval: 60s
   - platform: uptime
-    name: Weather Platform Uptime
+    name: "Weather Platform Uptime"
     update_interval: 60s
   - platform: sht3xd
     temperature:
       name: "Temperature"
+      id: sht3xd_Temperature
     humidity:
       name: "Humidity"
+      id: sht3xd_Humidity
     address: 0x44
     update_interval: 60s
   - platform: ads1115
-    multiplexer: A0_GND
-    gain: 2.048
     name: "ADC Channel 0"
     id: adc_0
+    multiplexer: A0_GND
+    gain: 2.048
     resolution: 16 bits
     filters:
       - offset: 0
@@ -67,12 +69,12 @@ sensor:
       - sliding_window_moving_average:
           window_size: 6
           send_every: 6
-    update_interval: 10s
+    update_interval: 10s ## 10s
   - platform: ads1115
-    multiplexer: A1_GND
-    gain: 2.048
     name: "ADC Channel 1"
     id: adc_1
+    multiplexer: A1_GND
+    gain: 2.048
     resolution: 16 bits
     filters:
       - offset: 0
@@ -80,7 +82,7 @@ sensor:
       - sliding_window_moving_average:
           window_size: 6
           send_every: 6
-    update_interval: 10s
+    update_interval: 10s ## 10s
   - platform: template
     name: "Wind Direction"
     lambda: |-
@@ -90,43 +92,72 @@ sensor:
         return {};
       }
     state_class: measurement
-    update_interval: 60s
+    update_interval: 60s ## 60s
   - platform: dps310
     temperature:
-      name: Weather Temperature
-      id: weather_temperature
-      unit_of_measurement: C
+      name: "Outside Temperature"
+      id: outside_temperature
+      unit_of_measurement: "°C"
     pressure:
-      name: Weather Pressure
-      id: weather_pressure
-      unit_of_measurement: mmHg
+      name: "Outside Pressure"
+      id: outside_pressure
+      unit_of_measurement: "mmHg"
     address: 0x77
     update_interval: 60s
-
-time:
-  - platform: homeassistant
-    id: esphome_time
-    timezone: America/Los_Angeles
-
-#sensor:
-#  - platform: pulse_counter
-#    pin: 
-#      number: GPIO2
-#      inverted: false
-#      mode:
-#        input: true
-#        pullup: true
-#    name: "Pulse Counter"
-#    unit_of_measurement: 'cpm'
-#    count_mode:
-#      falling_edge: INCREMENT
-#      rising_edge: DISABLE
-#    update_interval: 10s
-
+  - platform: pulse_counter
+    name: "Wind Speed"
+    id: wind_speed
+    use_pcnt: true
+    pin: 
+      number: GPIO4
+      inverted: false
+      mode:
+        input: true
+        pullup: true
+    unit_of_measurement: "m/s"
+    count_mode:
+      falling_edge: INCREMENT
+      rising_edge: DISABLE
+    update_interval: 10s
+  - platform: pulse_counter
+    name: "Rainfall Bucket Dumps"
+    id: rainfall_buckets
+    pin:
+      number: GPIO5
+      inverted: false
+      mode:
+        input: true
+        pullup: true
+    count_mode:
+      falling_edge: INCREMENT
+      rising_edge: DISABLE
+    filters:
+      - lambda: return x;
+    update_interval: 10s
+  - platform: integration
+    name: "Daily Rainfall"
+    time_unit: h # d
+    integration_method: trapezoid
+    restore: true
+    sensor: rainfall_buckets
+    unit_of_measurement: "mm/day"
 ## works
 #sensor:
 #  - platform: sen21231
 #    id: person_sensor
 #    update_interval: 10s
+automation:
+  - alias: "Reset Pulse Counter"
+    trigger:
+      platform: time
+      at: "00:00:00"
+    action:
+      lambda: |-
+        id(pulse_counter).reset();
+##on_...:
+##  - sensor.integration.reset: rainfall_buckets
 
-
+time:
+  - platform: homeassistant
+    id: esphome_time
+    timezone: America/Los_Angeles

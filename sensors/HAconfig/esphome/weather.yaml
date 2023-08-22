@@ -36,7 +36,7 @@ i2c:
   sda: GPIO6
   scl: GPIO7
   scan: true
-  frequency: 400kHz
+  frequency: 800kHz
 
 ads1115:
   address: 0x48
@@ -85,7 +85,7 @@ sensor:
     name: "Wind Direction"
     lambda: |-
       if (adc_0->state && adc_1->state) {
-        return (adc_0->state + adc_1->state);
+        return (atan2(adc_0->state, adc_1->state) * RAD_TO_DEG);
       } else {
         return {};
       }
@@ -95,9 +95,11 @@ sensor:
     temperature:
       name: Weather Temperature
       id: weather_temperature
+      unit_of_measurement: C
     pressure:
       name: Weather Pressure
       id: weather_pressure
+      unit_of_measurement: mmHg
     address: 0x77
     update_interval: 60s
 

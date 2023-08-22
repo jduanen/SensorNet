@@ -1,5 +1,5 @@
 esphome:
-  name: weather
+  name: "weather-platform"
   friendly_name: Weather Sensors Platform
 
 esp32:
@@ -48,11 +48,12 @@ sensor:
   - platform: uptime
     name: Weather Platform Uptime
     update_interval: 60s
-  - platform: aht10
+  - platform: sht3xd
     temperature:
       name: "Temperature"
     humidity:
       name: "Humidity"
+    address: 0x44
     update_interval: 60s
   - platform: ads1115
     multiplexer: A0_GND
@@ -88,6 +89,7 @@ sensor:
       } else {
         return {};
       }
+    state_class: measurement
     update_interval: 60s
   - platform: dps310
     temperature:

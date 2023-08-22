@@ -32,6 +32,30 @@ wifi:
 
 captive_portal:
 
+#globals:
+#  - id: ADC_0_MIN
+#    type: float
+#    restore_value: yes
+#    initial_value: "0.704"
+#  - id: ADC_0_MAX
+#    type: float
+#    restore_value: yes
+#    initial_value: "2.421"
+#  - id: ADC_1_MIN
+#    type: float
+#    restore_value: yes
+#    initial_value: "0.689"
+#  - id: ADC_1_MAX
+#    type: float
+#    restore_value: yes
+#    initial_value: "2.308"
+
+#substitutions:
+#  ADC_0_MIN: "0.704"
+#  ADC_0_MAX: "2.421"
+#  ADC_1_MIN: "0.689"
+#  ADC_1_MAX: "2.308"
+
 i2c:
   sda: GPIO6
   scl: GPIO7
@@ -61,33 +85,41 @@ sensor:
     name: "ADC Channel 0"
     id: adc_0
     multiplexer: A0_GND
-    gain: 2.048
+    gain: 4.096 # 2.048
     resolution: 16 bits
-    filters:
-      - offset: 0
-      - multiply: 1.0
-      - sliding_window_moving_average:
-          window_size: 6
-          send_every: 6
-    update_interval: 10s ## 10s
+#    filters:
+#      - offset: 0
+#      - multiply: 1.0
+#      - sliding_window_moving_average:
+#          window_size: 6
+#          send_every: 6
+    update_interval: 1s ## 10s
   - platform: ads1115
     name: "ADC Channel 1"
     id: adc_1
     multiplexer: A1_GND
-    gain: 2.048
+    gain: 4.096 # 2.048
     resolution: 16 bits
-    filters:
-      - offset: 0
-      - multiply: 1.0
-      - sliding_window_moving_average:
-          window_size: 6
-          send_every: 6
-    update_interval: 10s ## 10s
+#    filters:
+#      - offset: 0
+#      - multiply: 1.0
+#      - sliding_window_moving_average:
+#          window_size: 6
+#          send_every: 6
+    update_interval: 1s ## 10s
   - platform: template
     name: "Wind Direction"
     lambda: |-
+      #define ADC_0_MIN 0.704
+      #define ADC_0_MAX 2.421
+      #define ADC_1_MIN 0.689
+      #define ADC_1_MAX 2.308
+      #define amp(min, max) ((max - min) / 2)
+      #define normalizeADC(v, minV, maxV) (((v - (minV - amp(minV, maxV))) / amp(minV, maxV)))
       if (adc_0->state && adc_1->state) {
-        return (atan2(adc_0->state, adc_1->state) * RAD_TO_DEG);
+        float v0 = normalizeADC(adc_0->state, ADC_0_MIN, ADC_0_MAX);
+        float v1 = normalizeADC(adc_1->state, ADC_1_MIN, ADC_1_MAX);
+        return (atan2(v0, v1) * RAD_TO_DEG);
       } else {
         return {};
       }
@@ -146,15 +178,24 @@ sensor:
 #  - platform: sen21231
 #    id: person_sensor
 #    update_interval: 10s
-automation:
-  - alias: "Reset Pulse Counter"
-    trigger:
-      platform: time
-      at: "00:00:00"
-    action:
-      lambda: |-
-        id(pulse_counter).reset();
-##on_...:
+
+#lambda:
+#  normalizeADC: |-
+#    float normalizeADC(float v, int min, int max) {
+#      amp = ((max - min) / 2);
+#      return ((v - (min - amp)) / amp);
+#    }
+
+#automation:
+#  - alias: "Reset Pulse Counter"
+#    trigger:
+#      platform: time
+#      at: "00:00:00"
+#    action:
+#      lambda: |-
+#        rainfall_buckets->reset();
+
+##on_time:
 ##  - sensor.integration.reset: rainfall_buckets
 
 time:

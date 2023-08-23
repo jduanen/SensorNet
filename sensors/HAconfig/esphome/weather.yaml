@@ -32,30 +32,6 @@ wifi:
 
 captive_portal:
 
-#globals:
-#  - id: ADC_0_MIN
-#    type: float
-#    restore_value: yes
-#    initial_value: "0.704"
-#  - id: ADC_0_MAX
-#    type: float
-#    restore_value: yes
-#    initial_value: "2.421"
-#  - id: ADC_1_MIN
-#    type: float
-#    restore_value: yes
-#    initial_value: "0.689"
-#  - id: ADC_1_MAX
-#    type: float
-#    restore_value: yes
-#    initial_value: "2.308"
-
-#substitutions:
-#  ADC_0_MIN: "0.704"
-#  ADC_0_MAX: "2.421"
-#  ADC_1_MIN: "0.689"
-#  ADC_1_MAX: "2.308"
-
 i2c:
   sda: GPIO6
   scl: GPIO7
@@ -114,8 +90,8 @@ sensor:
       #define ADC_0_MAX 2.421
       #define ADC_1_MIN 0.689
       #define ADC_1_MAX 2.308
-      #define amp(min, max) ((max - min) / 2)
-      #define normalizeADC(v, minV, maxV) (((v - (minV - amp(minV, maxV))) / amp(minV, maxV)))
+      #define avg(min, max) ((max - min) / 2)
+      #define normalizeADC(v, minV, maxV) ((v - minV - avg(minV, maxV)) / avg(minV, maxV))
       if (adc_0->state && adc_1->state) {
         float v0 = normalizeADC(adc_0->state, ADC_0_MIN, ADC_0_MAX);
         float v1 = normalizeADC(adc_1->state, ADC_1_MIN, ADC_1_MAX);
@@ -124,7 +100,7 @@ sensor:
         return {};
       }
     state_class: measurement
-    update_interval: 60s ## 60s
+    update_interval: 1s ## 60s
   - platform: dps310
     temperature:
       name: "Outside Temperature"

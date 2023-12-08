@@ -13,3 +13,11 @@ tts:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+notify:
+  - name: ntfy
+    platform: ntfy
+    url: "http://gpuserver1.lan/"
+    token: tk_9yt8hycxbu2takdpxhcbnquo53hih
+    topic: jduanen_HA
+#    icon: <notification_icon_url>

@@ -90,8 +90,6 @@ binary_sensor:
     pin: GPIO4
     name: "Kittycam PIR Sensor"
     device_class: PRESENCE
-    on_state:
-       - camera.kitty_cam.capture_snapshot(filename: "/config/www/snapshot.jpg")
 
 output:
   - platform: ledc

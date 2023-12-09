@@ -1,17 +1,11 @@
 esphome:
   name: kittycam
   friendly_name: Kitty Camera
-#  platformio_options:
-#    board_build.flash_mode: dio
-#    board_build.mcu: esp32s3
- #   platform_packages:
- #     - toolchain-xtensa-esp32s3 @ 8.4.0+2021r2-patch5
 
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
   framework:
-#    type: esp-idf
     type: arduino
     version: latest
     platform_version: 6.3.2
@@ -58,6 +52,7 @@ sensor:
 
 esp32_camera:  # XIAO SENSE
   name: Kitty Cam
+  id: kitty_cam
   external_clock:
     pin: GPIO10
     frequency: 20MHz
@@ -95,6 +90,8 @@ binary_sensor:
     pin: GPIO4
     name: "Kittycam PIR Sensor"
     device_class: PRESENCE
+    on_state:
+       - camera.kitty_cam.capture_snapshot(filename: "/config/www/snapshot.jpg")
 
 output:
   - platform: ledc

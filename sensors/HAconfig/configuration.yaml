@@ -13,10 +13,3 @@ tts:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
-
-notify:
-  - name: ntfy
-    platform: ntfy
-    url: "https://ntfy.sh"
-    topic: jduanen_HA
-#    icon: <notification_icon_url>

@@ -1,13 +1,20 @@
 esphome:
   name: kittycam
   friendly_name: Kitty Camera
+#  platformio_options:
+#    board_build.flash_mode: dio
+#    board_build.mcu: esp32s3
+ #   platform_packages:
+ #     - toolchain-xtensa-esp32s3 @ 8.4.0+2021r2-patch5
 
-esp32:  #### FIXME
+esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
   framework:
+#    type: esp-idf
     type: arduino
-    platform_version: 6.3.0
+    version: latest
+    platform_version: 6.3.2
 
 # Enable logging
 logger:
@@ -30,14 +37,19 @@ wifi:
     ssid: "Kitty Cam"
     password: !secret wifi_ap_password
 
-captive_portal:
+#captive_portal:
 
-#microphone:
-#  platform: i2s_audio
-#  i2s_audio_id: kc_mic
-#  adc_type: external
-#  i2s_din_pin: 42  # MTDI/IO41/PDM_DATA
-#  pdm: true
+i2s_audio:
+  i2s_lrclk_pin: GPIO42  #### FIXME
+#  i2s_bclk_pin: GPIO42
+  id: kc_mic
+
+microphone:
+  platform: i2s_audio
+  i2s_audio_id: kc_mic
+  adc_type: external
+  i2s_din_pin: 42  # MTDI/IO41/PDM_DATA
+  pdm: true
 
 sensor:
   - platform: wifi_signal

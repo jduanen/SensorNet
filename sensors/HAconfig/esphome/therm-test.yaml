@@ -1,0 +1,100 @@
+esphome:
+  name: ${devicename}
+  friendly_name: Temperature Sensor
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.mcu: esp32c3
+
+substitutions:
+  devicename: temp_sense_0
+  upper_devicename: Temp Sense 0
+
+esp32:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  framework:
+    type: arduino
+    version: latest
+
+# Enable logging
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "TempSense Fallback Hotspot"
+    password: !secret wifi_ap_password
+  power_save_mode: none
+
+captive_portal:
+
+# Open web port for browser access
+web_server:
+  port: 80
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      id: ip_address
+      name: "Device IP Address"
+  - platform: homeassistant
+    entity_id: ota.status
+    name: "OTA Status"
+  - platform: version
+    id: firmware_version
+    name: "Firmware Version"
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+dallas:
+  - pin: GPIO5
+    update_interval: 60s
+
+sensor:
+  - platform: wifi_signal
+    name: "Temperature WiFi Signal"
+    update_interval: 60s
+  - platform: dallas
+    address: 0x9d00000006ac7028
+    state_class: "measurement"
+    unit_of_measurement: "°C"
+    name: "Temp Sensor"
+    id: c_temp
+
+i2c:
+  sda: GPIO6
+  scl: GPIO7
+  scan: true
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 12
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    address: 0x3C
+    id: oled_display
+    update_interval: 60s
+    lambda: |-
+      it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
+
+      it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ip_address).state.c_str());
+
+      it.strftime(64, 32, id(roboto), TextAlign::TOP_CENTER, "Time: %H:%M", id(esptime).now());
+
+      it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "Temperature: %.1f°C", id(c_temp).state);

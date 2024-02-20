@@ -6,7 +6,7 @@ esphome:
     board_build.mcu: esp32c3
 
 substitutions:
-  devicename: temp_sense_0
+  devicename: tempsense0
   upper_devicename: Temp Sense 0
 
 esp32:
@@ -44,16 +44,27 @@ web_server:
   port: 80
 
 text_sensor:
-  - platform: wifi_info
-    ip_address:
-      id: ip_address
-      name: "Device IP Address"
   - platform: homeassistant
     entity_id: ota.status
     name: "OTA Status"
   - platform: version
     id: firmware_version
     name: "Firmware Version"
+  - platform: wifi_info
+    ip_address:
+      id: ipAddr
+      name: ESP IP Address
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      id: macAddr
+      name: ESP Mac Wifi Address
+    scan_results:
+      name: ESP Latest Scan Results
+    dns_address:
+      name: ESP DNS Address
 
 time:
   - platform: homeassistant
@@ -65,6 +76,7 @@ dallas:
 
 sensor:
   - platform: wifi_signal
+    id: wifi_rssi
     name: "Temperature WiFi Signal"
     update_interval: 60s
   - platform: dallas
@@ -83,6 +95,9 @@ font:
   - file: "gfonts://Roboto"
     id: roboto
     size: 12
+  - file: "gfonts://Roboto"
+    id: roboto_big
+    size: 32
 
 display:
   - platform: ssd1306_i2c
@@ -90,11 +105,38 @@ display:
     address: 0x3C
     id: oled_display
     update_interval: 60s
-    lambda: |-
-      it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
+          it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ipAddr).state.c_str());
+          it.printf(64, 32, id(roboto), TextAlign::TOP_CENTER, "RSSI: %.0f dB", id(wifi_rssi).state);
+          it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "M: %s", id(macAddr).state.c_str());
+      - id: page2
+        lambda: |-
+          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Time");
+          it.strftime(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%H:%M", id(esptime).now());
+      - id: page3
+        lambda: |-
+          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Temperature");
+          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.1f°C", id(c_temp).state);
+      - id: page4
+        lambda: |-
+          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
+      - id: page5
+        lambda: |-
+          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
+      - id: page6
+        lambda: |-
+          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
 
-      it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ip_address).state.c_str());
+interval:
+  - interval: 15s
+    then:
+      - display.page.show_next: oled_display
+      - component.update: oled_display
 
-      it.strftime(64, 32, id(roboto), TextAlign::TOP_CENTER, "Time: %H:%M", id(esptime).now());
 
-      it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "Temperature: %.1f°C", id(c_temp).state);
+#on_...:
+#  then:
+#    - logger.log: "hello world!!!"

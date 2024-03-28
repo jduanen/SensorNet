@@ -1,0 +1,86 @@
+substitutions:
+  devicename: ledsign
+  upper_devicename: LEDSign
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/jduanen/ESPHomeComponents
+    components: [ ledSign ]
+
+esphome:
+  name: ${devicename}
+  friendly_name: ${upper_devicename}
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.mcu: esp32c3
+
+esp32:
+  board: seeed_xiao_esp32c3
+  variant: esp32c3
+  framework:
+    type: arduino
+#    version: latest
+#    platform_version: 6.5.0
+
+# Enable logging
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${upper_devicename} Fallback Hotspot"
+    password: !secret wifi_ap_password
+
+  power_save_mode: none
+
+captive_portal:
+
+web_server:
+  port: 80
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      id: ip_address
+      name: "Device IP Address"
+  - platform: homeassistant
+    entity_id: ota.status
+    name: "OTA Status"
+  - platform: version
+    id: firmware_version
+    name: "Firmware Version"
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+spi:
+  clk_pin: GPIO7
+  miso_pin: GPIO8
+  mosi_pin: GPIO9
+
+display:
+  - platform: max7291uart
+    cs_pin: GPIO4
+    num_chips: 11
+    lambda: |-
+       it.print("0123456789");
+#      it.print(0, 0, id(roboto), "HELLO!");
+
+#font:
+#  - file: "gfonts://Roboto"
+#    id: roboto
+#    size: 14

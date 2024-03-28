@@ -1,0 +1,41 @@
+esphome:
+  name: lcd16x2
+  friendly_name: Two Line LCD
+
+
+esp32:
+  board: esp32-c3-devkitm-1
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "LCD16x2"
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+display:
+  - platform: lcd_gpio
+    dimensions: 16x2
+    data_pins:
+      - GPIO5
+      - GPIO4
+      - GPIO3
+      - GPIO2
+    enable_pin: GPIO6
+    rw_pin: GPIO7
+    rs_pin: GPIO21
+    lambda: |-
+      it.print("Hello World*");

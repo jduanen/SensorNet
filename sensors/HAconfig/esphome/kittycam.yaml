@@ -31,7 +31,10 @@ wifi:
     ssid: "Kitty Cam"
     password: !secret wifi_ap_password
 
-#captive_portal:
+captive_portal:
+
+web_server:
+  port: 80
 
 i2s_audio:
   i2s_lrclk_pin: GPIO42  #### FIXME
@@ -42,7 +45,7 @@ microphone:
   platform: i2s_audio
   i2s_audio_id: kc_mic
   adc_type: external
-  i2s_din_pin: 42  # MTDI/IO41/PDM_DATA
+  i2s_din_pin: 41  # MTDI/IO41/PDM_DATA
   pdm: true
 
 sensor:

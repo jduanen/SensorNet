@@ -11,7 +11,7 @@ esp32:
 
 # Enable logging
 logger:
-  level: INFO
+  level: VERBOSE
 
 # Enable Home Assistant API
 api:
@@ -19,7 +19,8 @@ api:
     key: !secret api_encryption_key
 
 ota:
-  password: !secret ota_password
+  - platform: esphome
+    password: !secret ota_password
 
 wifi:
   ssid: !secret wifi_ssid
@@ -42,6 +43,14 @@ ads1115:
   address: 0x48
 
 sensor:
+  - platform: adc
+    pin: GPIO2
+    name: "Battery Voltage"
+    id: battery_voltage
+    filters:
+      - multiply: 2.0
+    attenuation: 11db
+    update_interval: 60s
   - platform: wifi_signal
     name: "Weather Platform WiFi Signal"
     update_interval: 60s
@@ -69,7 +78,7 @@ sensor:
 #      - sliding_window_moving_average:
 #          window_size: 6
 #          send_every: 6
-    update_interval: 1s ## 10s
+    update_interval: 10s
   - platform: ads1115
     name: "ADC Channel 1"
     id: adc_1
@@ -82,7 +91,7 @@ sensor:
 #      - sliding_window_moving_average:
 #          window_size: 6
 #          send_every: 6
-    update_interval: 1s ## 10s
+    update_interval: 10s
 # TODO only enable direction output when wind speed > 0
   - platform: template
     name: "Wind Direction"
@@ -97,12 +106,16 @@ sensor:
         float v0 = normalizeADC(adc_0->state, ADC_0_MIN, ADC_0_MAX);
         float v1 = normalizeADC(adc_1->state, ADC_1_MIN, ADC_1_MAX);
         float degs = (atan2(v1, v0) * RAD_TO_DEG);
+        if (degs < 0.0) {
+          degs += 360;
+        };
+        degs = 360 - degs;
         return(degs);
       } else {
         return {};
       }
     state_class: measurement
-    update_interval: 1s ## 60s
+    update_interval: 60s
   - platform: dps310
     temperature:
       name: "Outside Temperature"
@@ -128,7 +141,7 @@ sensor:
     count_mode:
       falling_edge: INCREMENT
       rising_edge: DISABLE
-    update_interval: 10s # 60s
+    update_interval: 60s
   - platform: pulse_counter
     name: "Rainfall Bucket Dumps"
     id: rainfall_buckets
@@ -143,7 +156,7 @@ sensor:
       rising_edge: DISABLE
     filters:
       - lambda: return x;
-    update_interval: 10s
+    update_interval: 60s
   - platform: integration
     name: "Daily Rainfall"
     time_unit: h # d

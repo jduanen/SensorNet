@@ -1,0 +1,44 @@
+esphome:
+  name: testc3
+  friendly_name: TestC3
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "5ClVEopipiGMLj+MFWxYBAifUhdw1XoyiQf0Jhynriw="
+
+ota:
+  - platform: esphome
+    password: "63b1dd7aff23f63ed59ab6d78656c953"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Testc3 Fallback Hotspot"
+    password: "OemdjZRIUpCB"
+
+captive_portal:
+
+web_server:
+  port: 80
+
+#binary_sensor:
+#  - platform: gpio
+#    name: "Pin GPIO2"
+#    pin: GPIO2
+
+switch:
+  - platform: gpio
+    pin: GPIO5 # D3
+    name: LED

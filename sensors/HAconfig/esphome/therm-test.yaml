@@ -71,16 +71,16 @@ time:
   - platform: homeassistant
     id: esptime
 
-dallas:
-  - pin: GPIO5
-    update_interval: 60s
+one_wire:
+  - platform: gpio
+    pin: GPIO5
 
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
     name: "Temperature WiFi Signal"
     update_interval: 60s
-  - platform: dallas
+  - platform: dallas_temp
     address: 0x9d00000006ac7028
     state_class: "measurement"
     unit_of_measurement: "°C"

@@ -1,5 +1,7 @@
 substitutions:
-  number_of_steps: "6144"  # 2048 * 3
+  number_of_steps: "2984"   # hand-tuned
+  incr_steps: "10"          # hand-tuned
+  max_speed: "400 steps/s"  # hand-tuned
 
 esphome:
   name: feeder-door
@@ -35,7 +37,7 @@ web_server:
 
 number:
   - platform: template
-    name: "Template number"
+    name: "Door Position"
     optimistic: true
     min_value: 0
     max_value: ${number_of_steps}
@@ -45,46 +47,6 @@ number:
         - stepper.set_target:
             id: door_stepper
             target: !lambda "return x;"
-
-button:
-  - platform: template
-    name: "Door Open Button"
-    on_press:
-      then:
-        - logger.log: "Door Open Button Pressed"
-        - lambda: |-
-            while (!id(open_sensor).state) {
-              ESP_LOGI("FeederDoor", "NOT OPEN");
-              ESP_LOGE("FeederDoor", "MOVE OPEN");
-              break;
-            }
-  - platform: template
-    name: "Door Close Button"
-    on_press:
-      then:
-        - logger.log: "Door Close Button Pressed"
-        - lambda: |-
-            while (!id(closed_sensor).state) {
-              ESP_LOGI("FeederDoor", "NOT CLOSED");
-              ESP_LOGE("FeederDoor", "MOVE CLOSE");
-              break;
-            }
-  - platform: template
-    name: "Door State Button"
-    on_press:
-      then:
-        - logger.log: "Door State Button Pressed"
-        - lambda: |-
-            if (id(closed_sensor).state) {
-              ESP_LOGI("FeederDoor", "Feeder Door is closed");
-            } else {
-              ESP_LOGI("FeederDoor", "Feeder Door is not closed");
-            }
-            if (id(open_sensor).state) {
-              ESP_LOGI("FeederDoor", "Feeder Door is open");
-            } else {
-              ESP_LOGI("FeederDoor", "Feeder Door is not open");
-            }
 
 sensor:
   - platform: wifi_signal
@@ -96,12 +58,12 @@ sensor:
 stepper:
   - platform: uln2003
     id: door_stepper
-    pin_a: GPIO15  # D8
-    pin_b: GPIO13  # D7
-    pin_c: GPIO12  # D6
-    pin_d: GPIO14  # D5
+    pin_d: GPIO15  # D8
+    pin_c: GPIO13  # D7
+    pin_b: GPIO12  # D6
+    pin_a: GPIO14  # D5
     sleep_when_done: true
-    max_speed: 100 steps/s  # FIXME
+    max_speed: ${max_speed}
     acceleration: inf
     deceleration: inf
 
@@ -112,14 +74,6 @@ binary_sensor:
       mode: INPUT_PULLUP
     name: "Door Open Sensor"
     id: open_sensor
-    filters:
-      - invert:
-  - platform: gpio
-    pin: 
-      number: GPIO5  # D1
-      mode: INPUT_PULLUP
-    name: "Door Closed Sensor"
-    id: closed_sensor
     filters:
       - invert:
 

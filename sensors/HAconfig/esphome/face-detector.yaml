@@ -40,10 +40,16 @@ i2c:
   scl: GPIO7
   scan: true
 
+external_components:
+  - source:
+      type: git
+      url: http://github.com/jduanen/ESPHomeComponents
+    components: [sen21231]
+
 sensor:
   - platform: wifi_signal
     name: "Face Detector WiFi Signal"
   - platform: sen21231
     id: face_detector
     update_interval: 10s
-    
+

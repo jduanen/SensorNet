@@ -1,5 +1,6 @@
 substitutions:
   name_str: "Face Detector"
+  vers: "1"
 
 esphome:
   name: face-detector
@@ -44,12 +45,15 @@ external_components:
   - source:
       type: git
       url: http://github.com/jduanen/ESPHomeComponents
-    components: [sen21231]
+#      ref: main
+    refresh: 0s
+    components: [sen21231M]
 
 sensor:
   - platform: wifi_signal
     name: "Face Detector WiFi Signal"
-  - platform: sen21231
+  - platform: sen21231M
     id: face_detector
     update_interval: 10s
+    state_class: measurement
 

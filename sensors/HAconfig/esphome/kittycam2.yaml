@@ -1,0 +1,106 @@
+esphome:
+  name: kittycam2
+  friendly_name: Kitty Camera V2
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  framework:
+    type: arduino
+#    version: latest
+#    platform_version: 6.3.2
+
+# Enable logging
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Kitty Cam2"
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+web_server:
+  port: 80
+
+i2s_audio:
+  i2s_lrclk_pin: GPIO42  #### FIXME
+#  i2s_bclk_pin: GPIO42
+  id: kc_mic
+
+microphone:
+  platform: i2s_audio
+  i2s_audio_id: kc_mic
+  adc_type: external
+  i2s_din_pin: 41  # MTDI/IO41/PDM_DATA
+  pdm: true
+
+sensor:
+  - platform: wifi_signal
+    name: "Kitty Cam2 WiFi Signal"
+    update_interval: 60s
+
+esp32_camera:  # XIAO SENSE
+  name: Kitty Cam2
+  id: kitty_cam2
+  external_clock:
+    pin: GPIO10
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO40
+    scl: GPIO39
+  data_pins: [GPIO15, GPIO17, GPIO18, GPIO16, GPIO14, GPIO12, GPIO11, GPIO48]
+  vsync_pin: GPIO38
+  href_pin: GPIO47
+  pixel_clock_pin: GPIO13
+  resolution: 640x480  # 800x600 1024x768 1280x1024 1600x1200 1920x1080
+  jpeg_quality: 10
+#  reset_pin: GPIO??
+#  power_down_pin: GPIO??
+#  test_pattern: true
+#  max_framerate: 30fps
+#  idle_framerate: 0.1fps
+#  vertical_flip: true
+#  horizontal_mirror: true
+#  contrast: 0
+#  brightness: 0
+#  saturation: 0
+#  special_effect: none  # grayscale
+#  aec_mode: auto
+#  agc_mode: auto
+
+esp32_camera_web_server:
+  - port: 8080
+    mode: stream
+  - port: 8081
+    mode: snapshot
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO4
+    name: "Kitty Cam2 PIR Sensor"
+    device_class: PRESENCE
+
+output:
+  - platform: ledc
+    pin: GPIO2    # white LED
+    id: kittyCam2LED
+
+light:
+  - platform: monochromatic
+    output: kittyCam2LED
+    name: "Kitty Cam2 Light"

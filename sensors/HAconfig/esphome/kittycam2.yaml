@@ -64,12 +64,12 @@ esp32_camera:  # XIAO SENSE
   pixel_clock_pin: GPIO13
   resolution: 640x480  # 800x600 1024x768 1280x1024 1600x1200 1920x1080
   jpeg_quality: 10
+  vertical_flip: False
 #  reset_pin: GPIO??
 #  power_down_pin: GPIO??
 #  test_pattern: true
 #  max_framerate: 30fps
 #  idle_framerate: 0.1fps
-#  vertical_flip: true
 #  horizontal_mirror: true
 #  contrast: 0
 #  brightness: 0

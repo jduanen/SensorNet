@@ -7,8 +7,8 @@ esp32:
   variant: esp32s3
   framework:
     type: arduino
-#    version: latest
-#    platform_version: 6.3.2
+    version: latest
+    platform_version: 6.3.2
 
 # Enable logging
 logger:
@@ -49,11 +49,6 @@ microphone:
   i2s_din_pin: 41  # MTDI/IO41/PDM_DATA
   pdm: true
 
-sensor:
-  - platform: wifi_signal
-    name: "Kitty Cam2 WiFi Signal"
-    update_interval: 60s
-
 esp32_camera:  # XIAO SENSE
   name: Kitty Cam2
   id: kitty_cam2
@@ -89,6 +84,21 @@ esp32_camera_web_server:
   - port: 8081
     mode: snapshot
 
+one_wire:
+  - platform: gpio
+    pin: GPIO3
+
+sensor:
+  - platform: wifi_signal
+    name: "Kitty Cam2 WiFi Signal"
+    update_interval: 60s
+  - platform: dallas_temp
+    address: 0x7400000006d43a28
+    state_class: "measurement"
+    unit_of_measurement: "°C"
+    name: "Temp Sensor"
+    id: c_temp
+
 binary_sensor:
   - platform: gpio
     pin: GPIO4
@@ -98,6 +108,7 @@ binary_sensor:
 output:
   - platform: ledc
     pin: GPIO2    # white LED
+    inverted: True
     id: kittyCam2LED
 
 light:

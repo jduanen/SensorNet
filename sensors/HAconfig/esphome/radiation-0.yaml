@@ -1,13 +1,11 @@
 esphome:
   name: radiation-0
   friendly_name: Radiation Master Bedroom
-  includes:
-    - uart_read_line_radiation.h
 
 esp8266:
     board: esp01_1m
 
-# Enable logging
+# Disable logging
 logger:
   level: DEBUG  # makes uart stream available in esphome logstream
   baud_rate: 0  # disable logging over uart
@@ -37,29 +35,49 @@ uart:
   tx_pin: GPIO1
   rx_pin: GPIO3
   baud_rate: 9600
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      delimiter: "\r\n"
+    sequence:
+      - lambda: |-
+          UARTDebug::log_hex(direction, bytes, ',');
+          ESP_LOGD("custom", "Bytes size: %d", bytes.size());
+          if (direction == UART_DIRECTION_RX) {
+            int countsPerMin;
+            float uSvPerHr, volts;
+
+            // string format: "%d,%f,%f" -- Counts/Min, uSieverts/Hour, Volts
+            int n = sscanf(reinterpret_cast<const char*>(bytes.data()), "%d,%f,%f", &countsPerMin, &uSvPerHr, &volts);
+            if (n != 3) {
+                ESP_LOGE("custom", "Failed to read from GK sensor board");
+            }
+
+            id(countsPerMin_sensor).publish_state(countsPerMin);
+            id(uSvPerHr_sensor).publish_state(uSvPerHr);
+            id(volts_sensor).publish_state(volts);
+          }
 
 sensor:
   - platform: wifi_signal
     name: "Radiation MBR WiFi Signal"
     update_interval: 60s
-  - platform: custom
-    lambda: |-
-      auto radiation_sensor = new UartReadLineRadiation(id(uart_bus));
-      App.register_component(radiation_sensor);
-      return {radiation_sensor->countsPerMin_sensor, radiation_sensor->uSvPerHr_sensor, radiation_sensor->volts_sensor};
-    sensors:
-      - name: "CPM"
-        unit_of_measurement: "Counts/Minute"
-        accuracy_decimals: 0
-        state_class: "measurement"
-      - name: "uSieverts/Hour"
-        unit_of_measurement: "uSieverts/Hour"
-        accuracy_decimals: 4
-        state_class: "measurement"
-      - name: "Volts"
-        unit_of_measurement: "volts"
-        accuracy_decimals: 4
-        state_class: "measurement"
+  - platform: template
+    id: countsPerMin_sensor
+    unit_of_measurement: "Counts/Minute"
+    accuracy_decimals: 0
+    state_class: "measurement"
+  - platform: template
+    id: uSvPerHr_sensor
+    unit_of_measurement: "uSieverts/Hour"
+    accuracy_decimals: 4
+    state_class: "measurement"
+  - platform: template
+    id: volts_sensor
+    unit_of_measurement: "volts"
+    accuracy_decimals: 4
+    state_class: "measurement"
 
 switch:
   - platform: gpio

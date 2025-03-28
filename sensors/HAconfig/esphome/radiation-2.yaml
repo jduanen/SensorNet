@@ -33,9 +33,13 @@ captive_portal:
 external_components:
   - source:
       type: git
-      url: https://github.com/jduanen/ESPHomeComponents
+      url: https://github.com/jduanen/ESPHomeComponents/components
     components: [ geigerkit ]
     refresh: always
+#  - source:
+#      type: local
+#      path: /home/jdn/Code/ESPHomeComponents/components/
+#    components: [ geigerkit ]
 
 uart:
   id: uart_bus
@@ -44,13 +48,18 @@ uart:
   baud_rate: 9600
 
 geigerkit:
+    id: gk0
+    cpm:
+      name: "counts/min"
+    uSv_hr:
+      name: "uSieverts/hr"
+    volts:
+      name: "volts"
 
 sensor:
   - platform: wifi_signal
     name: "Radiation MBR WiFi Signal"
     update_interval: 60s
-##  - platform: geigerkit
-##    id: gk0
 
 switch:
   - platform: gpio

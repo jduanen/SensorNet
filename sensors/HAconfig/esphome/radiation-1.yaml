@@ -25,59 +25,41 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Radiation Garage"
+    ssid: "Radiation MBR"
     password: !secret wifi_ap_password
 
 captive_portal:
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/jduanen/ESPHomeComponents/components
+    components: [ geigerkit ]
+    refresh: always
+#  - source:
+#      type: local
+#      path: /home/jdn/Code/ESPHomeComponents/components/
+#    components: [ geigerkit ]
 
 uart:
   id: uart_bus
   tx_pin: GPIO1
   rx_pin: GPIO3
   baud_rate: 9600
-  debug:
-    direction: RX
-    dummy_receiver: true
-    after:
-      delimiter: "\r\n"
-    sequence:
-      - lambda: |-
-          UARTDebug::log_hex(direction, bytes, ',');
-          ESP_LOGD("custom", "Bytes size: %d", bytes.size());
-          if (direction == UART_DIRECTION_RX) {
-            int countsPerMin;
-            float uSvPerHr, volts;
 
-            // string format: "%d,%f,%f" -- Counts/Min, uSieverts/Hour, Volts
-            int n = sscanf(reinterpret_cast<const char*>(bytes.data()), "%d,%f,%f", &countsPerMin, &uSvPerHr, &volts);
-            if (n != 3) {
-                ESP_LOGE("custom", "Failed to read from GK sensor board");
-            }
-
-            id(countsPerMin_sensor).publish_state(countsPerMin);
-            id(uSvPerHr_sensor).publish_state(uSvPerHr);
-            id(volts_sensor).publish_state(volts);
-          }
+geigerkit:
+    id: gk0
+    cpm:
+      name: "counts/min"
+    uSv_hr:
+      name: "uSieverts/hr"
+    volts:
+      name: "volts"
 
 sensor:
   - platform: wifi_signal
-    name: "Radiation Garage WiFi Signal"
+    name: "Radiation MBR WiFi Signal"
     update_interval: 60s
-  - platform: template
-    id: countsPerMin_sensor
-    unit_of_measurement: "Counts/Minute"
-    accuracy_decimals: 0
-    state_class: "measurement"
-  - platform: template
-    id: uSvPerHr_sensor
-    unit_of_measurement: "uSieverts/Hour"
-    accuracy_decimals: 4
-    state_class: "measurement"
-  - platform: template
-    id: volts_sensor
-    unit_of_measurement: "volts"
-    accuracy_decimals: 4
-    state_class: "measurement"
 
 switch:
   - platform: gpio

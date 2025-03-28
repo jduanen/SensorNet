@@ -33,7 +33,7 @@ captive_portal:
 external_components:
   - source:
       type: git
-      url: https://github.com/jduanen/ESPHomeComponents/components
+      url: https://github.com/jduanen/ESPHomeComponents
     components: [ geigerkit ]
     refresh: always
 #  - source:

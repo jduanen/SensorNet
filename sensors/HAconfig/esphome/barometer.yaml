@@ -50,9 +50,13 @@ sensor:
     temperature:
       name: "Workroom Temperature"
       id: dwr_temp
+      unit_of_measurement: °C
+      accuracy_decimals: 2
     pressure:
       name: "Workroom Pressure"
       id: dwr_press
+      unit_of_measurement: hPa
+      accuracy_decimals: 3
     address: 0x77
     update_interval: 15s # 60s
 
@@ -115,7 +119,7 @@ display:
       - id: page4           
         lambda: |-          
           it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Pressure");
-          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.2f", id(dwr_press).state);
+          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.3f", id(dwr_press).state);
           it.printf(64, 80, id(roboto), TextAlign::TOP_LEFT, " hPa");
       - id: page5           
         lambda: |-          

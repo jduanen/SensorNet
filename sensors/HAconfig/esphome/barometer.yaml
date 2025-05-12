@@ -26,7 +26,7 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Barometer"
     password: !secret wifi_ap_password
@@ -37,28 +37,30 @@ web_server:
   port: 80
 
 i2c:
-  sda: GPIO6
-  scl: GPIO7
+  sda: GPIO6  # D4
+  scl: GPIO7  # D5
   scan: true
 
-sensor:
-  - platform: wifi_signal   
-    id: wifi_rssi           
-    name: "Barometer WiFi Signal"
-    update_interval: 60s
-  - platform: dps310
-    temperature:
-      name: "Workroom Temperature"
-      id: dwr_temp
-      unit_of_measurement: °C
-      accuracy_decimals: 2
-    pressure:
-      name: "Workroom Pressure"
-      id: dwr_press
-      unit_of_measurement: hPa
-      accuracy_decimals: 3
-    address: 0x77
-    update_interval: 15s # 60s
+time:
+  - platform: homeassistant
+    id: esptime
+                         
+font:
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 14
+  - file: "gfonts://Roboto"
+    id: roboto_mid
+    size: 24
+  - file: "gfonts://Roboto"
+    id: roboto_big
+    size: 32
+  - file: "gfonts://Roboto"
+    id: menu_font
+    size: 12
+  - file: "fonts/RobotoSlab-Regular.ttf"
+    id: other_font
+    size: 18
 
 text_sensor:
   - platform: homeassistant
@@ -75,62 +77,119 @@ text_sensor:
       name: ESP Connected SSID
     bssid:
       name: ESP Connected BSSID
-    mac_address:            
-      id: macAddr           
+    mac_address:
+      id: macAddr
       name: ESP Mac Wifi Address
-    scan_results:           
+    scan_results:
       name: ESP Latest Scan Results
-    dns_address:            
-      name: ESP DNS Address 
-                            
-time:                       
-  - platform: homeassistant 
-    id: esptime
-                         
-font:                       
-  - file: "gfonts://Roboto" 
-    id: roboto              
-    size: 12                
-  - file: "gfonts://Roboto" 
-    id: roboto_big          
-    size: 32                
-                            
-display:                    
-  - platform: ssd1306_i2c   
-    model: "SH1106 128x64"  
-    address: 0x3C           
-    id: oled_display        
-    update_interval: 60s    
-    pages:                  
-      - id: page1           
-        lambda: |-
-          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
-          it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ipAddr).state.c_str());
-          it.printf(64, 32, id(roboto), TextAlign::TOP_CENTER, "RSSI: %.0f dB", id(wifi_rssi).state);
-          it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "M: %s", id(macAddr).state.c_str());
-      - id: page2           
-        lambda: |-
-          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Time");
-          it.strftime(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%H:%M", id(esptime).now());
-      - id: page3           
-        lambda: |-
-          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Temperature");
-          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.1f°C", id(dwr_temp).state);
-      - id: page4           
-        lambda: |-
-          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Pressure");
-          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.3f", id(dwr_press).state);
-          it.printf(64, 80, id(roboto), TextAlign::TOP_LEFT, " hPa");
-      - id: page5           
-        lambda: |-
-          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
-      - id: page6           
-        lambda: |-
-          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
-                            
-interval:                   
-  - interval: 15s           
-    then:                   
-      - display.page.show_next: oled_display
-      - component.update: oled_display
+    dns_address:
+      name: ESP DNS Address
 
+binary_sensor:
+  - platform: gpio
+    id: encoder_button
+    pin:
+      number: GPIO2  # D0
+      mode:
+        input: true
+        pullup: true
+    on_press:
+      then:
+        - lambda: |-
+            id(oled_display).printf(0, 40, id(menu_font), "Selected: %d", id(menu_encoder).state);
+
+sensor:
+  - platform: wifi_signal
+    id: wifi_rssi
+    name: "Barometer WiFi Signal"
+    update_interval: 60s
+  - platform: dps310
+    temperature:
+      name: "Workroom Temperature"
+      id: dwr_temp
+      unit_of_measurement: °C
+      accuracy_decimals: 2
+    pressure:
+      name: "Workroom Pressure"
+      id: dwr_press
+      unit_of_measurement: hPa
+      accuracy_decimals: 3
+    address: 0x77
+    update_interval: 15s  # 60s
+  - platform: rotary_encoder
+    id: menu_encoder
+    name: "Menu Navigator"
+    pin_a:
+      number: GPIO3  # D1
+      mode:
+        input: true
+        pullup: true
+    pin_b:
+      number: GPIO4  # D2
+      mode:
+        input: true
+        pullup: true
+    resolution: 4  # higher resolution for smoother detection
+    min_value: 0
+    max_value: 3   # 4 menu items (0-3)
+
+graphical_display_menu:
+  id: display_menu
+  display: oled_display
+  font: menu_font
+  mode: rotary
+  items:
+    - type: Label
+      text: "Item #0"
+    - type: Label
+      text: "Item #1"
+    - type: Label
+      text: "Item #2"
+    - type: Label
+      text: "Item #3"
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    address: 0x3C
+    id: oled_display
+    update_interval: 100ms
+    lambda: |-
+      // Display dynamic content based on encoder position
+      it.printf(0, 0, id(roboto_mid), "Selected Item:");
+      it.printf(0, 20, id(roboto_mid), "%d", id(menu_encoder).state);
+      // Add more conditional displays as needed
+
+#    update_interval: 60s    
+#    pages:                  
+#      - id: page1           
+#        lambda: |-
+#          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
+#          it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ipAddr).state.c_str());
+#          it.printf(64, 32, id(roboto), TextAlign::TOP_CENTER, "RSSI: %.0f dB", id(wifi_rssi).state);
+#          it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "M: %s", id(macAddr).state.c_str());
+#      - id: page2           
+#        lambda: |-
+#          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Time");
+#          it.strftime(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%H:%M", id(esptime).now());
+#      - id: page3           
+#        lambda: |-
+#          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Temperature");
+#          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.1f°C", id(dwr_temp).state);
+#      - id: page4           
+#        lambda: |-
+#          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "Pressure");
+#          it.printf(64, 16, id(roboto_big), TextAlign::TOP_CENTER, "%.3f", id(dwr_press).state);
+#          it.printf(64, 80, id(roboto), TextAlign::TOP_LEFT, " hPa");
+#      - id: page5           
+#        lambda: |-
+#          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
+#      - id: page6           
+#        lambda: |-
+#          it.filled_rectangle(0, 0, 128, 64, COLOR_OFF);
+
+#interval:
+#  - interval: 15s
+#    then:
+#      - display.page.show_next: oled_display
+#      - component.update: oled_display

@@ -59,8 +59,8 @@ font:
     id: menu_font
     size: 12
   - file: "fonts/RobotoSlab-Regular.ttf"
-    id: other_font
-    size: 18
+    id: roboto_label
+    size: 14
 
 text_sensor:
   - platform: homeassistant
@@ -116,13 +116,13 @@ sensor:
     update_interval: 60s
   - platform: dps310
     temperature:
-      name: "Workroom Temperature"
-      id: dwr_temp
+      name: "Temperature"
+      id: temp
       unit_of_measurement: °C
       accuracy_decimals: 2
     pressure:
-      name: "Workroom Pressure"
-      id: dwr_press
+      name: "Pressure"
+      id: press
       unit_of_measurement: hPa
       accuracy_decimals: 3
     address: 0x77
@@ -155,29 +155,18 @@ sensor:
 graphical_display_menu:
   display: oled_display
   id: oled_menu
-  active: true
+  active: false
   font: menu_font
   mode: rotary
-  on_redraw:
-    then:
-      - component.update: oled_display
-      - lambda: 'ESP_LOGI("display_menu", "root redraw");'
-  on_enter:
-    then:
-      lambda: |-
-        ESP_LOGI("display_menu", "root enter");
-  on_leave:
-    then:
-      lambda: 'ESP_LOGI("display_menu", "root leave");'
   items:
     - type: Label
-      text: "Item #0"
+      text: "Altitude"
     - type: Label
-      text: "Item #1"
+      text: "Current State"
     - type: Label
-      text: "Item #2"
+      text: "Settings"
     - type: Label
-      text: "Item #3"
+      text: "Exit"
 
 display:
   - platform: ssd1306_i2c
@@ -185,25 +174,55 @@ display:
     address: 0x3C
     id: oled_display
     pages:
-      - id: Page0
+      - id: CurrentState
         lambda: |-
-          it.printf(0, 0, id(menu_font), "Page #0");
-      - id: Page1
+          it.printf(0, 0, id(roboto), "Press: %.3fhPa", id(press).state);
+          it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
+          it.printf(0, 32, id(roboto), "Altitude: %.1fm", 1234.5);
+          it.printf(0, 48, id(roboto), "%s", "MM:DD:YY HH:MM:SS");
+      - id: AltitudeStats
         lambda: |-
-          it.printf(0, 0, id(menu_font), "Page #1");
-      - id: Page2
+          it.printf(0, 0, id(roboto), "ALTITUDE");
+      - id: Settings
         lambda: |-
-          it.printf(0, 0, id(menu_font), "Page #2");
-      - id: Page3
+          it.printf(0, 0, id(roboto), "SETTINGS");
+      - id: Menu
         lambda: |-
-          it.printf(0, 0, id(menu_font), "Page #3");
-
-#    update_interval: 1000ms
-#    lambda: |-
-#      if (!id(display_menu).is_active()) {
-#        ESP_LOGI("display_menu", "Menu is not active");
-#      }
+          if (id(oled_menu).is_active()):
+            it.menu(0, 0, id(main_menu), it.get_width(), it.get_height());
 
 
-#      it.printf(0, 0, id(menu_font), "Item:");
-#      it.printf(30, 0, id(menu_font), "%s", id(menu_encoder).state);
+# calculate altitude changes that correspond to specific pressure changes at a given temperature
+#
+#  R = 287 J/kg (specific gas constant for air)
+#  T = temperature (Kelvin)
+#  P = reference pressure (e.g., 1013.25 hPa at the base level -- e.g., sea level)
+#  g = 9.81 m/s^2
+#  T_0 = 288K (reference temperature in Kelvin at the base level)
+#  L = 0.0065 K/m (temperature lapse rate -- 6.5C per 1000meters)
+#  P_0 = 1013.25 hPa
+#  dP = change in pressure
+#  r(t) = air density as a function of temperature (decreases with increasing temperature)
+#
+# hydrostatic equation
+#  height = ((dP * R * T) / (P * g))
+#
+# approximation (sea level, 15C (288K), dry air): 1hPa ~ 8m of air column
+#  1hPA equivalent height: -10C ~ 7.5m, 15C ~ 8.0m, 30C ~ 8.5m
+#
+#  r(T) = (P / (R * T))
+#  h(T) = (dP / (r(T) * g)) = (dP / ((P / (R * T)) * g))
+#   assume 30C:
+#    r(30C) = ((1013.25 * 100) / (287 * 303)) ~ 1.165 kg/m^3
+#    1hPa = (100Pa / (1.165 * 9.81)) ~ 8.75m
+#
+# barometric formula:
+#  height = ((T_0 / L) * (1 - (P / P_0)^((R * L) / 9))) meters
+#
+#  30C, T_0=288K, L = 0.0065K/m, P_0 = 1013.25hPa, R = 287 J/kg
+#    h = ((288 / 0.0065) * (1 - (P / 1013.25)^((287 * 0.0065) / 9))
+#    h(P, P_0) = 51428.571429 * (1 - (P / P_0)^0.207278)
+#
+# def h(p, p0):
+#   return (51428.571429 * (1 - (p/p0)**0.207278))
+

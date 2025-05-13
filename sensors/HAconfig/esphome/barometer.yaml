@@ -28,7 +28,7 @@ wifi:
 
   # enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Barometer"
+    ssid: "Barometer DWR"
     password: !secret wifi_ap_password
 
 captive_portal:
@@ -88,15 +88,19 @@ text_sensor:
 binary_sensor:
   - platform: gpio
     id: encoder_button
+    name: "Rotary Encoder Button"
     pin:
       number: GPIO2  # D0
+      inverted: True
+      #allow_other_uses: True  #This is needed to share pin betwen functions: https://esphome.io/guides/configuration-types#config-pin-schema
       mode:
-        input: true
-        pullup: true
+        input: True
+        pullup: True
     on_press:
       then:
+#        - logger.log: "Rotary Encoder Button Pressed!"
         - lambda: |-
-            id(oled_display).printf(0, 40, id(menu_font), "Selected: %d", id(menu_encoder).state);
+            id(oled_display).printf(32, 0, id(menu_font), "Sel: %d", id(menu_encoder).state);
 
 sensor:
   - platform: wifi_signal
@@ -121,17 +125,23 @@ sensor:
     name: "Menu Navigator"
     pin_a:
       number: GPIO3  # D1
+      #inverted: True
       mode:
-        input: true
-        pullup: true
+        input: True
+        pullup: True
     pin_b:
       number: GPIO4  # D2
+      #inverted: True
       mode:
-        input: true
-        pullup: true
-    resolution: 4  # higher resolution for smoother detection
+        input: True
+        pullup: True
+    resolution: 1  # 4 # higher resolution for smoother detection
     min_value: 0
     max_value: 3   # 4 menu items (0-3)
+    on_clockwise:
+      - logger.log: "Turned Clockwise"
+    on_anticlockwise:
+      - logger.log: "Turned Anticlockwise"
 
 graphical_display_menu:
   id: display_menu
@@ -156,8 +166,8 @@ display:
     update_interval: 100ms
     lambda: |-
       // Display dynamic content based on encoder position
-      it.printf(0, 0, id(roboto_mid), "Selected Item:");
-      it.printf(0, 20, id(roboto_mid), "%d", id(menu_encoder).state);
+      it.printf(0, 0, id(menu_font), "Item:");
+      it.printf(30, 0, id(menu_font), "%s", id(menu_encoder).state);
       // Add more conditional displays as needed
 
 #    update_interval: 60s    

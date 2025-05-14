@@ -36,6 +36,12 @@ captive_portal:
 web_server:
   port: 80
 
+globals:
+  - id: current_page
+    type: int
+    restore_value: false
+    initial_value: '0'
+
 i2c:
   sda: GPIO6  # D4
   scl: GPIO7  # D5
@@ -102,8 +108,8 @@ binary_sensor:
     on_press:
       - logger.log: "Rotary Encoder Button Pressed!"
       - if:
-          condition: 
-            display_menu.is_active: oled_menu
+          condition:
+              display_menu.is_active: oled_menu
           then:
             - display_menu.enter: oled_menu
           else:
@@ -159,37 +165,52 @@ graphical_display_menu:
   font: menu_font
   mode: rotary
   items:
-    - type: Label
-      text: "Altitude"
-    - type: Label
+    - type: command
       text: "Current State"
-    - type: Label
+      on_value:
+        - lambda: |-
+            id(current_page) = 0;
+        - display_menu.hide: oled_menu
+    - type: command
+      text: "Altitude Info"
+      on_value:
+        - lambda: |-
+            id(current_page) = 1;
+        - display_menu.hide: oled_menu
+    - type: command
       text: "Settings"
-    - type: Label
-      text: "Exit"
+      on_value:
+        - lambda: |-
+            id(current_page) = 2;
+        - display_menu.hide: oled_menu
+    - type: command
+      text: "Close Menu"
+      on_value:
+        - display_menu.hide: oled_menu
 
 display:
   - platform: ssd1306_i2c
     model: "SH1106 128x64"
     address: 0x3C
     id: oled_display
-    pages:
-      - id: CurrentState
-        lambda: |-
+    lambda: |-
+      if (id(oled_menu).is_active()) {
+        it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
+      } else {
+        if (id(current_page) == 0) {
           it.printf(0, 0, id(roboto), "Press: %.3fhPa", id(press).state);
           it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
           it.printf(0, 32, id(roboto), "Altitude: %.1fm", 1234.5);
           it.printf(0, 48, id(roboto), "%s", "MM:DD:YY HH:MM:SS");
-      - id: AltitudeStats
-        lambda: |-
+        } else if (id(current_page) == 1) {
           it.printf(0, 0, id(roboto), "ALTITUDE");
-      - id: Settings
-        lambda: |-
+        } else if (id(current_page) == 2) {
           it.printf(0, 0, id(roboto), "SETTINGS");
-      - id: Menu
-        lambda: |-
-          if (id(oled_menu).is_active()):
-            it.menu(0, 0, id(main_menu), it.get_width(), it.get_height());
+        } else if (id(current_page) == 3) {
+          if (id(oled_menu).is_active())
+            it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
+        }
+      }
 
 
 # calculate altitude changes that correspond to specific pressure changes at a given temperature

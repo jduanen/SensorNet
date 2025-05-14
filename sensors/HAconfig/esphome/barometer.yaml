@@ -97,22 +97,24 @@ binary_sensor:
     name: "Rotary Encoder Button"
     pin:
       number: GPIO2  # D0
-      inverted: True
+      #inverted: True
       #allow_other_uses: True  #This is needed to share pin betwen functions: https://esphome.io/guides/configuration-types#config-pin-schema
       mode:
         input: True
         pullup: True
     filters:
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+      - delayed_on: 30ms
+      - delayed_off: 30ms
     on_press:
       - logger.log: "Rotary Encoder Button Pressed!"
       - if:
           condition:
-              display_menu.is_active: oled_menu
+            display_menu.is_active: oled_menu
           then:
-            - display_menu.enter: oled_menu
+            - lambda: 'ESP_LOGI("sensor", "ACTIVE");'
+            - display_menu.hide: oled_menu
           else:
+            - lambda: 'ESP_LOGI("sensor", "INACTIVE");'
             - display_menu.show:  oled_menu
 
 sensor:
@@ -153,10 +155,10 @@ sensor:
     max_value: 3   # 4 menu items (0-3)
     on_clockwise:
       - logger.log: "Turned Clockwise"
-      - display_menu.up: oled_menu
+      - display_menu.down: oled_menu
     on_anticlockwise:
       - logger.log: "Turned Counter-clockwise"
-      - display_menu.down: oled_menu
+      - display_menu.up: oled_menu
 
 graphical_display_menu:
   display: oled_display
@@ -170,22 +172,26 @@ graphical_display_menu:
       on_value:
         - lambda: |-
             id(current_page) = 0;
+            ESP_LOGI("display_menu", ">: %d", id(current_page));
         - display_menu.hide: oled_menu
     - type: command
       text: "Altitude Info"
       on_value:
         - lambda: |-
             id(current_page) = 1;
+            ESP_LOGI("display_menu", ">: %d", id(current_page));
         - display_menu.hide: oled_menu
     - type: command
       text: "Settings"
       on_value:
         - lambda: |-
             id(current_page) = 2;
+            ESP_LOGI("display_menu", ">: %d", id(current_page));
         - display_menu.hide: oled_menu
     - type: command
       text: "Close Menu"
       on_value:
+        - lambda: 'ESP_LOGI("display_menu", ">>: %d", id(current_page));'
         - display_menu.hide: oled_menu
 
 display:
@@ -194,9 +200,12 @@ display:
     address: 0x3C
     id: oled_display
     lambda: |-
+      ESP_LOGI("display", ">>>: %d, %d", id(oled_menu).is_active(), id(current_page));
       if (id(oled_menu).is_active()) {
+        ESP_LOGI("display", ">>>>: MENU ON");
         it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
       } else {
+        ESP_LOGI("display", ">>>>: MENU OFF %d", id(current_page));
         if (id(current_page) == 0) {
           it.printf(0, 0, id(roboto), "Press: %.3fhPa", id(press).state);
           it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
@@ -211,39 +220,3 @@ display:
             it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
         }
       }
-
-
-# calculate altitude changes that correspond to specific pressure changes at a given temperature
-#
-#  R = 287 J/kg (specific gas constant for air)
-#  T = temperature (Kelvin)
-#  P = reference pressure (e.g., 1013.25 hPa at the base level -- e.g., sea level)
-#  g = 9.81 m/s^2
-#  T_0 = 288K (reference temperature in Kelvin at the base level)
-#  L = 0.0065 K/m (temperature lapse rate -- 6.5C per 1000meters)
-#  P_0 = 1013.25 hPa
-#  dP = change in pressure
-#  r(t) = air density as a function of temperature (decreases with increasing temperature)
-#
-# hydrostatic equation
-#  height = ((dP * R * T) / (P * g))
-#
-# approximation (sea level, 15C (288K), dry air): 1hPa ~ 8m of air column
-#  1hPA equivalent height: -10C ~ 7.5m, 15C ~ 8.0m, 30C ~ 8.5m
-#
-#  r(T) = (P / (R * T))
-#  h(T) = (dP / (r(T) * g)) = (dP / ((P / (R * T)) * g))
-#   assume 30C:
-#    r(30C) = ((1013.25 * 100) / (287 * 303)) ~ 1.165 kg/m^3
-#    1hPa = (100Pa / (1.165 * 9.81)) ~ 8.75m
-#
-# barometric formula:
-#  height = ((T_0 / L) * (1 - (P / P_0)^((R * L) / 9))) meters
-#
-#  30C, T_0=288K, L = 0.0065K/m, P_0 = 1013.25hPa, R = 287 J/kg
-#    h = ((288 / 0.0065) * (1 - (P / 1013.25)^((287 * 0.0065) / 9))
-#    h(P, P_0) = 51428.571429 * (1 - (P / P_0)^0.207278)
-#
-# def h(p, p0):
-#   return (51428.571429 * (1 - (p/p0)**0.207278))
-

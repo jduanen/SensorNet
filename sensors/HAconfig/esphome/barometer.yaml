@@ -111,10 +111,25 @@ binary_sensor:
           condition:
             display_menu.is_active: oled_menu
           then:
-            - lambda: 'ESP_LOGI("sensor", "ACTIVE");'
+            - lambda: 'ESP_LOGI("encoder_button", "ACTIVE: hide menu, %d", id(current_page));'
             - display_menu.hide: oled_menu
+            - display.page.show: !lambda |-
+                auto page = id(menu_page);
+                switch (id(current_page)) {
+                  case 0:
+                    page = id(state_page);
+                    break;
+                  case 1:
+                    page = id(altitude_page);
+                    break;
+                  case 2:
+                    page = id(settings_page);
+                    break;
+                }
+                ESP_LOGI("encoder_button", "show page: %d", page);
+                return page;
           else:
-            - lambda: 'ESP_LOGI("sensor", "INACTIVE");'
+            - lambda: 'ESP_LOGI("encoder_button", "INACTIVE: show menu, %d", id(current_page));'
             - display_menu.show:  oled_menu
 
 sensor:
@@ -166,57 +181,84 @@ graphical_display_menu:
   active: false
   font: menu_font
   mode: rotary
+  on_redraw:
+    then:
+      - component.update: oled_display
   items:
     - type: command
       text: "Current State"
       on_value:
         - lambda: |-
             id(current_page) = 0;
-            ESP_LOGI("display_menu", ">: %d", id(current_page));
+            ESP_LOGI("oled_menu", "Current State: %d", id(current_page));
         - display_menu.hide: oled_menu
+        - display.page.show: state_page
     - type: command
       text: "Altitude Info"
       on_value:
         - lambda: |-
             id(current_page) = 1;
-            ESP_LOGI("display_menu", ">: %d", id(current_page));
+            ESP_LOGI("oled_menu", "Altitude Info: %d", id(current_page));
         - display_menu.hide: oled_menu
+        - display.page.show: altitude_page
     - type: command
       text: "Settings"
       on_value:
         - lambda: |-
             id(current_page) = 2;
-            ESP_LOGI("display_menu", ">: %d", id(current_page));
+            ESP_LOGI("oled_menu", "Settings: %d", id(current_page));
         - display_menu.hide: oled_menu
+        - display.page.show: settings_page
     - type: command
       text: "Close Menu"
       on_value:
-        - lambda: 'ESP_LOGI("display_menu", ">>: %d", id(current_page));'
+        - lambda: 'ESP_LOGI("oled_menu", "Close Menu: %d", id(current_page));'
         - display_menu.hide: oled_menu
+        - display.page.show: !lambda |-
+            auto page = id(menu_page);
+            switch (id(current_page)) {
+              case 0:
+                page = id(state_page);
+                break;
+              case 1:
+                page = id(altitude_page);
+                break;
+              case 2:
+                page = id(settings_page);
+                break;
+              default:
+                ESP_LOGE("oled_menu", "Invalid page: %d", id(current_page));
+            }
+            ESP_LOGI("oled_menu", "Show Page: %d", page);
+            return page;
 
 display:
   - platform: ssd1306_i2c
     model: "SH1106 128x64"
     address: 0x3C
     id: oled_display
-    lambda: |-
-      ESP_LOGI("display", ">>>: %d, %d", id(oled_menu).is_active(), id(current_page));
-      if (id(oled_menu).is_active()) {
-        ESP_LOGI("display", ">>>>: MENU ON");
-        it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
-      } else {
-        ESP_LOGI("display", ">>>>: MENU OFF %d", id(current_page));
-        if (id(current_page) == 0) {
-          it.printf(0, 0, id(roboto), "Press: %.3fhPa", id(press).state);
-          it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
-          it.printf(0, 32, id(roboto), "Altitude: %.1fm", 1234.5);
-          it.printf(0, 48, id(roboto), "%s", "MM:DD:YY HH:MM:SS");
-        } else if (id(current_page) == 1) {
+    pages:
+      - id: state_page
+        lambda: |-
+          ESP_LOGI("oled_display", "state_page: %d, %d", id(oled_menu).is_active(), id(current_page));
+          if (!id(oled_menu).is_active()) {
+            it.printf(0, 0, id(roboto), "Pres: %.3fhPa", id(press).state);
+            it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
+            it.printf(0, 32, id(roboto), "Alti: %.1fm", 1234.5);
+            it.printf(0, 48, id(roboto), "%s", "MM:DD:YY HH:MM:SS");
+          }
+      - id: altitude_page
+        lambda: |-
+          ESP_LOGI("oled_display", "altitude_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           it.printf(0, 0, id(roboto), "ALTITUDE");
-        } else if (id(current_page) == 2) {
+      - id: settings_page
+        lambda: |-
+          ESP_LOGI("oled_display", "settings_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           it.printf(0, 0, id(roboto), "SETTINGS");
-        } else if (id(current_page) == 3) {
-          if (id(oled_menu).is_active())
+      - id: menu_page
+        lambda: |-
+          ESP_LOGI("oled_display", "menu_page: %d, %d", id(oled_menu).is_active(), id(current_page));
+          if (id(oled_menu).is_active()) {
             it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
-        }
-      }
+            id(current_page) = 0;
+          }

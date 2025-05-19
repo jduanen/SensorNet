@@ -116,7 +116,7 @@ binary_sensor:
             - lambda: 'ESP_LOGI("encoder_button", "ACTIVE: hide menu, %d", id(current_page));'
             - display_menu.hide: oled_menu
             - display.page.show: !lambda |-
-                auto page = id(state_page);
+                auto page = id(error_page);
                 switch (id(current_page)) {
                   case 0:
                     page = id(state_page);
@@ -225,7 +225,7 @@ display:
       - id: state_page
         lambda: |-
           ESP_LOGI("oled_display", "state_page: %d, %d", id(oled_menu).is_active(), id(current_page));
-          if (!id(oled_menu).is_active()) {
+          if (!id(oled_menu).is_active() && id(current_page) == 0) {
             it.printf(0, 0, id(roboto), "Pres: %.3fhPa", id(press).state);
             it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
             it.printf(0, 32, id(roboto), "Alti: %.1fm", 1234.5);
@@ -234,8 +234,16 @@ display:
       - id: altitude_page
         lambda: |-
           ESP_LOGI("oled_display", "altitude_page: %d, %d", id(oled_menu).is_active(), id(current_page));
-          it.printf(0, 0, id(roboto), "ALTITUDE");
+          if (!id(oled_menu).is_active() && id(current_page) == 1) {
+            it.printf(0, 0, id(roboto), "ALTITUDE");
+          }
       - id: settings_page
         lambda: |-
           ESP_LOGI("oled_display", "settings_page: %d, %d", id(oled_menu).is_active(), id(current_page));
-          it.printf(0, 0, id(roboto), "SETTINGS");
+          if (!id(oled_menu).is_active() && id(current_page) == 2) {
+            it.printf(0, 0, id(roboto), "SETTINGS");
+          }
+      - id: error_page
+        lambda: |-
+          ESP_LOGI("oled_display", "error_page: %d, %d", id(oled_menu).is_active(), id(current_page));
+          it.printf(10, 10, id(roboto), "ERROR!");

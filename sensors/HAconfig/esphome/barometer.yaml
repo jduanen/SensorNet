@@ -171,9 +171,13 @@ sensor:
     on_clockwise:
       - logger.log: "Turned Clockwise"
       - display_menu.down: oled_menu
+      - lambda: |-
+          if (id(current_page) < 3) id(current_page)++;
     on_anticlockwise:
       - logger.log: "Turned Counter-clockwise"
       - display_menu.up: oled_menu
+      - lambda: |-
+          if (id(current_page) > 0) id(current_page)--;
 
 graphical_display_menu:
   display: oled_display

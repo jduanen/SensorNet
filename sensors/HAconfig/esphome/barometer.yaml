@@ -1,6 +1,8 @@
 substitutions:
   name_str: "Barometer DWR"
   upper_devicename: "BAROMETER_DWR"
+  encoder_min: "0"
+  encoder_max: "2"   # 3 menu items (0-2)
 
 esphome:
   name: barometer_dwr
@@ -114,7 +116,7 @@ binary_sensor:
             - lambda: 'ESP_LOGI("encoder_button", "ACTIVE: hide menu, %d", id(current_page));'
             - display_menu.hide: oled_menu
             - display.page.show: !lambda |-
-                auto page = id(menu_page);
+                auto page = id(state_page);
                 switch (id(current_page)) {
                   case 0:
                     page = id(state_page);
@@ -166,18 +168,18 @@ sensor:
         input: true
         pullup: true
     resolution: 1  # 4 # higher resolution for smoother detection
-    min_value: 0
-    max_value: 3   # 4 menu items (0-3)
+    min_value: ${encoder_min}
+    max_value: ${encoder_max}
     on_clockwise:
       - logger.log: "Turned Clockwise"
       - display_menu.down: oled_menu
       - lambda: |-
-          if (id(current_page) < 3) id(current_page)++;
+          if (id(current_page) < ${encoder_max}) id(current_page)++;
     on_anticlockwise:
       - logger.log: "Turned Counter-clockwise"
       - display_menu.up: oled_menu
       - lambda: |-
-          if (id(current_page) > 0) id(current_page)--;
+          if (id(current_page) > ${encoder_min}) id(current_page)--;
 
 graphical_display_menu:
   display: oled_display
@@ -213,28 +215,6 @@ graphical_display_menu:
             ESP_LOGI("oled_menu", "Settings: %d", id(current_page));
         - display_menu.hide: oled_menu
         - display.page.show: settings_page
-    - type: command
-      text: "Close Menu"
-      on_value:
-        - lambda: 'ESP_LOGI("oled_menu", "Close Menu: %d", id(current_page));'
-        - display_menu.hide: oled_menu
-        - display.page.show: !lambda |-
-            auto page = id(menu_page);
-            switch (id(current_page)) {
-              case 0:
-                page = id(state_page);
-                break;
-              case 1:
-                page = id(altitude_page);
-                break;
-              case 2:
-                page = id(settings_page);
-                break;
-              default:
-                ESP_LOGE("oled_menu", "Invalid page: %d", id(current_page));
-            }
-            ESP_LOGI("oled_menu", "Show Page: %d", page);
-            return page;
 
 display:
   - platform: ssd1306_i2c
@@ -259,10 +239,3 @@ display:
         lambda: |-
           ESP_LOGI("oled_display", "settings_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           it.printf(0, 0, id(roboto), "SETTINGS");
-      - id: menu_page
-        lambda: |-
-          ESP_LOGI("oled_display", "menu_page: %d, %d", id(oled_menu).is_active(), id(current_page));
-          if (id(oled_menu).is_active()) {
-            it.menu(0, 0, id(oled_menu), it.get_width(), it.get_height());
-            id(current_page) = 0;
-          }

@@ -4,6 +4,7 @@ substitutions:
   encoder_min: "0"
   encoder_max: "2"   # 3 menu items (0-2)
   update_intv: 15s  ## 60s
+  screen_timeout: 30s  ## 3min
 
 esphome:
   name: barometer_dwr
@@ -108,6 +109,8 @@ binary_sensor:
     filters:
       - delayed_on: 30ms
       - delayed_off: 30ms
+    on_state:
+      - script.execute: reset_display_timer
     on_press:
       - logger.log: "Rotary Encoder Button Pressed!"
       - if:
@@ -187,6 +190,19 @@ sensor:
     unit_of_measurement: m
     accuracy_decimals: 3
 
+script:
+  id: reset_display_timer
+  then:
+    - delay: ${screen_timeout}
+    - then:
+      display.turn_off: oled_display
+
+#   - if:
+#      condition:
+#        binary_sensor.is_on: ?
+#      then:
+
+
 interval:
     interval: ${update_intv}
     then:
@@ -225,14 +241,23 @@ graphical_display_menu:
             ESP_LOGI("oled_menu", "Altitude Info: %d", id(current_page));
         - display_menu.hide: oled_menu
         - display.page.show: altitude_page
-    - type: command
+    - type: menu
       text: "Settings"
       on_value:
         - lambda: |-
             id(current_page) = 2;
             ESP_LOGI("oled_menu", "Settings: %d", id(current_page));
-        - display_menu.hide: oled_menu
-        - display.page.show: settings_page
+#        - display_menu.hide: oled_menu
+#        - display.page.show: settings_page
+      items:
+        - type: label
+          text: "Set Altitude"
+        - type: label
+          text: "Logging"
+        - type: label
+          text: "Reset Stats"
+        - type: back
+          text: "Back"
 
 display:
   - platform: ssd1306_i2c

@@ -245,22 +245,16 @@ display:
           ESP_LOGI("oled_display", "state_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           if (!id(oled_menu).is_active() && id(current_page) == 0) {
             it.printf(0,  0, id(roboto), "%16.3f hPa", id(press).state);
-            it.printf(0, 17, id(roboto), " %16.2f °C", id(temp).state);
-
-            // approximate altitude from pressure and temperature
-            //const double P0 = 1013.25;  // sea level standard pressure in hPa
-            //const double lapseRate = 0.0065;  // temp lapse rate in K/m
-            //double T_K = id(temp).state + 273.15;  // convert current temp in C to K
-            //double alt = (T_K / lapseRate) * (1.0 - pow(id(press).state / P0, 0.190284));
-            it.printf(0, 34, id(roboto), "%16.1f m", id(altitude).state);
+            it.printf(12, 17, id(roboto), "%16.2f °C", id(temp).state);
+            it.printf(12, 34, id(roboto), "%16.1f m", id(altitude).state);
 
             // TODO get time from TOD chip, sync with server when possible
             char str[20];
             // %y = 2-digit year, %m = month, %d = day, %H = hour, %M = minute, %S = second
             // Format: "YY:MM:DD HH:MM:SS"
             time_t curr = id(esptime).now().timestamp;
-            strftime(str, sizeof(str), "  %y:%m:%d  %H:%M:%S", localtime(&curr));
-            it.printf(0, 50, id(roboto), "%s", str);
+            strftime(str, sizeof(str), "%y:%m:%d  %H:%M:%S", localtime(&curr));
+            it.printf(10, 50, id(roboto), "%s", str);
           }
       - id: altitude_page
         lambda: |-
@@ -277,4 +271,4 @@ display:
       - id: error_page
         lambda: |-
           ESP_LOGI("oled_display", "error_page: %d, %d", id(oled_menu).is_active(), id(current_page));
-          it.printf(10, 10, id(roboto), "ERROR!");
+          it.printf(16, 28, id(roboto), "ERROR!");

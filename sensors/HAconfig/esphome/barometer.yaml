@@ -3,6 +3,7 @@ substitutions:
   upper_devicename: "BAROMETER_DWR"
   encoder_min: "0"
   encoder_max: "2"   # 3 menu items (0-2)
+  update_intv: 15s  ## 60s
 
 esphome:
   name: barometer_dwr
@@ -151,7 +152,7 @@ sensor:
       unit_of_measurement: hPa
       accuracy_decimals: 3
     address: 0x77
-    update_interval: 15s  # 60s
+    update_interval: ${update_intv}
   - platform: rotary_encoder
     id: menu_encoder
     name: "Page Navigator"
@@ -180,6 +181,23 @@ sensor:
       - display_menu.up: oled_menu
       - lambda: |-
           if (id(current_page) > ${encoder_min}) id(current_page)--;
+  - platform: template
+    name: "Altitude"
+    id: altitude
+    unit_of_measurement: m
+    accuracy_decimals: 3
+
+interval:
+    interval: ${update_intv}
+    then:
+      - lambda: |-
+          // approximate altitude from pressure and temperature
+          const double P0 = 1013.25;  // sea level standard pressure in hPa
+          const double lapseRate = 0.0065;  // temp lapse rate in K/m
+          double T_K = id(temp).state + 273.15;  // convert current temp in C to K
+          double alt = (T_K / lapseRate) * (1.0 - pow((id(press).state / P0), 0.190284));
+          ESP_LOGI("interval", "Altitude: %f.3", alt);
+          id(altitude).publish_state(alt);
 
 graphical_display_menu:
   display: oled_display
@@ -226,10 +244,23 @@ display:
         lambda: |-
           ESP_LOGI("oled_display", "state_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           if (!id(oled_menu).is_active() && id(current_page) == 0) {
-            it.printf(0, 0, id(roboto), "Pres: %.3fhPa", id(press).state);
-            it.printf(0, 16, id(roboto), "Temp: %.2f°C", id(temp).state);
-            it.printf(0, 32, id(roboto), "Alti: %.1fm", 1234.5);
-            it.printf(0, 48, id(roboto), "%s", "MM:DD:YY HH:MM:SS");
+            it.printf(0,  0, id(roboto), "%16.3f hPa", id(press).state);
+            it.printf(0, 17, id(roboto), " %16.2f °C", id(temp).state);
+
+            // approximate altitude from pressure and temperature
+            //const double P0 = 1013.25;  // sea level standard pressure in hPa
+            //const double lapseRate = 0.0065;  // temp lapse rate in K/m
+            //double T_K = id(temp).state + 273.15;  // convert current temp in C to K
+            //double alt = (T_K / lapseRate) * (1.0 - pow(id(press).state / P0, 0.190284));
+            it.printf(0, 34, id(roboto), "%16.1f m", id(altitude).state);
+
+            // TODO get time from TOD chip, sync with server when possible
+            char str[20];
+            // %y = 2-digit year, %m = month, %d = day, %H = hour, %M = minute, %S = second
+            // Format: "YY:MM:DD HH:MM:SS"
+            time_t curr = id(esptime).now().timestamp;
+            strftime(str, sizeof(str), "  %y:%m:%d  %H:%M:%S", localtime(&curr));
+            it.printf(0, 50, id(roboto), "%s", str);
           }
       - id: altitude_page
         lambda: |-

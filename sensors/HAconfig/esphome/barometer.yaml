@@ -2,7 +2,7 @@ substitutions:
   name_str: "Barometer DWR"
   upper_devicename: "BAROMETER_DWR"
   encoder_min: "0"
-  encoder_max: "2"   # 3 menu items (0-2)
+  encoder_max: "3"   # 4 menu items (0-3)
   update_intv: 15s  ## 60s
   screen_timeout: 30s  ## 3min
 
@@ -109,8 +109,6 @@ binary_sensor:
     filters:
       - delayed_on: 30ms
       - delayed_off: 30ms
-    on_state:
-      - script.execute: reset_display_timer
     on_press:
       - logger.log: "Rotary Encoder Button Pressed!"
       - if:
@@ -130,6 +128,9 @@ binary_sensor:
                     break;
                   case 2:
                     page = id(settings_page);
+                    break;
+                  case 3:
+                    page = id(blank_page);
                     break;
                 }
                 ESP_LOGI("encoder_button", "show page: %d", page);
@@ -190,19 +191,6 @@ sensor:
     unit_of_measurement: m
     accuracy_decimals: 3
 
-script:
-  id: reset_display_timer
-  then:
-    - delay: ${screen_timeout}
-    - then:
-      display.turn_off: oled_display
-
-#   - if:
-#      condition:
-#        binary_sensor.is_on: ?
-#      then:
-
-
 interval:
     interval: ${update_intv}
     then:
@@ -241,24 +229,30 @@ graphical_display_menu:
             ESP_LOGI("oled_menu", "Altitude Info: %d", id(current_page));
         - display_menu.hide: oled_menu
         - display.page.show: altitude_page
-    - type: menu
+    - type: command
       text: "Settings"
       on_value:
         - lambda: |-
             id(current_page) = 2;
             ESP_LOGI("oled_menu", "Settings: %d", id(current_page));
-#        - display_menu.hide: oled_menu
-#        - display.page.show: settings_page
-      items:
-        - type: label
-          text: "Set Altitude"
-        - type: label
-          text: "Logging"
-        - type: label
-          text: "Reset Stats"
-        - type: back
-          text: "Back"
-
+        - display_menu.hide: oled_menu
+        - display.page.show: settings_page
+#      items:
+#        - type: label
+#          text: "Set Altitude"
+#        - type: label
+#          text: "Logging"
+#        - type: label
+#          text: "Reset Stats"
+#        - type: back
+#          text: "Back"
+    - type: command
+      text: "Display Off"
+      on_value:
+        - lambda: |-
+            ESP_LOGI("oled_menu", "Blank Page");
+        - display_menu.hide: oled_menu
+        - display.page.show: state_page
 display:
   - platform: ssd1306_i2c
     model: "SH1106 128x64"
@@ -270,8 +264,8 @@ display:
           ESP_LOGI("oled_display", "state_page: %d, %d", id(oled_menu).is_active(), id(current_page));
           if (!id(oled_menu).is_active() && id(current_page) == 0) {
             it.printf(0,  0, id(roboto), "%16.3f hPa", id(press).state);
-            it.printf(12, 17, id(roboto), "%16.2f °C", id(temp).state);
-            it.printf(12, 34, id(roboto), "%16.1f m", id(altitude).state);
+            it.printf(8, 17, id(roboto), "%16.2f °C", id(temp).state);
+            it.printf(8, 34, id(roboto), "%16.1f m", id(altitude).state);
 
             // TODO get time from TOD chip, sync with server when possible
             char str[20];
@@ -279,7 +273,7 @@ display:
             // Format: "YY:MM:DD HH:MM:SS"
             time_t curr = id(esptime).now().timestamp;
             strftime(str, sizeof(str), "%y:%m:%d  %H:%M:%S", localtime(&curr));
-            it.printf(10, 50, id(roboto), "%s", str);
+            it.printf(5, 50, id(roboto), "%s", str);
           }
       - id: altitude_page
         lambda: |-
@@ -293,6 +287,9 @@ display:
           if (!id(oled_menu).is_active() && id(current_page) == 2) {
             it.printf(0, 0, id(roboto), "SETTINGS");
           }
+      - id: blank_page
+        lambda: |-
+          ESP_LOGI("oled_display", "blank_page: %d, %d", id(oled_menu).is_active(), id(current_page));
       - id: error_page
         lambda: |-
           ESP_LOGI("oled_display", "error_page: %d, %d", id(oled_menu).is_active(), id(current_page));

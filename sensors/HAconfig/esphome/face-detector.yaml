@@ -1,6 +1,5 @@
 substitutions:
   name_str: "Face Detector"
-  vers: "1"
 
 esphome:
   name: face-detector

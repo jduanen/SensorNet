@@ -56,12 +56,35 @@ display:
     id: leds
     brightness: 50
     #auto_clear_enabled: false
-    update_interval: 5s  # never
-    lambda: |-
-      it.print("Hello World");
+    update_interval: never
+#    update_interval: 5s
+#    lambda: |-
+#      if (id(my_button).state) {
+#        it.print(0, 0, id(roboto), "A");
+#      } else {
+#        it.print(0, 0, id(roboto), " ");
+#      }
+#      it.print("Hello World");
 
-#lvgl:
-#  widgets:
-#    - label:
-#      align: CENTER
-#      text: "Hello World"
+font:
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 6
+
+binary_sensor:
+  - platform: gpio
+    pin: 0
+    name: "Button"
+    id: my_button
+    # debouncing option
+    filters:
+      - delayed_on: 20ms
+
+lvgl:
+  displays:
+    - leds
+  widgets:
+    - label:
+        id: textlabel
+        align: CENTER
+        text: "Hello World"

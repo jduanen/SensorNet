@@ -69,7 +69,7 @@ display:
       } else {
         it.print(0, 0, id(roboto), " ");
       }
-      it.print("Hello World");
+##      it.print("Hello World");
 
 font:
   - file: "gfonts://Roboto"

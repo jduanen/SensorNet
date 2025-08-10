@@ -18,9 +18,9 @@ external_components:
 esphome:
   name: ${devicename}
   friendly_name: ${upper_devicename}
-  platformio_options:
-    board_build.flash_mode: dio
-    board_build.mcu: esp32c3
+#  platformio_options:
+#    board_build.flash_mode: dio
+#    board_build.mcu: esp32c3
 
 esp32:
   board: seeed_xiao_esp32c3
@@ -31,6 +31,9 @@ esp32:
 # Enable logging
 logger:
   level: VERBOSE
+#  level: VERBOSE
+#  level: DEBUG
+#  level: VERY_VERBOSE
 
 # Enable Home Assistant API
 api:
@@ -60,30 +63,61 @@ web_server:
 display:
   - platform: led_display
     id: leds
-    #auto_clear_enabled: false
-##    update_interval: never
+    intensity: 50
     update_interval: 5s
     lambda: |-
-      if (id(my_button).state) {
-        it.print(0, 0, id(roboto), "A");
-      } else {
-        it.print(0, 0, id(roboto), " ");
-      }
-##      it.print("Hello World");
+      auto black = Color(0, 0, 0);
+      auto red = Color(255, 0, 0);
+      auto green = Color(0, 255, 0);
+      auto amber = Color(255, 255, 0);
+      it.line(0, 2, 10, 2, red);
+      it.line(0, 3, 10, 3, green);
+      it.line(0, 4, 10, 4, amber);
+      it.line(16, 0, 16, 6, red);
+      it.line(17, 0, 17, 6, green);
+      it.line(18, 0, 18, 6, amber);
+      it.print(20, 0, id(MatrixLight6), red, "This is jiggly, 1234567890ABCDEF!;-+");
+#      it.print(40, 0, id(MatrixLight6X), green, "jiggly!");
+#      it.print(20, -3, id(font5x7C), red, TextAlign::BOTTOM_RIGHT, "ABC", black);
+#      it.print(40, -3, id(font5x7C), green, TextAlign::TOP_LEFT, "123", black);
+#      it.print(20, -2, id(roboto), red, "ABCD abcd gjy");  # works, shrunk and offset up for descenders
+#      it.print(20, 0, id(font5x7A), green, "ABCD abcd gjy");  # works, caps & nums only
+#      it.print(20, 0, id(font5x7B), green, "ABCD abcd gjy");  # nothing, need to try different alignments
+#      it.print(20, 0, id(font5x7C), amber, "ABC abc gjy 123");  # jibberish, need to try alignments
+
+
 
 font:
   - file: "gfonts://Roboto"
     id: roboto
+    size: 7
+  - file: "fonts/5x7_MT_Pixel.ttf"
+    id: font5x7A
+    size: 7
+  - file: "fonts/MinimalFont5x7.ttf"
+    id: font5x7B
+    size: 7
+  - file: "fonts/5x7_practical_regular.ttf"
+    id: font5x7C
+    size: 7
+  - file: "fonts/MatrixLight6.ttf"
+    id: MatrixLight6
     size: 6
+  - file: "fonts/MatrixLight6X.ttf"
+    id: MatrixLight6X
+    size: 6
+  - file: "fonts/MatrixLight8.ttf"
+    id: MatrixLight8
+    size: 8
 
-binary_sensor:
-  - platform: gpio
-    pin: 0
-    name: "Button"
-    id: my_button
-    # debouncing option
-    filters:
-      - delayed_on: 20ms
+#binary_sensor:
+#  - platform: gpio
+#    pin: 10
+#    name: "Button"
+#    id: my_button
+#    # debouncing option
+#    filters:
+#      - delayed_on: 20ms
 #    on_press:
 #      then:
 #        - lambda: |-
@@ -106,6 +140,7 @@ binary_sensor:
 #    - label:
 #        id: mylabel
 #        align: CENTER
+#        text: ' '
 #        text: !lambda |-
 #          switch(id(page_index)) {
 #            case 0: return "First Screen";

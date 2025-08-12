@@ -30,7 +30,7 @@ esp32:
 
 # Enable logging
 logger:
-  level: VERBOSE
+  level: DEBUG
 #  level: VERBOSE
 #  level: DEBUG
 #  level: VERY_VERBOSE
@@ -63,29 +63,24 @@ web_server:
 display:
   - platform: led_display
     id: leds
-    intensity: 50
-    update_interval: 5s
+    intensity: 75
+    scroll_enable: true
+    scroll_mode: STOP
+    scroll_speed: 90ms
+    scroll_dwell: 400ms
+    scroll_delay: 1500ms
+    flip_x: false
+    update_interval: 60s
     lambda: |-
       auto black = Color(0, 0, 0);
       auto red = Color(255, 0, 0);
       auto green = Color(0, 255, 0);
       auto amber = Color(255, 255, 0);
-      it.line(0, 2, 10, 2, red);
-      it.line(0, 3, 10, 3, green);
-      it.line(0, 4, 10, 4, amber);
-      it.line(16, 0, 16, 6, red);
-      it.line(17, 0, 17, 6, green);
-      it.line(18, 0, 18, 6, amber);
-      it.print(20, 0, id(MatrixLight6), red, "This is jiggly, 1234567890ABCDEF!;-+");
-#      it.print(40, 0, id(MatrixLight6X), green, "jiggly!");
-#      it.print(20, -3, id(font5x7C), red, TextAlign::BOTTOM_RIGHT, "ABC", black);
-#      it.print(40, -3, id(font5x7C), green, TextAlign::TOP_LEFT, "123", black);
-#      it.print(20, -2, id(roboto), red, "ABCD abcd gjy");  # works, shrunk and offset up for descenders
-#      it.print(20, 0, id(font5x7A), green, "ABCD abcd gjy");  # works, caps & nums only
-#      it.print(20, 0, id(font5x7B), green, "ABCD abcd gjy");  # nothing, need to try different alignments
-#      it.print(20, 0, id(font5x7C), amber, "ABC abc gjy 123");  # jibberish, need to try alignments
+      it.print(0, 0, id(font5x7A), green, "THIS IS A ");
+      it.print(60, 0, id(MatrixLight6), red, "TEST ");
+      it.print(90, 0, id(font5x7A), amber, "!!!");
 
-
+#1234567890ABCDEF!;-+");
 
 font:
   - file: "gfonts://Roboto"
@@ -93,12 +88,6 @@ font:
     size: 7
   - file: "fonts/5x7_MT_Pixel.ttf"
     id: font5x7A
-    size: 7
-  - file: "fonts/MinimalFont5x7.ttf"
-    id: font5x7B
-    size: 7
-  - file: "fonts/5x7_practical_regular.ttf"
-    id: font5x7C
     size: 7
   - file: "fonts/MatrixLight6.ttf"
     id: MatrixLight6
@@ -110,41 +99,27 @@ font:
     id: MatrixLight8
     size: 8
 
-#binary_sensor:
-#  - platform: gpio
-#    pin: 10
-#    name: "Button"
-#    id: my_button
-#    # debouncing option
-#    filters:
-#      - delayed_on: 20ms
-#    on_press:
-#      then:
-#        - lambda: |-
-#            id(page_index) += 1;
-#            if (id(page_index) > 2) id(page_index) = 0;
-#        - lvgl.label.update:
-#            id: mylabel
-#            text: !lambda |-
-#              switch(id(page_index)) {
-#                case 0: return "First Screen";
-#                case 1: return "Second Screen";
-#                case 2: return "Third Screen";
-#                default: return "First Screen";
-#              }
-
-#lvgl:
-#  displays:
-#    - leds
-#  widgets:
-#    - label:
-#        id: mylabel
-#        align: CENTER
-#        text: ' '
-#        text: !lambda |-
-#          switch(id(page_index)) {
-#            case 0: return "First Screen";
-#            case 1: return "Second Screen";
-#            case 2: return "Third Screen";
-#            default: return "First Screen";
-#          }
+binary_sensor:
+  - platform: gpio
+    id: led_display_sensor
+    pin: 
+      number: 10
+      mode:
+        input: true
+        pulldown: true
+    name: "led_display_motion"
+    device_class: motion
+    on_press:
+      then:
+        - logger.log: "Motion detected, turning on display"
+        - led_display.turn_on
+    on_release:
+      then:
+        - logger.log: "No motion detected, starting off timer"
+        - delay: 10s
+        - if:
+            condition:
+              binary_sensor.is_off: led_display_sensor
+            then:
+              - logger.log: "No motion for 1 min, turning off display"
+              - led_display.turn_off

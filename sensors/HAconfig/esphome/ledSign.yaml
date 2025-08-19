@@ -71,23 +71,26 @@ display:
     scroll_delay: 1500ms
     flip_x: false
     update_interval: 60s
-    lambda: |-
-      auto black = Color(0, 0, 0);
-      auto red = Color(255, 0, 0);
-      auto green = Color(0, 255, 0);
-      auto amber = Color(255, 255, 0);
-      it.print(0, 0, id(font5x7A), green, "THIS IS A ");
-      it.print(60, 0, id(MatrixLight6), red, "TEST ");
-      it.print(90, 0, id(font5x7A), amber, "!!!");
+    fonts:
+      - MT_Pixel_5x7
+      - MatrixLight6
+      - MatrixLight6X
 
-#1234567890ABCDEF!;-+");
+#    lambda: |-
+#      auto black = Color(0, 0, 0);
+#      auto red = Color(255, 0, 0);
+#      auto green = Color(0, 255, 0);
+#      auto amber = Color(255, 255, 0);
+#      it.print(0, 0, id(MT_Pixel_5x7), green, "THIS IS A ");
+#      it.print(60, 0, id(MatrixLight6), red, "TEST ");
+#      it.print(90, 0, id(MT_Pixel_5x7), amber, "!!!");
 
 font:
   - file: "gfonts://Roboto"
     id: roboto
     size: 7
   - file: "fonts/5x7_MT_Pixel.ttf"
-    id: font5x7A
+    id: MT_Pixel_5x7
     size: 7
   - file: "fonts/MatrixLight6.ttf"
     id: MatrixLight6

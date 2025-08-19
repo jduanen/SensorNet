@@ -237,15 +237,6 @@ graphical_display_menu:
             ESP_LOGI("oled_menu", "Settings: %d", id(current_page));
         - display_menu.hide: oled_menu
         - display.page.show: settings_page
-#      items:
-#        - type: label
-#          text: "Set Altitude"
-#        - type: label
-#          text: "Logging"
-#        - type: label
-#          text: "Reset Stats"
-#        - type: back
-#          text: "Back"
     - type: command
       text: "Display Off"
       on_value:

@@ -18,9 +18,6 @@ external_components:
 esphome:
   name: ${devicename}
   friendly_name: ${upper_devicename}
-#  platformio_options:
-#    board_build.flash_mode: dio
-#    board_build.mcu: esp32c3
 
 esp32:
   board: seeed_xiao_esp32c3
@@ -31,9 +28,6 @@ esp32:
 # Enable logging
 logger:
   level: DEBUG
-#  level: VERBOSE
-#  level: DEBUG
-#  level: VERY_VERBOSE
 
 # Enable Home Assistant API
 api:
@@ -70,20 +64,11 @@ display:
     scroll_dwell: 400ms
     scroll_delay: 1500ms
     flip_x: false
-    update_interval: 60s
+    update_interval: 5s
     fonts:
       - MT_Pixel_5x7
       - MatrixLight6
       - MatrixLight6X
-
-#    lambda: |-
-#      auto black = Color(0, 0, 0);
-#      auto red = Color(255, 0, 0);
-#      auto green = Color(0, 255, 0);
-#      auto amber = Color(255, 255, 0);
-#      it.print(0, 0, id(MT_Pixel_5x7), green, "THIS IS A ");
-#      it.print(60, 0, id(MatrixLight6), red, "TEST ");
-#      it.print(90, 0, id(MT_Pixel_5x7), amber, "!!!");
 
 font:
   - file: "gfonts://Roboto"
@@ -102,6 +87,12 @@ font:
     id: MatrixLight8
     size: 8
 
+text_sensor:
+  - platform: homeassistant
+    name: "LED_DisplayText"
+    id: led_display_text
+    entity_id: input_text.led_display_text_input
+
 binary_sensor:
   - platform: gpio
     id: led_display_sensor
@@ -119,7 +110,7 @@ binary_sensor:
     on_release:
       then:
         - logger.log: "No motion detected, starting off timer"
-        - delay: 10s
+        - delay: 60s
         - if:
             condition:
               binary_sensor.is_off: led_display_sensor

@@ -1,0 +1,89 @@
+substitutions:
+  name: aurora-test
+
+esphome:
+  name: ${name}
+  friendly_name: ABB Aurora Solar Inverter test
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Aurora Test"
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+web_server:
+  port: 80
+
+time:
+  - platform: sntp
+    id: time_sntp
+
+globals:
+  - id: cpu_speed
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+uart:
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600  #### FIXME
+
+spi:
+  clk_pin: GPIO14
+  mosi_pin: GPIO13
+  miso_pin: GPIO12
+
+#sdcard:
+#  cs_pin: GPIO15
+
+sensor:
+  - platform: uptime
+    name: Uptime
+    id: sys_uptime
+    update_interval: 60s
+  - platform: template
+    name: "ESP Cpu Speed"
+    accuracy_decimals: 0
+    unit_of_measurement: Mhz
+    lambda: |-
+      return ESP.getCpuFreqMHz();
+    entity_category: "diagnostic"
+  - platform: wifi_signal
+    name: RSSI
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+
+output:
+  - platform: gpio
+    pin: GPIO2  # amber LED
+    id: led_output
+    inverted: true
+
+light:
+  - platform: binary
+    name: "Error Light"
+    output: led_output
+    id: led_light

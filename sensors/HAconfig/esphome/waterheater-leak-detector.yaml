@@ -66,9 +66,20 @@ sensor:
   - platform: adc
     pin: GPIO1
     name: "Leak Sensor"
-    update_interval: 60s
-    samples: 16
-    sampling_mode: avg
+    id: leak_sensor
+    update_interval: 10s
     attenuation: 12db
     accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 13
+          send_every: 13
+          send_first_at: 6
 
+binary_sensor:
+  - platform: analog_threshold
+    name: "Waterheater Lead Detected"
+    sensor_id: leak_sensor
+    threshold: 1.7
+    filters:
+      - invert:

@@ -4,6 +4,7 @@ substitutions:
 esphome:
   name: waterheater-leak-detector
   friendly_name: ${name_str}
+  comment: Water Sensing Wire Around the Base of the Waterheater
 
 esp32:
   board: lolin_c3_mini
@@ -78,7 +79,7 @@ sensor:
 
 binary_sensor:
   - platform: analog_threshold
-    name: "Waterheater Lead Detected"
+    name: "Waterheater Leak Detected"
     sensor_id: leak_sensor
     threshold: 1.7
     filters:

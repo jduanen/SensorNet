@@ -1,6 +1,7 @@
 esphome:
   name: kittycam2
   friendly_name: Kitty Camera V2
+  comment: Second-Gen Camera and PIR Sensor in Cat Shelter
   #platformio_options:
   #  board_build.flash_mode: dio
   #  build_flags: -DBOARD_HAS_PSRAM
@@ -18,7 +19,6 @@ esp32:
 logger:
   level: VERBOSE
 
-# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key

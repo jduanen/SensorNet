@@ -18,6 +18,7 @@ external_components:
 esphome:
   name: ${devicename}
   friendly_name: ${upper_devicename}
+  comment: Sign Board with Bi-LED Array
 
 esp32:
   board: seeed_xiao_esp32c3
@@ -27,7 +28,7 @@ esp32:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: WARN
 
 # Enable Home Assistant API
 api:
@@ -64,16 +65,17 @@ display:
     scroll_dwell: 400ms
     scroll_delay: 1500ms
     flip_x: false
-    update_interval: 5s
+    #update_interval: 5s
     fonts:
       - MT_Pixel_5x7
       - MatrixLight6
       - MatrixLight6X
+    lambda: |-
+      if (!id(led_display_text).state.empty()) {
+        it.printLED(id(led_display_text).state.c_str());
+      };
 
 font:
-  - file: "gfonts://Roboto"
-    id: roboto
-    size: 7
   - file: "fonts/5x7_MT_Pixel.ttf"
     id: MT_Pixel_5x7
     size: 7
@@ -86,12 +88,21 @@ font:
   - file: "fonts/MatrixLight8.ttf"
     id: MatrixLight8
     size: 8
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 7
 
 text_sensor:
   - platform: homeassistant
     name: "LED_DisplayText"
     id: led_display_text
     entity_id: input_text.led_display_text_input
+    on_value:
+      then:
+        - lambda: |-
+            if (!x.empty()) {
+              id(leds).update();
+            }
 
 binary_sensor:
   - platform: gpio

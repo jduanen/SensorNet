@@ -1,0 +1,146 @@
+esphome:
+  name: respeaker-xvf3800
+  friendly_name: reSpeaker XVF3800
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/formatBCE/esphome
+      ref: respeaker_microphone
+    components:
+      - i2s_audio
+    refresh: 0s
+  - source:
+      type: git
+      url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration
+      ref: main
+    components: 
+      - respeaker_xvf3800
+      - aic3104
+    refresh: 0s
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  framework:
+    type: arduino
+    version: latest
+
+# Enable logging
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Respeaker-Xvf3800"
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+i2c:
+  id: internal_i2c
+  sda: GPIO5
+  scl: GPIO6
+  scan: true
+  frequency: 100kHz
+
+i2s_audio:
+  - id: i2s_output
+    i2s_lrclk_pin: 
+      number: GPIO7
+      allow_other_uses: true
+    i2s_bclk_pin:  
+      number: GPIO8
+
+respeaker_xvf3800:
+  id: respeaker
+  address: 0x2C
+  mute_switch:
+    id: mic_mute_switch
+    name: "Microphone Mute"
+    update_interval: 1s
+    on_turn_on:
+
+interval:
+  - interval: 50ms
+    id: led_animation_interval
+    then:
+      - lambda: |-
+          if (id(volume_display_active)) {
+            id(update_volume_display_effect).execute();
+            return;
+          }
+          std::string effect = id(current_led_effect);
+          if (effect == "off") {
+            return;
+          } else if (effect == "breathe") {
+            id(update_breathe_effect).execute();
+          } else if (effect == "rainbow") {
+            id(update_rainbow_effect).execute();
+          } else if (effect == "comet_cw") {
+            id(update_comet_cw_effect).execute();
+          } else if (effect == "comet_ccw") {
+            id(update_comet_ccw_effect).execute();
+          } else if (effect == "twinkle") {
+            id(update_twinkle_effect).execute();
+          } else if (effect == "timer_tick") {
+            id(update_timer_tick_effect).execute();
+          } else if (effect == "led_beam") {
+            id(update_led_beam_effect).execute();
+          }
+
+ # =========================================================================
+  # == Centralized script to control all LED effects ==
+  # =========================================================================
+  - id: led_set_effect
+    mode: restart
+    parameters:
+      effect: std::string
+      r: float
+      g: float
+      b: float
+      speed: float
+    then:
+      - lambda: |-
+          // Update global variables with the new parameters
+          id(led_ring_color_r) = r;
+          id(led_ring_color_g) = g;
+          id(led_ring_color_b) = b;
+          id(led_ring_speed) = speed;
+          id(current_led_effect) = effect;
+
+          // Handle the two types of effects: Off and Animated
+          if (effect == "off") {
+            uint32_t colors[12] = {0};
+            id(respeaker).set_led_ring(colors);
+          } else {
+            id(last_led_update_time) = millis(); // Reset timer for smooth animation start
+          }
+          
+  # Individual update scripts for each animated effect
+  - id: update_breathe_effect
+    then:
+      - lambda: |-
+          static float phase = 0.0f;
+          uint32_t now = millis();
+          float dt = (now - id(last_led_update_time)) / 1000.0f;
+          id(last_led_update_time) = now;
+
+          phase += dt * id(led_ring_speed);
+          while (phase >= 1.0f) phase -= 1.0f;
+
+          float master_brightness = id(led_ring_brightness).state;
+          float breath_brightness = 0.5f * (1.0f + sinf(phase * 2.0f * M_PI)) * master_brightness;

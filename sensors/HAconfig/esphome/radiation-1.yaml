@@ -1,6 +1,7 @@
 esphome:
   name: radiation-1
   friendly_name: Radiation Garage
+  comment: Alpha, Beta, and Gamma Radiation Sensor
 
 esp8266:
     board: esp01_1m

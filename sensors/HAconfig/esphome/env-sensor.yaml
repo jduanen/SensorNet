@@ -37,34 +37,42 @@ i2c:
   frequency: 50kHz  #### 50kHz 100kHz, 400kHz
 
 sensor:
-  - platform: scd4x  # SCD41/SCD40 supported by scd4x platform
+  - platform: aht10
+    variant: AHT20
     i2c_id: i2cBus
-    address: 0x62
-    co2:
-      name: "Home CO2"
+    address: 0x38
     temperature:
-      name: "Home Temperature"
+      name: "AHT21 Temperature"
     humidity:
-      name: "Home Humidity"
-    measurement_mode: periodic
+      name: "AHT21 Humidity"
     update_interval: 60s
-  - platform: sen5x  # For SEN55, SEN54, SEN50
+  - platform: ens160_i2c
     i2c_id: i2cBus
-    address: 0x69
-    pm_1_0:
-      name: "Particulate Matter <1.0µm"
-    pm_2_5:
-      name: "Particulate Matter <2.5µm"
-    pm_4_0:
-      name: "Particulate Matter <4.0µm"
-    pm_10_0:
-      name: "Particulate Matter <10.0µm"
-    voc:
-      name: "VOC Index"
-    nox:
-      name: "NOx Index"
-    temperature:
-      name: "SEN55 Temperature"
-    humidity:
-      name: "SEN55 Humidity"
+    address: 0x53
+    eco2:
+      name: "ENS160 eCO2"
+    tvoc:
+      name: "ENS160 TVOC"
+    aqi:
+      name: "ENS160 AQI"
     update_interval: 60s
+#  - platform: sen5x  # For SEN55, SEN54, SEN50
+#    i2c_id: i2cBus
+#    address: 0x69
+#    pm_1_0:
+#      name: "Particulate Matter <1.0µm"
+#    pm_2_5:
+#      name: "Particulate Matter <2.5µm"
+#    pm_4_0:
+#      name: "Particulate Matter <4.0µm"
+#    pm_10_0:
+#      name: "Particulate Matter <10.0µm"
+#    voc:
+#      name: "VOC Index"
+#    nox:
+#      name: "NOx Index"
+#    temperature:
+#      name: "SEN55 Temperature"
+#    humidity:
+#      name: "SEN55 Humidity"
+#    update_interval: 60s

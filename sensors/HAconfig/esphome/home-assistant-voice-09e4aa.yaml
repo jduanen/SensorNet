@@ -943,6 +943,9 @@ power_supply:
     pin: GPIO45
 
 sensor:
+  - platform: wifi_signal
+    name: "HA Voice WiFi Signal"
+    update_interval: 60s
   # The dial. Used to control volume and Hue of the LED ring.
   - platform: rotary_encoder
     id: dial

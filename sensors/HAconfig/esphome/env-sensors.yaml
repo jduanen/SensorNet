@@ -1,0 +1,101 @@
+esphome:
+  name: env-sensors
+  friendly_name: Environmental Sensors
+  comment: Air Quality, Temperature, Humidity, and CO2 Sensor
+  on_boot:
+      priority: 800
+      then:
+        - wifi.disable:
+        - output.turn_off: rf_switch_power
+        - delay: 100ms
+        - switch.turn_on: antenna_select
+        - wifi.enable:
+
+esp32:
+  board: seeed_xiao_esp32c6
+  variant: ESP32C6
+  framework:
+    type: esp-idf
+
+output:
+  - platform: gpio
+    pin: GPIO3
+    id: rf_switch_power
+
+switch:
+  - platform: gpio
+    pin: GPIO14
+    id: antenna_select
+    restore_mode: ALWAYS_OFF 
+    name: "External Wifi Antenna On/Off"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+captive_portal:
+
+web_server:
+  port: 80
+
+i2c:
+  id: i2cBus
+  sda: GPIO22
+  scl: GPIO23
+  scan: true
+  frequency: 50kHz  #### 50kHz 100kHz, 400kHz
+
+sensor:
+  - platform: wifi_signal
+    name: "Upstairs Hallway Environmental Sensors WiFi Signal"
+    update_interval: 60s
+  - platform: aht10
+    variant: AHT20
+    i2c_id: i2cBus
+    address: 0x38
+    temperature:
+      name: "AHT21 Temperature"
+    humidity:
+      name: "AHT21 Humidity"
+    update_interval: 60s
+  - platform: ens160_i2c
+    i2c_id: i2cBus
+    address: 0x53
+    eco2:
+      name: "ENS160 eCO2"
+    tvoc:
+      name: "ENS160 TVOC"
+    aqi:
+      name: "ENS160 AQI"
+    update_interval: 60s
+  - platform: sen5x  # For SEN55, SEN54, SEN50
+    i2c_id: i2cBus
+    address: 0x69
+    pm_1_0:
+      name: "Particulate Matter <1.0µm"
+    pm_2_5:
+      name: "Particulate Matter <2.5µm"
+    pm_4_0:
+      name: "Particulate Matter <4.0µm"
+    pm_10_0:
+      name: "Particulate Matter <10.0µm"
+    voc:
+      name: "VOC Index"
+    nox:
+      name: "NOx Index"
+    temperature:
+      name: "SEN55 Temperature"
+    humidity:
+      name: "SEN55 Humidity"
+    update_interval: 60s

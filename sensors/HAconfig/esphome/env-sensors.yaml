@@ -58,7 +58,7 @@ i2c:
 
 sensor:
   - platform: wifi_signal
-    name: "Upstairs Hallway Environmental Sensors WiFi Signal"
+    name: "WiFi Signal"
     update_interval: 60s
   - platform: aht10
     variant: AHT20

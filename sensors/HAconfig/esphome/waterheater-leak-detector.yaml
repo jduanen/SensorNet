@@ -36,28 +36,28 @@ captive_portal:
 web_server:
   port: 80
 
-text_sensor:
-  - platform: homeassistant
-    entity_id: ota.status
-    name: "OTA Status"
-  - platform: version
-    id: firmware_version
-    name: "Firmware Version"
-  - platform: wifi_info
-    ip_address:
-      id: ipAddr
-      name: ESP IP Address
-    ssid:
-      name: ESP Connected SSID
-    bssid:
-      name: ESP Connected BSSID
-    mac_address:
-      id: macAddr
-      name: ESP Mac Wifi Address
-    scan_results:
-      name: ESP Latest Scan Results
-    dns_address:
-      name: ESP DNS Address
+#text_sensor:
+#  - platform: homeassistant
+#    entity_id: ota.status
+#    name: "OTA Status"
+#  - platform: version
+#    id: firmware_version
+#    name: "Firmware Version"
+#  - platform: wifi_info
+#    ip_address:
+#      id: ipAddr
+#      name: ESP IP Address
+#    ssid:
+#      name: ESP Connected SSID
+#    bssid:
+#      name: ESP Connected BSSID
+#    mac_address:
+#      id: macAddr
+#      name: ESP Mac Wifi Address
+#    scan_results:
+#      name: ESP Latest Scan Results
+#    dns_address:
+#      name: ESP DNS Address
 
 sensor:
   - platform: wifi_signal

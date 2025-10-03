@@ -92,6 +92,12 @@ font:
     id: roboto
     size: 7
 
+sensor:
+  - platform: wifi_signal
+    id: wifi_rssi
+    name: "LED Sign WiFi Signal"
+    update_interval: 60s
+
 text_sensor:
   - platform: homeassistant
     name: "LED_DisplayText"

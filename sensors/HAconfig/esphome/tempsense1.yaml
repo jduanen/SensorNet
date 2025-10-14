@@ -1,27 +1,41 @@
-esphome:
-  name: ${devicename}
-  friendly_name: Attic Temperature Sensor
-  comment: Standalone Temperature Sensor in Middle of the Attic
-  platformio_options:
-    board_build.flash_mode: dio
-    board_build.mcu: esp32c3
-
 substitutions:
   devicename: tempsense1
   upper_devicename: Temp Sense 1
 
-esp32:
-  board: esp32-c3-devkitm-1
-  variant: esp32c3
-  framework:
-    type: arduino
-    version: latest
+esphome:
+  name: ${devicename}
+  friendly_name: Attic Temperature Sensor
+  comment: Standalone temperature sensor in middle of the attic
+  on_boot:
+      priority: 800
+      then:
+        - wifi.disable:
+        - output.turn_off: rf_switch_power
+        - delay: 100ms
+        - switch.turn_on: antenna_select
+        - wifi.enable:
 
-# Enable logging
+esp32:
+  board: seeed_xiao_esp32c6
+  variant: ESP32C6
+  framework:
+    type: esp-idf
+
+output:
+  - platform: gpio
+    pin: GPIO3
+    id: rf_switch_power
+
+switch:
+  - platform: gpio
+    pin: GPIO14
+    id: antenna_select
+    restore_mode: ALWAYS_OFF 
+    name: "External Wifi Antenna On/Off"
+
 logger:
   level: DEBUG
 
-# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key
@@ -33,7 +47,6 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "TempSense Fallback Hotspot"
     password: !secret wifi_ap_password
@@ -41,7 +54,6 @@ wifi:
 
 captive_portal:
 
-# Open web port for browser access
 web_server:
   port: 80
 
@@ -51,12 +63,12 @@ time:
 
 one_wire:
   - platform: gpio
-    pin: GPIO4
+    pin: GPIO21
 
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "Temperature WiFi Signal"
+    name: "WiFi Signal"
     update_interval: 60s
   - platform: dallas_temp
     address: 0xf3000000075c9228
@@ -64,3 +76,4 @@ sensor:
     unit_of_measurement: "°C"
     name: "Temp Sensor"
     id: c_temp
+    update_interval: 5s  ## 60s

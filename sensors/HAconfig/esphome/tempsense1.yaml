@@ -74,6 +74,6 @@ sensor:
     address: 0xf3000000075c9228
     state_class: "measurement"
     unit_of_measurement: "°C"
-    name: "Temp Sensor"
+    name: "Attic Temp Sensor"
     id: c_temp
     update_interval: 60s

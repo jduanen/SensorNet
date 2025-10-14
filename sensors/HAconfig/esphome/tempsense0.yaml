@@ -1,14 +1,14 @@
-esphome:
-  name: ${devicename}
-  friendly_name: Garage Temperature Sensor
-  comment: Standalone Temperature Sensor in Middle of Garage
-  platformio_options:
-    board_build.flash_mode: dio
-    board_build.mcu: esp32c3
-
 substitutions:
   devicename: tempsense0
   upper_devicename: Temp Sense 0
+
+esphome:
+  name: ${devicename}
+  friendly_name: Garage Temperature Sensor
+  comment: Standalone Temperature Sensor in Middle of the Garage
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.mcu: esp32c3
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -17,11 +17,9 @@ esp32:
     type: arduino
     version: latest
 
-# Enable logging
 logger:
   level: DEBUG
 
-# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key
@@ -33,7 +31,6 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "TempSense Fallback Hotspot"
     password: !secret wifi_ap_password
@@ -53,20 +50,6 @@ text_sensor:
     mac_address:
       id: macAddr
       name: Mac Address
-#    ssid:
-#      name: ESP Connected SSID
-#    bssid:
-#      name: ESP Connected BSSID
-#    scan_results:
-#      name: ESP Latest Scan Results
-#    dns_address:
-#      name: ESP DNS Address
-#  - platform: homeassistant
-#    entity_id: ota.status
-#    name: "OTA Status"
-#  - platform: version
-#    id: firmware_version
-#    name: "Firmware Version"
 
 time:
   - platform: homeassistant
@@ -137,8 +120,3 @@ interval:
     then:
       - display.page.show_next: oled_display
       - component.update: oled_display
-
-
-#on_...:
-#  then:
-#    - logger.log: "hello world!!!"

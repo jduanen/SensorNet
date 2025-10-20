@@ -18,13 +18,13 @@ external_components:
 esphome:
   name: ${devicename}
   friendly_name: ${upper_devicename}
-  comment: Sign Board with Bi-LED Array
+  comment: LED Display Board with Bi-LED Array
 
 esp32:
   board: seeed_xiao_esp32c3
   variant: esp32c3
   framework:
-    type: arduino
+    type: esp-idf
 
 # Enable logging
 logger:
@@ -95,7 +95,7 @@ font:
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "LED Sign WiFi Signal"
+    name: "LED Display WiFi Signal"
     update_interval: 60s
 
 text_sensor:

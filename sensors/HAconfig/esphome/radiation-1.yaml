@@ -26,7 +26,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Radiation MBR"
+    ssid: "Radiation Garage"
     password: !secret wifi_ap_password
 
 captive_portal:
@@ -59,7 +59,7 @@ geigerkit:
 
 sensor:
   - platform: wifi_signal
-    name: "Radiation MBR WiFi Signal"
+    name: "Radiation Garage WiFi Signal"
     update_interval: 60s
 
 switch:

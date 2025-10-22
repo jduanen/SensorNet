@@ -50,7 +50,7 @@ substitutions:
 
 esphome:
   name: $device_name
-  friendly_name: Waveshare-Audio-0
+  friendly_name: Waveshare Voice Assistant MBR
   min_version: 2025.8.0
   on_boot:
     - priority: -100

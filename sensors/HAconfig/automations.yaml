@@ -1,12 +1,12 @@
 - id: '1675646554693'
   alias: Dawn Off
   description: Turn off lights at dawn (and turn on the fountain)
-  trigger:
-  - platform: sun
-    event: sunrise
+  triggers:
+  - event: sunrise
     offset: 0
-  condition: []
-  action:
+    trigger: sun
+  conditions: []
+  actions:
   - type: turn_off
     device_id: 5f24733386ab313f49deb2690bf35d6f
     entity_id: light.switchlinc_dimmer_57_bd_5c
@@ -59,12 +59,12 @@
 - id: '1675646941395'
   alias: Dusk On
   description: Turn on (mainly outside) lights and turn off fountain
-  trigger:
-  - platform: sun
-    event: sunset
+  triggers:
+  - event: sunset
     offset: 0
-  condition: []
-  action:
+    trigger: sun
+  conditions: []
+  actions:
   - type: turn_on
     device_id: 5f24733386ab313f49deb2690bf35d6f
     entity_id: light.switchlinc_dimmer_57_bd_5c
@@ -149,85 +149,87 @@
     entity_id: switch.on_off_outdoor_module_4c_a1_d1
     domain: switch
   mode: single
-- id: '1675886412177'
-  alias: Garden Gate Open
-  description: Garden Gate Open
-  trigger:
-  - type: opened
-    platform: device
-    device_id: 27ea1a2ea2ac79a48b59cdafddb1a60d
-    entity_id: binary_sensor.i_o_linc_3e_1e_c4_sensor
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: notify.notify
-    data:
-      message: Garden Gate Open
-      title: Home Assistant
-  mode: single
-- id: '1675886555616'
-  alias: Garden Gate Closed
-  description: Garden Gate Closed
-  trigger:
-  - type: not_opened
-    platform: device
-    device_id: 27ea1a2ea2ac79a48b59cdafddb1a60d
-    entity_id: binary_sensor.i_o_linc_3e_1e_c4_sensor
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: notify.notify
-    data:
-      message: Garden Gate Closed
-      title: Home Assistant
-  mode: single
 - id: '1675887183776'
   alias: Garage Door Center Open
   description: Garage Door Center Open
-  trigger:
+  triggers:
   - type: opened
-    platform: device
     device_id: d3ef5b112b3768f848ccc9a529351215
     entity_id: binary_sensor.i_o_linc_28_c5_7a_sensor
     domain: binary_sensor
-  condition: []
-  action:
-  - service: notify.notify
-    data:
-      message: Garage Door Center Open
+    trigger: device
+  conditions: []
+  actions:
+  - data:
+      message: Garage Door Center - Open
       title: Home Assistant
+    action: notify.notify
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      preannounce: true
+      message: Center Garage Door Opened
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Center Garage Door Opened
+      preannounce: true
+    target:
+      device_id: b01f4a11505bf2fd0ee5ac038a5862ff
   mode: single
 - id: '1675887252022'
   alias: Garage Door Left Open
   description: Garage Door Left Open
-  trigger:
+  triggers:
   - type: opened
-    platform: device
     device_id: ce4e79a25aff6831e94351b9704361b7
     entity_id: binary_sensor.i_o_linc_28_c7_1d_sensor
     domain: binary_sensor
-  condition: []
-  action:
-  - service: notify.notify
-    data:
-      message: Garage Door Left Open
+    trigger: device
+  conditions: []
+  actions:
+  - data:
+      message: Garage Door Left - Open
       title: Home Assistant
+    action: notify.notify
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Left garage door open
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+      - b01f4a11505bf2fd0ee5ac038a5862ff
   mode: single
 - id: '1675887352070'
   alias: Electrical Closet Open
   description: Electrical Closet Open
-  trigger:
+  triggers:
   - type: opened
-    platform: device
     device_id: f98670488479e743bc6bf66358a4d234
     entity_id: binary_sensor.open_close_sensor_2d_dd_34
     domain: binary_sensor
-  condition: []
-  action:
-  - service: notify.notify
-    data:
+    trigger: device
+  conditions: []
+  actions:
+  - data:
       message: Electrical Closet Open
       title: Home Assistant
+    action: notify.notify
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Electrical closet open
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+      - b01f4a11505bf2fd0ee5ac038a5862ff
   mode: single
 - id: '1675887395282'
   alias: Electrical Closet Closed
@@ -246,41 +248,583 @@
       title: Home Assistant
   mode: single
 - id: '1675887655494'
-  alias: Front Porch Light on motion detected
-  description: Front Porch Light on for 1min after motion detected after sundown
-  trigger:
+  alias: Front Porch motion notification
+  description: Send a Notification on Front Porch motion detection
+  triggers:
   - type: motion
-    platform: device
-    device_id: 8e72725ed43c616e708a50fd8a52645c
-    entity_id: binary_sensor.motion_sensor_31_99_d0_motion
+    device_id: 264d0c905c0b326c2a383819ad7544e2
+    entity_id: binary_sensor.front_porch_motion_sensor_motion
     domain: binary_sensor
     for:
       hours: 0
       minutes: 0
       seconds: 0
-  condition:
-  - condition: sun
-    before: sunrise
-    after: sunset
-  action:
-  - service: light.turn_on
-    data: {}
+    trigger: device
+  conditions: []
+  actions:
+  - action: notify.notify
+    data:
+      message: Front Porch Motion Detected
+      title: Front Porch Motion
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Front porch motion detected
+      preannounce: true
     target:
-      device_id: 4d560c1186f347688f9a301b4a3a1399
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
   mode: single
-- id: '1675887747117'
-  alias: Garage motion detected
-  description: Garage motion detected
+- id: '1702086368095'
+  alias: Test Notifications Arrive
+  description: Notify on KittyCam PIR detect
   trigger:
-  - type: motion
-    platform: device
-    device_id: c5f52d6540d2026ee9c7b30f879d2263
-    entity_id: binary_sensor.motion_sensor_2d_9a_db_motion
-    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - binary_sensor.kitty_camera_kittycam_pir_sensor
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
   condition: []
   action:
   - service: notify.notify
     data:
+      title: HA KittyCam PIR
+      message: Detected
+  mode: single
+- id: '1702088345274'
+  alias: Home Off Grid
+  description: Home goes off-grid for at least 30s
+  triggers:
+  - entity_id:
+    - switch.home_off_grid_operation
+    from:
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: Home Grid State Change
+      message: Home went off-grid
+    action: notify.notify
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Home off grid
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+  mode: single
+- id: '1702088523591'
+  alias: Home On Grid
+  description: Home went from off-grid to on-grid
+  triggers:
+  - entity_id:
+    - switch.home_off_grid_operation
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    trigger: state
+  conditions: []
+  actions:
+  - data:
+      title: Home On-Grid
+      message: Home went from off-grid to on-grid
+    action: notify.notify
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Home on grid
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+  mode: single
+- id: '1719857667637'
+  alias: Persistent Notification Events
+  description: Persistent notification events
+  triggers:
+  - update_type:
+    - added
+    notification_id: ''
+    trigger: persistent_notification
+  conditions: []
+  actions:
+  - device_id: 0558b48584cdb39ed660b94387c27315
+    domain: mobile_app
+    type: notify
+    message: '{{ trigger.notification.message }}'
+    title: '{{ trigger.notification.title | default(''Home Assistant Notification'')
+      }}'
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: '{{ trigger.notification.title | default(''Home Assistant Notification'')
+        }} {{ trigger.notification.message }}'
+      preannounce: true
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  mode: single
+- id: '1722905119798'
+  alias: MSL Car from P
+  description: Monica's car shifted out of Park
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.monica_s_car_shift_state
+    from: P
+  condition: []
+  action:
+  - metadata: {}
+    data:
+      message: Monica's Car Shifted out of Park
+      title: MSL Car Event
+    action: notify.mobile_app_pixel_7_pro
+  mode: single
+- id: '1731443134625'
+  alias: Garage Motion notification
+  description: Send a notification when Motion detected in garage.
+  triggers:
+  - type: motion
+    device_id: 9282d5ba8a324894886d100e5cd363ff
+    entity_id: 8ca6cd15ea7ee48f1c33a54c5781dece
+    domain: binary_sensor
+    metadata:
+      secondary: false
+    trigger: device
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 45
+  conditions: []
+  actions:
+  - action: notify.notify
+    data:
+      message: Garage Motion Detected
+      title: Garage Motion
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
       message: Garage motion detected
-      title: Home Assistant
+      preannounce: true
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  mode: single
+- id: '1731955170016'
+  alias: Front Porch Lights on motion
+  description: 'If sun is down, turn lights on for a bit and then turn them off after
+    motion stops
+
+    '
+  triggers:
+  - type: motion
+    device_id: 264d0c905c0b326c2a383819ad7544e2
+    entity_id: e66bedaa60fff578286687a99aa31fd2
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: sun
+    before: sunrise
+    after: sunset
+    enabled: true
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      device_id: 4d560c1186f347688f9a301b4a3a1399
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 45
+      milliseconds: 0
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      device_id: 4d560c1186f347688f9a301b4a3a1399
+  mode: single
+- id: '1732664593907'
+  alias: Hallway Lights on Garage Motion
+  description: Turn on Downstairs Hallway lights for around a minute when motion is
+    detected in the Garage
+  triggers:
+  - type: motion
+    device_id: 9282d5ba8a324894886d100e5cd363ff
+    entity_id: 8ca6cd15ea7ee48f1c33a54c5781dece
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: d2c596aefa283fd779d5f6997cbb4e08
+    entity_id: 71f163843f223b50449b373f880855f6
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 45
+      milliseconds: 0
+  - type: turn_off
+    device_id: d2c596aefa283fd779d5f6997cbb4e08
+    entity_id: 71f163843f223b50449b373f880855f6
+    domain: switch
+  mode: single
+- id: '1732665116067'
+  alias: Fountain On
+  description: 'Turn Garden Fountain on when FR switch is turned on
+
+    '
+  triggers:
+  - type: turned_on
+    device_id: cb54c0709db46527ad250856780c7860
+    entity_id: 5db79e9ba28e3f0ca13b17520def9721
+    domain: light
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 7be7a2fdc5d723761a82d865a1875254
+    entity_id: 3863f97d106b18c4b299402246270b4e
+    domain: switch
+  mode: single
+- id: '1732665205392'
+  alias: Fountain Off
+  description: Turn off Garden Fountain when FR switch turned off
+  triggers:
+  - type: turned_off
+    device_id: cb54c0709db46527ad250856780c7860
+    entity_id: 5db79e9ba28e3f0ca13b17520def9721
+    domain: light
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 7be7a2fdc5d723761a82d865a1875254
+    entity_id: 3863f97d106b18c4b299402246270b4e
+    domain: switch
+  mode: single
+- id: '1732826650788'
+  alias: Garden Gate Closed
+  description: Garden Gate sensor indicates closed
+  triggers:
+  - type: not_opened
+    device_id: 657e1be07835c38ed4fc6fc8dbfaadb9
+    entity_id: 16012be571d9e4bdaef21f9830e329f9
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: notify.notify
+    metadata: {}
+    data:
+      title: Garden Gate Closed
+      message: 'Home Assistant: Garden Gate Closed'
+  mode: single
+- id: '1732826738072'
+  alias: Garden Gate Open
+  description: Garden Gate sensor detected open
+  triggers:
+  - type: opened
+    device_id: 657e1be07835c38ed4fc6fc8dbfaadb9
+    entity_id: 16012be571d9e4bdaef21f9830e329f9
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: notify.notify
+    metadata: {}
+    data:
+      message: 'Home Assistant: Garden Gate Open'
+      title: Garden Gate Open
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Garden Gated Opened
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+      - b01f4a11505bf2fd0ee5ac038a5862ff
+  mode: single
+- id: '1751081837392'
+  alias: Waterheater leak detected
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.waterheater_leak_detector_leak_sensor
+    below: 1.25
+  conditions: []
+  actions:
+  - action: notify.persistent_notification
+    metadata: {}
+    data:
+      message: Waterheater leak detected!
+      title: Waterheater Leak
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Water heater leak detected
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - 44c7b4b117e22096312117a77209f633
+      - b01f4a11505bf2fd0ee5ac038a5862ff
+  mode: single
+- id: '1758739029239'
+  alias: Lightning Detection automation
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.blitzortung_lightning_counter
+    from:
+    to:
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.blitzortung_lightning_distance
+    below: 10
+  actions:
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Lightning Detected {{ states('sensor.blitzortung_lightning_counter')
+        }} times {{ states('sensor.blitzortung_lightning_distance') | float | round(1)
+        }} miles away
+      preannounce: true
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  mode: single
+- id: '1758751805694'
+  alias: DWR Air Quality Event
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.airquality_pms_2_particulate_matter_1_0_m
+    above: 10
+  conditions: []
+  actions:
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      preannounce: true
+      message: 'Duane''s Workroom: air quality event'
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  mode: single
+- id: '1760231633760'
+  alias: Hot water re-circulation on
+  description: Turn on the home hot water re-circulation pump
+  triggers:
+  - trigger: time
+    at: 06:00:00
+    id: Hot water pump weekdays mornings on
+    weekday:
+    - fri
+    - thu
+    - wed
+    - tue
+    - mon
+  - trigger: time
+    at: '18:00:00'
+    id: Hot water pump weekdays evening on
+    weekday:
+    - fri
+    - thu
+    - wed
+    - tue
+    - mon
+  - trigger: time
+    at: 09:00:00
+    id: Hot water pump weekends mornings on
+    weekday:
+    - sat
+    - sun
+  - trigger: time
+    at: '17:00:00'
+    id: Hot water pump weekends evenings on
+    weekday:
+    - sat
+    - sun
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 281849268a80bc4e71dfbc7e1b6601b4
+    entity_id: 7995345d6cd6ffd2c33f3475044dedd2
+    domain: switch
+    metadata:
+      secondary: false
+  mode: single
+- id: '1760637270231'
+  alias: CO2 level above threshold
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.env_sensors_ens160_eco2
+    above: 800
+  conditions: []
+  actions:
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      preannounce: true
+      message: CO2 level is high
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - b01f4a11505bf2fd0ee5ac038a5862ff
+  mode: single
+- id: '1760637804626'
+  alias: Hot water re-circulation off
+  description: ''
+  triggers:
+  - trigger: time
+    at: '13:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    id: Hot water pump weekdays mornings off
+  - trigger: time
+    at: 01:00:00
+    weekday:
+    - fri
+    - thu
+    - wed
+    - tue
+    - mon
+    id: Hot water pump weekdays evenings off
+  - trigger: time
+    at: '14:00:00'
+    weekday:
+    - sat
+    - sun
+    id: Hot water pump weekends mornings off
+  - trigger: time
+    at: 01:00:00
+    weekday:
+    - sat
+    - sun
+    id: Hot water pump weekends evenings off
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 281849268a80bc4e71dfbc7e1b6601b4
+    entity_id: 7995345d6cd6ffd2c33f3475044dedd2
+    domain: switch
+  mode: single
+- id: '1760638612639'
+  alias: VOC levels above threshold
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.env_sensors_ens160_tvoc
+    id: VOC levels above threshold
+    above: 250
+  conditions: []
+  actions:
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: VOC levels above threshold
+      preannounce: true
+    target:
+      device_id:
+      - 77c71ae7b4478101f69b07d0bed145bb
+      - d3a0b4b6fc767a7f4debdb6ef8ea8d3e
+  mode: single
+- id: '1760639526066'
+  alias: Kitty heater on
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.temp_sense_0_temp_sensor
+    id: Turn on kitty heater
+    below: 66
+  conditions: []
+  actions: []
+  mode: single
+- id: '1760639832751'
+  alias: Turn kitty heater off
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.temp_sense_0_temp_sensor
+    id: Turn kitty heater off
+    above: 66
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: cf49ed9987dcaa2063838244e7117837
+    entity_id: 9a1664ae63f51b26c2955510735dd691
+    domain: switch
+    metadata:
+      secondary: false
+  mode: single
+- id: '1760639884848'
+  alias: Turn kitty heater on
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.temp_sense_0_temp_sensor
+    id: Turn kitty heater on
+    below: 64
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: cf49ed9987dcaa2063838244e7117837
+    entity_id: 9a1664ae63f51b26c2955510735dd691
+    domain: switch
+  mode: single
+- id: '1761184723272'
+  alias: Family Room Air Quality Event
+  description: ''
+  triggers:
+  - type: value
+    device_id: e320aa98b4d6fd186b39d6e846f7ea1b
+    entity_id: 0bf33fdd128fdbe7f06b2fe22fa8d554
+    domain: sensor
+    trigger: device
+    above: 30
+  conditions: []
+  actions:
+  - device_id: 44c7b4b117e22096312117a77209f633
+    domain: select
+    entity_id: f99059317103a4c32df22ecf80bed91e
+    type: select_first
+    metadata:
+      secondary: false
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: Family room air quality event
+      preannounce: true
+    target:
+      device_id:
+      - 44c7b4b117e22096312117a77209f633
+      - b01f4a11505bf2fd0ee5ac038a5862ff
+      - 77c71ae7b4478101f69b07d0bed145bb
   mode: single

@@ -1,0 +1,31 @@
+test_announcement:
+  sequence:
+  - action: assist_satellite.announce
+    metadata: {}
+    data:
+      message: This is a test
+      preannounce: true
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  alias: Test announcement
+  description: ''
+test_voice_led_ring:
+  sequence:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      rgb_color:
+      - 255
+      - 105
+      - 180
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  alias: Test Voice LED Ring On
+  description: ''
+test_voice_led_ring_off:
+  sequence:
+  - action: light.turn_off
+    target:
+      device_id: 77c71ae7b4478101f69b07d0bed145bb
+  alias: Test Voice LED Ring Off
+  description: ''

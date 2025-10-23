@@ -1,5 +1,5 @@
 substitutions:
-  device_name: esp32-audio-s3
+  device_name: esp32-audio-s3-0
   
   # Phases of the Voice Assistant
   voice_assist_idle_phase_id: '1' # ready to be triggered by a wake word
@@ -1181,6 +1181,9 @@ number:
                 brightness: !lambda 'return x;'
 
 sensor:
+  - platform: wifi_signal
+    name: "Waveshare 0 WiFi Signal"
+    update_interval: 60s
   - platform: template
     id: next_timer
     name: "Next timer"

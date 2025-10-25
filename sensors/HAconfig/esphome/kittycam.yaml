@@ -1,20 +1,15 @@
 esphome:
   name: kittycam
-  friendly_name: Kitty Camera
+  friendly_name: "Kitty Camera"
+  comment: "ESP32-S3-Sense Camera with PIR Sensor"
 
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
-  framework:
-    type: arduino
-    version: latest
-#   platform_version: 6.3.2
 
-# Enable logging
 logger:
   level: VERBOSE
 
-# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key
@@ -27,7 +22,6 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Kitty Cam"
     password: !secret wifi_ap_password
@@ -38,8 +32,8 @@ web_server:
   port: 80
 
 i2s_audio:
-  i2s_lrclk_pin: GPIO1    # Dummy pin just for requirement, unused by PDM
-  i2s_bclk_pin: GPIO42 # Bit Clock (PDM_CLK for Sense Hat)
+  i2s_lrclk_pin: GPIO1  # Dummy pin just for requirement, unused by PDM
+  i2s_bclk_pin: GPIO42  # Bit Clock (PDM_CLK for Sense Hat)
 
 microphone:
   - platform: i2s_audio
@@ -91,11 +85,11 @@ esp32_camera_web_server:
   - port: 8081
     mode: snapshot
 
-#binary_sensor:
-#  - platform: gpio
-#    pin: GPIO4
-#    name: "Kittycam PIR Sensor"
-#    device_class: PRESENCE
+binary_sensor:
+  - platform: gpio
+    pin: GPIO4
+    name: "Kittycam PIR Sensor"
+    device_class: PRESENCE
 
 output:
   - platform: ledc

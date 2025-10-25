@@ -1,0 +1,7 @@
+substitutions:
+  device_name: waveshare-audio-0
+  friendly_name: "Waveshare Voice MBR"
+  comment: "Waveshare ESP32-S3 Voice Assistant in Master Bedroom"
+
+packages:
+  hardware: !include packages/waveshare-audio-esp32-s3.yaml

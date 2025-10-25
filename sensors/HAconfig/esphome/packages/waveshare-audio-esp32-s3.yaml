@@ -1183,7 +1183,7 @@ number:
 
 sensor:
   - platform: wifi_signal
-    name: "Waveshare 0 WiFi Signal"
+    name: "Waveshare Audio WiFi Signal"
     update_interval: 60s
   - platform: template
     id: next_timer

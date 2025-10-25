@@ -8,7 +8,7 @@ esp32:
   variant: esp32s3
 
 logger:
-  level: VERBOSE
+  level: WARN
 
 api:
   encryption:

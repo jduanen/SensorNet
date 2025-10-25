@@ -2,6 +2,7 @@ substitutions:
   device_name: waveshare-audio-1
   friendly_name: "Waveshare Voice FR"
   comment: "Waveshare ESP32-S3 Voice Assistant in Family Room"
+  log_level: WARN
 
 packages:
   hardware: !include packages/waveshare-audio-esp32-s3.yaml

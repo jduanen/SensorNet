@@ -131,7 +131,7 @@ wifi:
 #  enable_ipv6: true
 
 logger:
-  level: DEBUG
+  level: ${log_level}
 
 debug:
   update_interval: 5s

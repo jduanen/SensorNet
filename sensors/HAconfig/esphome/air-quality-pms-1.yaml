@@ -1,0 +1,6 @@
+substitutions:
+  device_name: air-quality-pms-1
+  friendly_name: Air Quality FR
+
+packages:
+  hardware: !include packages/air-quality-pms-base.yaml

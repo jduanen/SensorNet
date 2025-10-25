@@ -1,0 +1,6 @@
+substitutions:
+  device_name: air-quality-pms-0
+  friendly_name: Air Quality MBR
+
+packages:
+  hardware: !include packages/air-quality-pms-base.yaml

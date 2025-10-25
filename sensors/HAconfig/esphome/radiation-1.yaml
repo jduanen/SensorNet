@@ -1,0 +1,7 @@
+substitutions:
+  device_name: radiation-1
+  friendly_name: "Radiation Garage"
+  comment: "Alpha, Beta, and Gamma Radiation Detector in Garage"
+
+packages:
+  hardware: !include packages/radiation-base.yaml

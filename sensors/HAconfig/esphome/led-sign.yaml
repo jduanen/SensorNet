@@ -12,7 +12,7 @@ external_components:
     refresh: always
 
 esphome:
-  name: led_sign
+  name: led-sign
   friendly_name: "LED Sign Garage"
   comment: "LED Sign Board with Bi-LED Array in Garage"
 

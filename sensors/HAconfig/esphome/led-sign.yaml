@@ -1,7 +1,3 @@
-substitutions:
-  devicename: leddisplay
-  upper_devicename: LED_Display
-
 globals:
   - id: page_index
     type: int
@@ -16,9 +12,9 @@ external_components:
     refresh: always
 
 esphome:
-  name: ${devicename}
-  friendly_name: ${upper_devicename}
-  comment: LED Display Board with Bi-LED Array
+  name: led_sign
+  friendly_name: "LED Sign Garage"
+  comment: "LED Sign Board with Bi-LED Array in Garage"
 
 esp32:
   board: seeed_xiao_esp32c3
@@ -26,11 +22,9 @@ esp32:
   framework:
     type: esp-idf
 
-# Enable logging
 logger:
   level: WARN
 
-# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key
@@ -42,12 +36,9 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "${upper_devicename} Fallback Hotspot"
+    ssid: "LED Sign"
     password: !secret wifi_ap_password
-
   power_save_mode: none
 
 captive_portal:
@@ -100,7 +91,7 @@ sensor:
 
 text_sensor:
   - platform: homeassistant
-    name: "LED_DisplayText"
+    name: LED_DisplayText
     id: led_display_text
     entity_id: input_text.led_display_text_input
     on_value:
@@ -118,7 +109,7 @@ binary_sensor:
       mode:
         input: true
         pulldown: true
-    name: "led_display_motion"
+    name: led_display_motion
     device_class: motion
     on_press:
       then:

@@ -1,6 +1,7 @@
 substitutions:
   device_name: air-quality-pms-2
-  friendly_name: Air Quality DWR
+  friendly_name: "Air Quality DWR"
+  comment: "Air Quality Sensor (PMS) in Duane Workroom"
 
 packages:
   hardware: !include packages/air-quality-pms-base.yaml

@@ -1,6 +1,7 @@
 substitutions:
   device_name: air-quality-pms-0
-  friendly_name: Air Quality MBR
+  friendly_name: "Air Quality MBR"
+  comment: "Air Quality Sensor (PMS) in Master Bedroom"
 
 packages:
   hardware: !include packages/air-quality-pms-base.yaml

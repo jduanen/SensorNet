@@ -1,7 +1,7 @@
 esphome:
   name: env-sensors
-  friendly_name: Environmental Sensors
-  comment: Air Quality, Temperature, Humidity, and CO2 Sensor
+  friendly_name: "Upstairs Environmental Sensors"
+  comment: "Upstairs Air Quality, Temperature, Humidity, and CO2 Sensor"
   on_boot:
       priority: 800
       then:

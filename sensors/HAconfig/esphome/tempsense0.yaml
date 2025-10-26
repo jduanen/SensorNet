@@ -14,7 +14,7 @@ esp32:
     version: latest
 
 logger:
-  level: DEBUG
+  level: WARN
 
 api:
   encryption:

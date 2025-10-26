@@ -1,11 +1,7 @@
-substitutions:
-  devicename: tempsense0
-  upper_devicename: Temp Sense 0
-
 esphome:
-  name: ${devicename}
-  friendly_name: Garage Temperature Sensor
-  comment: Standalone Temperature Sensor in Middle of the Garage
+  name: tempsense0
+  friendly_name: "Temperature Sensor Garage"
+  comment: "Temperature Sensor with Display in Middle of the Garage"
   platformio_options:
     board_build.flash_mode: dio
     board_build.mcu: esp32c3
@@ -32,7 +28,7 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   ap:
-    ssid: "TempSense Fallback Hotspot"
+    ssid: "TempSense0 Fallback Hotspot"
     password: !secret wifi_ap_password
   power_save_mode: none
 
@@ -62,7 +58,7 @@ one_wire:
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "Temperature WiFi Signal"
+    name: "TempSense0 WiFi Signal"
     update_interval: 60s
   - platform: dallas_temp
     address: 0x9d00000006ac7028

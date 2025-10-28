@@ -34,7 +34,7 @@ wifi:
   password: !secret wifi_password
 
 logger:
-  level: DEBUG
+  level: WARN
 
 api:
   encryption:

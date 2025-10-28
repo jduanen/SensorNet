@@ -20,9 +20,8 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
   ap:
-    ssid: "Air Quality SPS-0"
+    ssid: ${friendly_name}
     password: !secret wifi_ap_password
 
 captive_portal:

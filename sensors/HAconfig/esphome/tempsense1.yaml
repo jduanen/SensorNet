@@ -1,11 +1,7 @@
-substitutions:
-  devicename: tempsense1
-  upper_devicename: Temp Sense 1
-
 esphome:
-  name: ${devicename}
-  friendly_name: Attic Temperature Sensor
-  comment: Standalone temperature sensor in middle of the attic
+  name: tempsense1
+  friendly_name: "Temperature Sensor Attic"
+  comment: "Standalone Semperature Sensor in Middle of the Attic"
   on_boot:
       priority: 800
       then:
@@ -34,7 +30,7 @@ switch:
     name: "External Wifi Antenna On/Off"
 
 logger:
-  level: DEBUG
+  level: WARN
 
 api:
   encryption:

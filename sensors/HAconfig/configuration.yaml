@@ -6,33 +6,13 @@ default_config:
 frontend:
   themes: !include_dir_merge_named themes
 
-# Text to speech
-tts:
-  - platform: google_translate
-
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
-assist_pipeline:
-
-mqtt:
-  sensor:
-    - name: "Raw BirdPi Detections Timestamp"
-      state_topic: "birdpi/raw_detections"
-      device_class: "timestamp"
-      value_template: "{{ value_json.timestamp }}"
-      unique_id: "birdpi_timestamp"
-    - name: "Raw Detections Common Name"
-      state_topic: "birdpi/raw_detections"
-      value_template: "{{ value_json.common }}"
-      unique_id: "birdpi_common_name"
-    - name: "Raw Detections Confidence"
-      state_topic: "birdpi/raw_detections"
-      value_template: "{{ value_json.confidence }}"
-      unique_id: "birdpi_confidence"
-    - name: "Last BirdPi Event"
-      state_topic: "birdpi/raw_detections"
-      json_attributes_topic: "birdpi/raw_detections"
-      json_attributes_template: "{{ value_json }}"
-      unique_id: "birdpi_last_event"
+logger:
+  default: info
+  logs:
+    homeassistant.components.sftp_storage: debug
+    homeassistant.components.backup: debug
+    asynchssh: debug

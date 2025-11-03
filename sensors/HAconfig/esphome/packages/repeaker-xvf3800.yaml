@@ -28,8 +28,8 @@ substitutions:
   center_button_long_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_long_press.flac
 
 esphome:
-  name: respeaker-xvf3800-assistant
-  friendly_name: reSpeaker XVF3800 Assistant
+  name: ${device_name}
+  friendly_name: ${friendly_name}
   project: 
     name: formatbce.Respeaker XVF3800 Satellite
     version: 2025.9.0

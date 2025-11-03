@@ -99,8 +99,8 @@ api:
     - script.execute: control_leds
   on_client_disconnected:
     - script.execute: control_leds
-  encryption:   # Uses key set by Home Assistant
-    key: !secret api_encryption_key
+#  encryption:   # Uses key set by Home Assistant
+#    key: !secret api_encryption_key
 
 ota:
   - platform: esphome

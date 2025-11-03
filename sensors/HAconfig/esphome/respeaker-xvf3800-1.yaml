@@ -1,0 +1,8 @@
+substitutions:
+  device_name: respeaker-xvf3800-1
+  friendly_name: "ReSpeaker XVF3800 1"
+  comment: "ReSpeaker with XVF3800 and ESP32-S3 Voice Assistant"
+  log_level: WARN
+
+packages:
+  hardware: !include packages/respeaker-xvf3800.yaml

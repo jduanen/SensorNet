@@ -1,6 +1,9 @@
+substitutions:
+  friendly_name: "Kitty Feeder Sensor"
+
 esphome:
   name: feeder
-  friendly_name: Kitty Feeder Sensor
+  friendly_name: ${friendly_name}
 
 esp8266:
   board: esp01_1m
@@ -19,9 +22,8 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
   ap:
-    ssid: "Kitty Cam"
+    ssid: ${friendly_name}
     password: !secret wifi_ap_password
 
 captive_portal:
@@ -31,8 +33,8 @@ web_server:
 
 sensor:
   - platform: wifi_signal
-    name: "Kitty Cam WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
 
 binary_sensor:
   - platform: gpio

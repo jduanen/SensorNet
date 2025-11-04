@@ -29,8 +29,8 @@ substitutions:
   center_button_long_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_long_press.flac
 
 esphome:
-  name: home-assistant-voice
-  friendly_name: Home Assistant Voice DWR
+  name: ${device_name}
+  friendly_name: ${friendly_name}
   name_add_mac_suffix: true
   min_version: 2025.9.0
   on_boot:

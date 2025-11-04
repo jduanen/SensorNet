@@ -1,0 +1,8 @@
+substitutions:
+  device_name: home-assistant-voice-0
+  friendly_name: "White Voice Assistant DWR"
+  comment: "Home Assistant Voice Assistant Preview Edition"
+  log_level: WARN
+
+packages:
+  hardware: !include packages/home-assistant-voice.yaml

@@ -1,6 +1,9 @@
+substitutions:
+  friendly_name: "Water Temperature Garage"
+
 esphome:
   name: water-temperature
-  friendly_name: "Water Temperature Garage"
+  friendly_name: ${friendly_name}
   comment: "Water Temperature Sensors on Hot Water Heater Output and the Air Nearby"
 
 esp8266:

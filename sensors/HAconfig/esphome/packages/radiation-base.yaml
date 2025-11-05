@@ -8,7 +8,7 @@ esp8266:
 
 # Disable logging because the sensor uses the HW serial port
 logger:
-  level: DEBUG  # makes uart stream available in esphome logstream
+  level: ${log_level}  # makes uart stream available in esphome logstream
   baud_rate: 0  # disable logging over uart
 
 api:
@@ -56,8 +56,8 @@ geigerkit:
 
 sensor:
   - platform: wifi_signal
-    name: "Radiation Wifi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} Wifi Signal"
 
 switch:
   - platform: gpio

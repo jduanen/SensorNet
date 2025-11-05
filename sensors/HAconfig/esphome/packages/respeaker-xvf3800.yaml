@@ -105,7 +105,7 @@ network:
   enable_ipv6: true
 
 logger:
-  level: INFO
+  level: INFO  #### FIXME
   initial_level: INFO
   logs:
     sensor: WARN
@@ -370,8 +370,8 @@ number:
 
 sensor:
   - platform: wifi_signal
-    name: "ReSpeaker XVF3800 WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   - platform: template
     id: next_timer
     name: "Next timer"

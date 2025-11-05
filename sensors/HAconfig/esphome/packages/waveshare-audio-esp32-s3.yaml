@@ -1,5 +1,5 @@
 substitutions:
-  device_name: esp32-audio-s3-0
+  device_name: ${device_name}
   
   # Phases of the Voice Assistant
   voice_assist_idle_phase_id: '1' # ready to be triggered by a wake word
@@ -179,9 +179,8 @@ api:
     - script.execute: control_leds
   on_client_disconnected:
     - script.execute: control_leds
-
-  encryption:
-    key: !secret api_encryption_key
+#  encryption:
+#    key: !secret api_encryption_key
 
 # http_request: 
 #   verify_ssl: false
@@ -1183,8 +1182,8 @@ number:
 
 sensor:
   - platform: wifi_signal
-    name: "Waveshare Audio WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   - platform: template
     id: next_timer
     name: "Next timer"

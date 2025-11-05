@@ -89,7 +89,7 @@ network:
   enable_ipv6: true
 
 logger:
-  level: DEBUG
+  level: ${log_level}
   logs:
     sensor: WARN  # avoids logging debug sensor updates
 
@@ -99,7 +99,7 @@ api:
     - script.execute: control_leds
   on_client_disconnected:
     - script.execute: control_leds
-#  encryption:   # Uses key set by Home Assistant
+#  encryption:
 #    key: !secret api_encryption_key
 
 ota:
@@ -945,8 +945,8 @@ power_supply:
 
 sensor:
   - platform: wifi_signal
-    name: "HA Voice WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   # The dial. Used to control volume and Hue of the LED ring.
   - platform: rotary_encoder
     id: dial

@@ -77,6 +77,14 @@ binary_sensor:
     id: open_sensor
     filters:
       - invert:
+  - platform: gpio
+    pin: 
+      number: GPIO5  # D1
+      mode: INPUT_PULLUP
+    name: "Door Close Sensor"
+    id: close_sensor
+    filters:
+      - invert:
 
 cover:
   - platform: template

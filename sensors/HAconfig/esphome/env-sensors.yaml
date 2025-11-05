@@ -1,6 +1,9 @@
+substitutions:
+  friendly_name: "Environmental Sensors Upstairs"
+
 esphome:
   name: env-sensors
-  friendly_name: "Environmental Sensors Upstairs"
+  friendly_name: ${friendly_name}
   comment: "Air Quality, Temperature, Humidity, and CO2 Sensor in Upstairs Hallway"
   on_boot:
       priority: 800
@@ -17,17 +20,8 @@ esp32:
   framework:
     type: esp-idf
 
-output:
-  - platform: gpio
-    pin: GPIO3
-    id: rf_switch_power
-
-switch:
-  - platform: gpio
-    pin: GPIO14
-    id: antenna_select
-    restore_mode: ALWAYS_OFF 
-    name: "External Wifi Antenna On/Off"
+logger:
+  level: WARN
 
 wifi:
   ssid: !secret wifi_ssid
@@ -35,9 +29,6 @@ wifi:
   ap:
     ssid: ${friendly_name}
     password: !secret wifi_ap_password
-
-logger:
-  level: WARN
 
 api:
   encryption:
@@ -52,6 +43,18 @@ captive_portal:
 web_server:
   port: 80
 
+output:
+  - platform: gpio
+    pin: GPIO3
+    id: rf_switch_power
+
+switch:
+  - platform: gpio
+    pin: GPIO14
+    id: antenna_select
+    restore_mode: ALWAYS_OFF 
+    name: "External Wifi Antenna On/Off"
+
 i2c:
   id: i2cBus
   sda: GPIO22
@@ -61,8 +64,8 @@ i2c:
 
 sensor:
   - platform: wifi_signal
-    name: "WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   - platform: aht10
     variant: AHT20
     i2c_id: i2cBus

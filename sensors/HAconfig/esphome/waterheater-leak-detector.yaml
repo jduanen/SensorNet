@@ -57,7 +57,7 @@ web_server:
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "Waterheater Leak WiFi Signal"
+    name: "${friendly_name} WiFi Signal"
     update_interval: 60s
   - platform: adc
     pin: GPIO1

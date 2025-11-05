@@ -1,3 +1,6 @@
+substitutions:
+  friendly_name: "LED Sign Garage"
+
 globals:
   - id: page_index
     type: int
@@ -13,7 +16,7 @@ external_components:
 
 esphome:
   name: led-sign
-  friendly_name: "LED Sign Garage"
+  friendly_name: ${friendly_name}
   comment: "LED Sign Board with Bi-LED Array in Garage"
 
 esp32:
@@ -86,8 +89,7 @@ font:
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "LED Display WiFi Signal"
-    update_interval: 60s
+    name: "${friendly_name} WiFi Signal"
 
 text_sensor:
   - platform: homeassistant

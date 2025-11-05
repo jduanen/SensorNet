@@ -1,6 +1,9 @@
+substitutions:
+  friendly_name: "Temperature Sensor Garage"
+
 esphome:
   name: tempsense0
-  friendly_name: "Temperature Sensor Garage"
+  friendly_name: ${friendly_name}
   comment: "Temperature Sensor with Display in Middle of the Garage"
   platformio_options:
     board_build.flash_mode: dio
@@ -34,7 +37,6 @@ wifi:
 
 captive_portal:
 
-# Open web port for browser access
 web_server:
   port: 80
 
@@ -58,8 +60,7 @@ one_wire:
 sensor:
   - platform: wifi_signal
     id: wifi_rssi
-    name: "TempSense0 WiFi Signal"
-    update_interval: 60s
+    name: "${friendly_name} WiFi Signal"
   - platform: dallas_temp
     address: 0x9d00000006ac7028
     state_class: "measurement"

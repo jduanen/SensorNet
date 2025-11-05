@@ -1,6 +1,9 @@
+substitutions:
+  friendly_name: "Air Quality MWR"
+
 esphome:
   name: air-quality-sps-0
-  friendly_name: "Air Quality MWR"
+  friendly_name: ${friendly_name}
   comment: "Air Quality (SPS) Sensor in Monica Workroom"
 
 esp8266:
@@ -26,6 +29,9 @@ wifi:
 
 captive_portal:
 
+web_server:
+  port: 80
+
 i2c:
   sda: GPIO4
   scl: GPIO5
@@ -34,8 +40,8 @@ i2c:
 
 sensor:
   - platform: wifi_signal
-    name: "Air Quality SPS-0"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   - platform: sps30
     pm_1_0:
       name: "PM <1µm Weight"
@@ -69,4 +75,3 @@ sensor:
       id: "pm_size"
     address: 0x69
     update_interval: 60s
-

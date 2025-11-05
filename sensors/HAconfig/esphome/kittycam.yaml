@@ -1,7 +1,10 @@
+substitutions:
+  friendly_name: "Kitty Camera"
+
 esphome:
   name: kittycam
-  friendly_name: "Kitty Camera"
-  comment: "ESP32-S3-Sense Camera with PIR Sensor"
+  friendly_name: ${friendly_name}
+  comment: "ESP32-S3-Sense Camera with PIR Sensor and White LED"
 
 esp32:
   board: seeed_xiao_esp32s3
@@ -43,8 +46,8 @@ microphone:
 
 sensor:
   - platform: wifi_signal
-    name: "Kitty Cam WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
 
 i2c:
   id: i2cBus

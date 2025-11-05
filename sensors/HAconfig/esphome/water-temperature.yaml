@@ -35,8 +35,8 @@ one_wire:
 
 sensor:
   - platform: wifi_signal
-    name: "Water Temperature WiFi Signal"
-    update_interval: 60s
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
   - platform: dallas_temp
     address: 0xd6000000070eb528
     name: "Water Heater Output Temperature"

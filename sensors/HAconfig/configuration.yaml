@@ -16,3 +16,15 @@ logger:
     homeassistant.components.sftp_storage: debug
     homeassistant.components.backup: debug
     asynchssh: debug
+
+sensor:
+  - platform: mqtt
+    name: "BirdPi Raw Detections"
+    state_topic: "raw_detections"
+    value_template: "{{ value_json.common }}"
+    json_attributes_topic: "birdpi/raw_detections"
+    json_attributes_template: >
+      {
+        "confidence": "{{ value_json.confidence }}",
+        "scientific_name": "{{ value_json.scientific }}"
+      }

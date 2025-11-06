@@ -1,5 +1,5 @@
 substitutions:
-  number_of_steps: "2750"   # hand-tuned
+  number_of_steps: "2440"   # hand-tuned
   max_speed: "400 steps/s"  # hand-tuned
   friendly_name: "Feeder Door Controller"
 

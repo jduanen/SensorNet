@@ -1,12 +1,16 @@
 substitutions:
-  number_of_steps: "2440"   # hand-tuned
-  max_speed: "400 steps/s"  # hand-tuned
+  max_number_of_steps: "2440"  # hand-tuned
+  max_speed: "400 steps/s"     # hand-tuned
   friendly_name: "Feeder Door Controller"
 
 esphome:
   name: feeder-door
   friendly_name: ${friendly_name}
   comment: "Cat Feeding Machine Door Open/Close Controller"
+  on_boot:
+    priority: 600  # after HW, but before WiFi
+    then:
+      - script.execute: home_on_startup
 
 esp8266:
   board: esp01_1m
@@ -72,43 +76,75 @@ binary_sensor:
     pin: 
       number: GPIO4  # D2
       mode: INPUT_PULLUP
-    name: "Door Open Sensor"
-    id: open_sensor
+    name: "Door Open Switch"
+    id: door_open_switch
     filters:
       - invert:
   - platform: gpio
     pin: 
       number: GPIO5  # D1
       mode: INPUT_PULLUP
-    name: "Door Close Sensor"
-    id: close_sensor
+    name: "Door Close Switch"
+    id: door_close_switch
     filters:
       - invert:
 
+script:
+  - id: home_on_startup
+    then:
+      - logger.log: "Start homing"
+      - while:
+          condition:
+            binary_sensor.is_off: door_close_switch
+          then:
+            - stepper.set_target:
+              id: door_stepper
+              target: !lambda 'return id(door_stepper).current_position - 10;'
+            - delay: 100ms
+      - stepper.report_position:
+          id: door_stepper
+          position: 0
+      - logger.log: "End homing"
+
+#### TODO put in max steps test to keep it from going on indefinitely
 cover:
   - platform: template
-    name: "Door"
+    name: "Feeder Door"
     id: door
     open_action:
-      - stepper.set_target:
-          id: door_stepper
-          target: ${number_of_steps}
-      - sensor.template.publish:
-          id: position
-          state: !lambda return id(door_stepper).target_position;
+      - while:
+        condition:
+          not:
+            binary_sensor.is_on: door_open_switch
+        then:
+          - stepper.set_target:
+            id: door_stepper
+            target: !lambda 'return id(door_stepper).current_position + 10;'
+          - delay: 50ms
+        - sensor.template.publish:
+            id: position
+            state: !lambda 'return id(door_stepper).current_position;'
     close_action:
-      - stepper.set_target:
-          id: door_stepper
-          target: 0
-      - sensor.template.publish:
-          id: position
-          state: !lambda return id(door_stepper).target_position;
+      - while:
+        condition:
+          not:
+            binary_sensor.is_on: door_close_switch
+        then:
+          - stepper.set_target:
+            id: door_stepper
+            target: !lambda 'return id(door_stepper).current_position - 10;'
+          - delay: 50ms
+        - sensor.template.publish:
+            id: position
+            state: !lambda 'return id(door_stepper).current_position;'
     stop_action:
       - stepper.set_target:
           id: door_stepper
-          target: !lambda return id(door_stepper).current_position;
+          target: !lambda 'return id(door_stepper).current_position;'
       - sensor.template.publish:
           id: position
           state: !lambda return id(door_stepper).current_position;
-    optimistic: True
-    assumed_state: True
+    on_open:
+      - logger.log: "Feeder door is open"
+    on_closed:
+      - logger.log: "Feeder door is closed"

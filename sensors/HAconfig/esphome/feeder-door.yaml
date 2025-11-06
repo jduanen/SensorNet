@@ -1,7 +1,7 @@
 substitutions:
-  max_number_of_steps: 2440  # hand-tuned
-  max_time: "10s"            # hand-tuned  #### FIXME
-  max_speed: "400 steps/s"   # hand-tuned
+  max_number_of_steps: 2440.0  # hand-tuned
+  max_transit_time: "10s"      # hand-tuned  #### FIXME
+  max_speed: "400 steps/s"     # hand-tuned  #### TODO set to 250????
   friendly_name: "Feeder Door Controller"
 
 esphome:
@@ -132,7 +132,7 @@ cover:
       - wait_until:
           condition:
             binary_sensor.is_on: door_open_switch
-          timeout: ${max_time}
+          timeout: ${max_transit_time}
       - stepper.set_target:
           id: door_stepper
           target: !lambda 'return id(door_stepper).current_position;'
@@ -142,29 +142,23 @@ cover:
     close_action:
       - stepper.set_target:
           id: door_stepper
-          target: 0
+          target: 0.0
       - wait_until:
           condition:
             binary_sensor.is_on: door_close_switch
-          timeout: ${max_time}
+          timeout: ${max_transit_time}
       - stepper.set_target:
           id: door_stepper
           target: !lambda 'return id(door_stepper).current_position;'
       - stepper.report_position:
           id: door_stepper
-          position: 0
+          position: 0.0
     stop_action:
       - stepper.set_target:
           id: door_stepper
           target: !lambda 'return id(door_stepper).current_position;'
+      - logger.log: "Feeder door stopped"
     on_open:
       - logger.log: "Feeder door is open"
     on_closed:
       - logger.log: "Feeder door is closed"
-
-#      float current_position = id(door_stepper).current_position;
-#      float max_steps = ${max_number_of_steps};  // number of steps for fully open
-#      float position = current_position / max_steps;
-#      if (position < 0.0f) position = 0.0f;
-#      if (position > 1.0f) position = 1.0f;
-#      return position;

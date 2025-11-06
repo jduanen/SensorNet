@@ -1,7 +1,7 @@
 substitutions:
-  max_number_of_steps: "2440"  # hand-tuned
-  max_time: "10s"              # hand-tuned  #### FIXME
-  max_speed: "400 steps/s"     # hand-tuned
+  max_number_of_steps: 2440  # hand-tuned
+  max_time: "10s"            # hand-tuned  #### FIXME
+  max_speed: "400 steps/s"   # hand-tuned
   friendly_name: "Feeder Door Controller"
 
 esphome:
@@ -44,7 +44,7 @@ number:
     name: "Door Position"
     optimistic: true
     min_value: 0
-    max_value: ${number_of_steps}
+    max_value: ${max_number_of_steps}
     step: 1
     on_value:
       then:
@@ -90,6 +90,15 @@ binary_sensor:
     filters:
       - invert:
 
+switch:
+  - platform: template
+    name: "Home Feeder Door"
+    id: home_script_switch
+    optimistic: true
+    turn_on_action:
+      - script.execute: home_on_startup
+      - switch.turn_off: home_script_switch
+
 script:
   - id: home_on_startup
     then:
@@ -99,35 +108,37 @@ script:
             binary_sensor.is_off: door_close_switch
           then:
             - stepper.set_target:
-              id: door_stepper
-              target: !lambda 'return id(door_stepper).current_position - 10;'
+                id: door_stepper
+                target: !lambda 'return id(door_stepper).current_position - 10;'
             - delay: 100ms
       - stepper.report_position:
           id: door_stepper
           position: 0
       - logger.log: "End homing"
 
-#### TODO put in max steps test to keep it from going on indefinitely
 cover:
   - platform: template
     name: "Feeder Door"
     id: feeder_door
+    has_position: false
     lambda: |-
-      if (id(door_close_switch).state) return COVER_CLOSED;
-      if (id(door_open_switch).state) return COVER_OPEN;
-      return COVER_OPENING;  // or CLOSING depending on logic
+      if (id(door_close_switch).state) return 0.0f;  // COVER_CLOSED
+      if (id(door_open_switch).state) return 1.0f;   // COVER_OPEN
+      return 0.5f;  // COVER_CLOSING
     open_action:
       - stepper.set_target:
           id: door_stepper
-          target: !lambda 'return max_number_of_steps;'
+          target: !lambda 'return ${max_number_of_steps};'
       - wait_until:
           condition:
             binary_sensor.is_on: door_open_switch
-          timeout: max_time
-      - stepper.stop: door_stepper
+          timeout: ${max_time}
+      - stepper.set_target:
+          id: door_stepper
+          target: !lambda 'return id(door_stepper).current_position;'
       - stepper.report_position:
           id: door_stepper
-          position: max_number_of_steps
+          position: ${max_number_of_steps}
     close_action:
       - stepper.set_target:
           id: door_stepper
@@ -135,14 +146,25 @@ cover:
       - wait_until:
           condition:
             binary_sensor.is_on: door_close_switch
-          timeout: max_time
-      - stepper.stop: door_stepper
+          timeout: ${max_time}
+      - stepper.set_target:
+          id: door_stepper
+          target: !lambda 'return id(door_stepper).current_position;'
       - stepper.report_position:
           id: door_stepper
           position: 0
     stop_action:
-      - stepper.stop: door_stepper
+      - stepper.set_target:
+          id: door_stepper
+          target: !lambda 'return id(door_stepper).current_position;'
     on_open:
       - logger.log: "Feeder door is open"
     on_closed:
       - logger.log: "Feeder door is closed"
+
+#      float current_position = id(door_stepper).current_position;
+#      float max_steps = ${max_number_of_steps};  // number of steps for fully open
+#      float position = current_position / max_steps;
+#      if (position < 0.0f) position = 0.0f;
+#      if (position > 1.0f) position = 1.0f;
+#      return position;

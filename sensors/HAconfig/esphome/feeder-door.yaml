@@ -1,5 +1,6 @@
 substitutions:
   max_number_of_steps: "2440"  # hand-tuned
+  max_time: "10s"              # hand-tuned  #### FIXME
   max_speed: "400 steps/s"     # hand-tuned
   friendly_name: "Feeder Door Controller"
 
@@ -110,40 +111,37 @@ script:
 cover:
   - platform: template
     name: "Feeder Door"
-    id: door
+    id: feeder_door
+    lambda: |-
+      if (id(door_close_switch).state) return COVER_CLOSED;
+      if (id(door_open_switch).state) return COVER_OPEN;
+      return COVER_OPENING;  // or CLOSING depending on logic
     open_action:
-      - while:
-        condition:
-          not:
-            binary_sensor.is_on: door_open_switch
-        then:
-          - stepper.set_target:
-            id: door_stepper
-            target: !lambda 'return id(door_stepper).current_position + 10;'
-          - delay: 50ms
-        - sensor.template.publish:
-            id: position
-            state: !lambda 'return id(door_stepper).current_position;'
-    close_action:
-      - while:
-        condition:
-          not:
-            binary_sensor.is_on: door_close_switch
-        then:
-          - stepper.set_target:
-            id: door_stepper
-            target: !lambda 'return id(door_stepper).current_position - 10;'
-          - delay: 50ms
-        - sensor.template.publish:
-            id: position
-            state: !lambda 'return id(door_stepper).current_position;'
-    stop_action:
       - stepper.set_target:
           id: door_stepper
-          target: !lambda 'return id(door_stepper).current_position;'
-      - sensor.template.publish:
-          id: position
-          state: !lambda return id(door_stepper).current_position;
+          target: !lambda 'return max_number_of_steps;'
+      - wait_until:
+          condition:
+            binary_sensor.is_on: door_open_switch
+          timeout: max_time
+      - stepper.stop: door_stepper
+      - stepper.report_position:
+          id: door_stepper
+          position: max_number_of_steps
+    close_action:
+      - stepper.set_target:
+          id: door_stepper
+          target: 0
+      - wait_until:
+          condition:
+            binary_sensor.is_on: door_close_switch
+          timeout: max_time
+      - stepper.stop: door_stepper
+      - stepper.report_position:
+          id: door_stepper
+          position: 0
+    stop_action:
+      - stepper.stop: door_stepper
     on_open:
       - logger.log: "Feeder door is open"
     on_closed:

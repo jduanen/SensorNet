@@ -1,6 +1,5 @@
 substitutions:
-  number_of_steps: "2984"   # hand-tuned
-  incr_steps: "10"          # hand-tuned
+  number_of_steps: "2750"   # hand-tuned
   max_speed: "400 steps/s"  # hand-tuned
   friendly_name: "Feeder Door Controller"
 
@@ -90,7 +89,6 @@ cover:
   - platform: template
     name: "Door"
     id: door
-#    device_class: None
     open_action:
       - stepper.set_target:
           id: door_stepper

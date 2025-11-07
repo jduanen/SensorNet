@@ -1,3 +1,0 @@
-SensorNet Sensor Library
-
-**TBD**

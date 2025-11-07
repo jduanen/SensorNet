@@ -1,0 +1,13 @@
+SensorNet		KEYWORD1
+systemReset		KEYWORD2
+serialStart		KEYWORD2
+consolePrint	KEYWORD2
+consolePrintln	KEYWORD2
+consoleWaitForInput	KEYWORD2
+wifiStart		KEYWORD2
+wifiState		KEYWORD2
+mqttSetup		KEYWORD2
+mqttRun			KEYWORD2
+mqttPub			KEYWORD2
+mqttState		KEYWORD2
+baseCallback	KEYWORD2

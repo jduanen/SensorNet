@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>%APPL_NAME% Web Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+  </head>
+  <body>
+    <div class="topnav">
+      <h1>%APPL_NAME% Web Server</h1>
+    </div>
+    <div class="content">
+      <div class="card">
+        <h2>Information</h2>
+        <p class="staticState">App Version: <span style="color:blue" id="version">%VERSION%</span></p>
+        <p class="staticState">Library Version: <span style="color:blue" id="libVersion">%LIB_VERSION%</span></p>
+        <p class="staticState">WIFI Mode: <span style="color:blue" id="wifiMode">%WIFI_MODE%</span></p>
+        <p class="staticState">IP Address: <span style="color:blue" id="ipAddr">%IP_ADDR%</span></p>
+        <p class="staticState">RSSI: <span style="color:blue" id="rssi">%RSSI%</span></p>
+      </div>
+      <br>
+      <div class="card">
+        <h2>Controls</h2>
+        <h3>System</h3>
+        <div class="vertical-right" style="padding-right: 50px; line-height: 1.5em;">
+          <p>
+            SSID: <input type="text" id="ssid">
+            <br>
+            Passwd: <input type="password" id="password">
+          </p>
+        </div>
+
+        <h3>Test</h3>
+        <div class="vertical-center">
+          Flag:
+          <input type="checkbox" id="flag" name="flag" onclick="toggleCheckbox(this)">
+          <br>
+          Integer:
+          <input id="intVal" name="intVal">
+          <br>
+          String:
+          <input id="str" name="str">
+          <br>
+        </div>
+        <br>
+        <div id="customPatternDiv">
+          Start Color: <input type="color" id="startColor" name="startColor">
+          <br>
+          End Color: <input type="color" id="endColor" name="endColor">
+          <br>
+          <br>
+          Tuples:
+          <div class="box">
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb0" id="cb0"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb1" id="cb1"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb2" id="cb2"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb3" id="cb3"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb4" id="cb4"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb5" id="cb5"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb6" id="cb6"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb7" id="cb7"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb8" id="cb8"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb9" id="cb9"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb10" id="cb10"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb11" id="cb11"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb12" id="cb12"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb13" id="cb13"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb14" id="cb14"></button>
+            <button class="colorsButton" onclick=colorsButtonClick(this) name="cb15" id="cb15"></button>
+          </div>
+          <button type="button" onclick="clearCustomColors()" name="clearAll" id="clearAll">Clear All</button>
+        </div>
+        <br>
+        <button id="setStr" name="setStr" onclick="setValues()">Set</button>
+        <br>
+        <div class="vertical-center">
+          <p><button class="green-button" id="save" onclick="saveConfiguration()">Save Configuration</button></p>
+        </div>
+      </div>
+      <br>
+      <nav>
+        <a href="/update">Update Firmware</a>
+      </nav>
+    </div>
+    <script src="/scripts.js"></script>
+    <script>
+      var NUMBER_OF_TUPLES = %NUM_TUPLES%;
+      function initView() {
+        var wifiMode = "%WIFI_MODE%";
+        switch (wifiMode) {
+          case "STA":
+            var p1 = "<p><span class=\"staticStateName\">IP Address: </span><span class=\"staticStateValue\" id=\"ipAddr\">%IP_ADDR%</span></p>";
+            var p2 = "<p><span class=\"staticStateName\">Connection: </span><span class=\"staticStateValue\" id=\"connection\">%SSID%</span></p>";
+            document.getElementById("wifiMode").insertAdjacentHTML("afterend", p1);
+            document.getElementById("ipAddr").insertAdjacentHTML("afterend", p2);
+            break;
+          case "A_P":
+            var p1 = "<p><span class=\"staticStateName\">AP SSID: </span><span class=\"staticStateValue\" id=\"wifiApSsid\">%WIFI_AP_SSID%</span></p>";
+            document.getElementById("wifiMode").insertAdjacentHTML("afterend", p1);
+            break;
+          default:
+            console.log("WARNING: invalid WIFI mode -- " + wifiMode);
+        }
+        var jsonMsg = JSON.stringify({"msgType": "query"});
+        websocket.send(jsonMsg);
+      }
+    </script>
+  </body>
+</html>

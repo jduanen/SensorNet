@@ -1,0 +1,118 @@
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: ${comment}
+
+esp8266:
+  board: esp01_1m
+
+logger:
+  level: ${log_level}
+  baud_rate: 0
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: ${friendly_name}
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+web_server:
+  port: 80
+
+uart:
+  rx_pin: GPIO3
+#  tx_pin: GPIO1
+  baud_rate: 9600
+
+# N.B. must wait >=30s after waking up before reading value
+sensor:
+  - platform: wifi_signal
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
+  - platform: pmsx003
+    type: PMSX003
+    pm_1_0:
+      name: "Particulate Matter <1.0µm"
+      id: pms1
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
+    pm_2_5:
+      name: "Particulate Matter <2.5µm"
+      id: pms2_5
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
+    pm_10_0:
+      name: "Particulate Matter <10.0µm"
+      id: pms10
+      accuracy_decimals: 1
+      filters:
+        - lambda: |-
+            if (id(readyToRead).state) {
+              return(x);
+            } else {
+              return {};
+            }
+        - sliding_window_moving_average:
+            window_size: 10
+            send_every: 1
+            send_first_at: 1
+        - debounce: 3s
+
+interval:
+  - interval: 5min
+    then:
+      - switch.turn_on: pmsSet
+      - delay: 30s
+      - switch.turn_on: readyToRead
+      - delay: 5s
+      - switch.turn_off: readyToRead
+      - switch.turn_off: pmsSet
+
+switch:
+  - platform: template
+    name: "Ready to Read Post Warm-Up"
+    id: readyToRead
+    optimistic: true
+  - platform: gpio
+    pin:
+      number: GPIO5
+    id: pmsSet
+  - platform: restart
+    name: "Restart"
+  - platform: gpio
+    pin: GPIO4
+    name: "Reset"
+    inverted: true

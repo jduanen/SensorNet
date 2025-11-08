@@ -11,7 +11,7 @@ esphome:
   on_boot:
     priority: 600  # after HW, but before WiFi
     then:
-      - script.execute: home_on_startup
+      - script.execute: home_door_backward
 
 esp8266:
   board: esp01_1m
@@ -83,11 +83,11 @@ switch:
     id: home_script_switch
     optimistic: false
     turn_on_action:
-      - script.execute: home_on_startup
+      - script.execute: home_door_backward
       - switch.turn_off: home_script_switch
 
 script:
-  - id: home_on_startup
+  - id: home_door_backward
     then:
       - logger.log: "Start homing"
       - while:
@@ -98,10 +98,18 @@ script:
                 id: door_stepper
                 target: !lambda 'return id(door_stepper).current_position - 10;'
             - delay: 100ms
+      - logger.log:
+          format: "Homed: %d"
+          args: [ 'id(door_stepper).current_position' ]
+      - stepper.set_target:
+          id: door_stepper
+          target: !lambda 'return id(door_stepper).current_position;'
       - stepper.report_position:
           id: door_stepper
           position: 0
-      - logger.log: "End homing"
+      - logger.log:
+          format: "End Homing: %d"
+          args: [ 'id(door_stepper).current_position' ]
 
 cover:
   - platform: template

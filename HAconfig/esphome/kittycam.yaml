@@ -9,6 +9,12 @@ esphome:
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
 
 logger:
   level: WARN
@@ -33,16 +39,12 @@ captive_portal:
 web_server:
   port: 80
 
-i2s_audio:
-  i2s_lrclk_pin: GPIO1  # Dummy pin just for requirement, unused by PDM
-  i2s_bclk_pin: GPIO42  # Bit Clock (PDM_CLK for Sense Hat)
-
 microphone:
   - platform: i2s_audio
     id: kc_mic
-    i2s_din_pin: GPIO41  # Data In
     adc_type: external
-    pdm: true
+    i2s_din_pin: GPIO42
+    channel: left
 
 sensor:
   - platform: wifi_signal
@@ -50,9 +52,14 @@ sensor:
     name: "${friendly_name} WiFi Signal"
 
 i2c:
-  id: i2cBus
-  sda: GPIO40
-  scl: GPIO39
+   - id: camera_i2c
+     sda: GPIO40
+     scl: GPIO39
+
+i2s_audio:
+  i2s_lrclk_pin: GPIO46
+  i2s_bclk_pin: GPIO45
+  i2s_mclk_pin: GPIO0
 
 esp32_camera:  # XIAO SENSE
   name: Kitty Cam
@@ -60,26 +67,16 @@ esp32_camera:  # XIAO SENSE
   external_clock:
     pin: GPIO10
     frequency: 20MHz
-  i2c_id: i2cBus
+  i2c_id: camera_i2c
   data_pins: [GPIO15, GPIO17, GPIO18, GPIO16, GPIO14, GPIO12, GPIO11, GPIO48]
   vsync_pin: GPIO38
   href_pin: GPIO47
   pixel_clock_pin: GPIO13
-  resolution: 640x480  # 800x600 1024x768 1280x1024 1600x1200 1920x1080
+  reset_pin: GPIO9
+  max_framerate: 10 fps
+  idle_framerate: 0.2 fps
+  resolution: 800x600
   jpeg_quality: 10
-#  reset_pin: GPIO??
-#  power_down_pin: GPIO??
-#  test_pattern: true
-#  max_framerate: 30fps
-#  idle_framerate: 0.1fps
-#  vertical_flip: true
-#  horizontal_mirror: true
-#  contrast: 0
-#  brightness: 0
-#  saturation: 0
-#  special_effect: none  # grayscale
-#  aec_mode: auto
-#  agc_mode: auto
 
 esp32_camera_web_server:
   - port: 8080
@@ -97,6 +94,9 @@ output:
   - platform: ledc
     pin: GPIO2    # white LED
     id: kittyCamLED
+  - platform: gpio
+    pin: GPIO21
+    id: led_builtin
 
 light:
   - platform: monochromatic

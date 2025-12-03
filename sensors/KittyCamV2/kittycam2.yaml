@@ -1,3 +1,6 @@
+#### FIXME convert from arduino to esp-idf
+#### FIXME add 'min_auth_mode: WPA2'
+
 substitutions:
   friendly_name: "Kitty Camera V2"
 

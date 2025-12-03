@@ -1,0 +1,8 @@
+substitutions:
+  device_name: smart-plug-ems01-0
+  friendly_name: "Smart Plug EMS01 in XXX"
+  comment: "Modified Emporia EMS01 Smart Plug in XXX"
+  log_level: DEBUG  ## WARN
+
+packages:
+  hardware: !include packages/smart-plug-ems01-base.yaml

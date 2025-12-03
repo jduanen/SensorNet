@@ -1,3 +1,6 @@
+#### FIXME convert ESPHomeComponents/led_display from arduino to esp-idf???
+#### FIXME add 'min_auth_mode: WPA2'
+
 substitutions:
   friendly_name: "LED Sign Garage"
 
@@ -67,6 +70,7 @@ display:
     lambda: |-
       if (!id(led_display_text).state.empty()) {
         it.printLED(id(led_display_text).state.c_str());
+        ESP_LOGD("led-sign", "> %s", id(led_display_text).state.c_str());
       };
 
 font:

@@ -1,6 +1,3 @@
-#### FIXME convert ESPHomeComponents/led_display from arduino to esp-idf???
-#### FIXME add 'min_auth_mode: WPA2'
-
 substitutions:
   friendly_name: "LED Sign Garage"
 
@@ -29,7 +26,7 @@ esp32:
     type: esp-idf
 
 logger:
-  level: WARN
+  level: INFO
 
 api:
   encryption:

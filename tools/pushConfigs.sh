@@ -13,7 +13,7 @@ TARGET="jdn@gpuServer1.lan:Code/SensorNet/sensors"
 read -s -p "Enter password: " PASSWD
 export SSHPASS="${PASSWD}"
 echo ""
-echo "Copying..."
+echo "Pushing..."
 
 cd /root/config/esphome
 

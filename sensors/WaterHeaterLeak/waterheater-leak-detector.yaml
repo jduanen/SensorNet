@@ -1,0 +1,81 @@
+esphome:
+  name: waterheater-leak-detector
+  friendly_name: "Waterheater Leak Detector Garage"
+  comment: "Water Sensing Wire Around the Base of the Waterheater in the Garage"
+
+esp32:
+  board: lolin_c3_mini
+  framework:
+    type: arduino
+
+logger:
+  level: WARN
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: ${friendly_name}
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+web_server:
+  port: 80
+
+#text_sensor:
+#  - platform: homeassistant
+#    entity_id: ota.status
+#    name: "OTA Status"
+#  - platform: version
+#    id: firmware_version
+#    name: "Firmware Version"
+#  - platform: wifi_info
+#    ip_address:
+#      id: ipAddr
+#      name: ESP IP Address
+#    ssid:
+#      name: ESP Connected SSID
+#    bssid:
+#      name: ESP Connected BSSID
+#    mac_address:
+#      id: macAddr
+#      name: ESP Mac Wifi Address
+#    scan_results:
+#      name: ESP Latest Scan Results
+#    dns_address:
+#      name: ESP DNS Address
+
+sensor:
+  - platform: wifi_signal
+    id: wifi_rssi
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
+  - platform: adc
+    pin: GPIO1
+    name: "Leak Sensor"
+    id: leak_sensor
+    update_interval: 10s
+    attenuation: 12db
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 13
+          send_every: 13
+          send_first_at: 6
+
+binary_sensor:
+  - platform: analog_threshold
+    name: "Waterheater Leak Detected"
+    sensor_id: leak_sensor
+    threshold: 1.7
+    filters:
+      - invert:

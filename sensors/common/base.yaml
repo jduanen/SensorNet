@@ -1,0 +1,11 @@
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: ${comment}
+
+logger:
+  level: ${log_level}
+
+api:
+  encryption:
+    key: !secret api_encryption_key

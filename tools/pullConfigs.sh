@@ -99,7 +99,7 @@ yamlFiles="waveshare-audio-esp32-s3.yaml"
 sshpass -e scp ${SOURCE}/WaveshareSatellite/packages/${yamlFiles} ./packages/
 
 # Secrets file
-sshpass -e scp ${SOURCE}/secrets.yaml .
+sshpass -e scp ${SOURCE}/common/secrets.yaml .
 
 # Finish up
 #### TODO print any failures (after making this detect failures and go on)

@@ -19,9 +19,11 @@ cd /root/config/esphome
 
 # Air Quality Sensors (PMS)
 yamlFiles="air-quality-pms-0.yaml air-quality-pms-1.yaml air-quality-pms-2.yaml"
-sshpass -e scp ${SOURCE}/AirQualityPMS/${yamlFiles} .
+for f in ${yamlFiles}; do
+  sshpass -e scp ${SOURCE}/AirQualityPMS/${f} .
+done
 yamlFiles="air-quality-pms-base.yaml"
-sshpass -e scp ${SOURCE}/AirQualityPMS/packages/${yamlFiles} .
+sshpass -e scp ${SOURCE}/AirQualityPMS/packages/${yamlFiles} ./packages/
 
 # Air Quality Sensors (SPS)
 yamlFiles="air-quality-sps-0.yaml"
@@ -38,6 +40,8 @@ sshpass -e scp ${SOURCE}/FeederDoor/${yamlFiles} .
 # Home Assistant Voice
 yamlFiles="home-assistant-voice-0.yaml"
 sshpass -e scp ${SOURCE}/HomeAssistantVoicePE/${yamlFiles} .
+yamlFiles="home-assistant-voice.yaml"
+sshpass -e scp ${SOURCE}/HomeAssistantVoicePE/packages/${yamlFiles} ./packages/
 
 # KittyCams
 yamlFiles="kittycam.yaml"
@@ -52,21 +56,23 @@ sshpass -e scp ${SOURCE}/LedDisplay/${yamlFiles} .
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
-sshpass -e scp ${SOURCE}/Radiation/${yamlFiles} .
+for f in ${yamlFiles}; do
+    sshpass -e scp ${SOURCE}/Radiation/${f} .
+done
 yamlFiles="radiation-base.yaml"
-sshpass -e scp ${SOURCE}/Radiation/packages/${yamlFiles} .
+sshpass -e scp ${SOURCE}/Radiation/packages/${yamlFiles} ./packages/
 
 # Respeaker XVF3800 Satellite
 yamlFiles="respeaker-xvf3800-0.yaml"
 sshpass -e scp ${SOURCE}/ReSpeakerVXF3800Satellite/${yamlFiles} .
 yamlFiles="respeaker-xvf3800.yaml"
-sshpass -e scp ${SOURCE}/ReSpeakerVXF3800Satellite/packages/${yamlFiles} .
+sshpass -e scp ${SOURCE}/ReSpeakerVXF3800Satellite/packages/${yamlFiles} ./packages/
 
 # Smart Plugs (EMS01)
 yamlFiles="smart-plug-ems01-0.yaml"
 sshpass -e scp ${SOURCE}/SmartPlugEMS01/${yamlFiles} .
 yamlFiles="smart-plug-ems01-base.yaml"
-sshpass -e scp ${SOURCE}/SmartPlugEMS01/packages/${yamlFiles} .
+sshpass -e scp ${SOURCE}/SmartPlugEMS01/packages/${yamlFiles} ./packages/
 
 # Temperature Sensor with Display
 yamlFiles="tempsense0.yaml"
@@ -86,9 +92,14 @@ sshpass -e scp ${SOURCE}/WaterHeaterLeak/${yamlFiles} .
 
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
-sshpass -e scp ${SOURCE}/WaveshareSatellite/${yamlFiles} .
+for f in ${yamlFiles}; do
+    sshpass -e scp ${SOURCE}/WaveshareSatellite/${f} .
+done
 yamlFiles="waveshare-audio-esp32-s3.yaml"
-sshpass -e scp ${SOURCE}/WaveshareSatellite/packages/${yamlFiles} .
+sshpass -e scp ${SOURCE}/WaveshareSatellite/packages/${yamlFiles} ./packages/
+
+# Secrets file
+sshpass -e scp ${SOURCE}/secrets.yaml .
 
 # Finish up
 #### TODO print any failures (after making this detect failures and go on)

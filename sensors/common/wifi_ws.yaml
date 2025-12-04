@@ -2,7 +2,7 @@ substitutions:
   web_server_port: 80
 
 packages:
-  base: !include common/wifi.yaml
+  wifi: !include: common/wifi.yaml
 
 web_server:
   port: ${web_server_port}

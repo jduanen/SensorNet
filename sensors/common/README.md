@@ -1,25 +1,5 @@
 # ESPHome YAML Config File Conventions
 
-* for each instance of a device type, put an instance config file into 'esphome/'
-  - an instance config file contains
-    * substitutions that are specific to the instance
-
-    * include the base device config file from 'esphome/packages/'
-      - base config files names
-        * include the device type
-        * are lower case and hypen-separated
-        * end in "-base.yaml"
-    * e.g.,
-```
-substitutions:
-  device_name: "short, lowercase, underbar-separated, ending in instance number"  # e.g., temp_0
-  friendly_name: "short string"  # e.g., "Temp Living Room"
-  comment: "Full sentance description of device type and instance"  # e.g., "Temperature sensor in living room"
-  log_level: logLevel  # e.g., WARN, DEBUG, INFO, VERBOSE
-
-packages:
-  hardware: !include packages/device-type-base.yaml
-```
 * all strings with spaces are enclosed in double-quotes
   - not necessary for YAML, but it makes the field value more obvious
 * all device (base) config files include the desired packages from 'esphome/common'
@@ -46,3 +26,56 @@ packages:
     * includes 'common/wifi.yaml', so device config files just have to include this package
     * top-level fields defined: 'web_server'
     * expects and defines as given in 'common/wifi.yaml', nothing added by this package
+* for each instance of a device type, put an instance config file into 'esphome/'
+  - an instance config file contains
+    * substitutions that are specific to the instance
+
+    * include the base device config file from 'esphome/packages/'
+      - base config files names
+        * include the device type
+        * are lower case and hypen-separated
+        * end in "-base.yaml"
+    * e.g.,
+```
+substitutions:
+  device_name: "short, lowercase, underbar-separated, ending in instance number"  # e.g., temp_0
+  friendly_name: "short string"  # e.g., "Temp Living Room"
+  comment: "Full sentance description of device type and instance"  # e.g., "Temperature sensor in living room"
+  log_level: logLevel  # e.g., WARN, DEBUG, INFO, VERBOSE
+
+packages:
+  hardware:
+    !include:
+      file: packages/device-type-base.yaml
+```
+* the 'packages' field is a dict
+  - keys: arbitrary labels (ignored by ESPHome)
+  - values: package references that load and merge external YAML files into the config
+* the declarations of packages can be simplified
+  - e.g., 
+'''
+packages:
+  hardware: !include packages/air-quality-pms-base.yaml
+'''
+is equivalent to
+'''
+packages:
+  hardware:
+    !include:
+      file: packages/device-type-base.yaml
+'''
+* packages can be define by local files, urls, or github urls, by using (respectively) the 'file', 'url', and 'github' keywords
+  - file: a local file, relative the the caller's location
+    * e.g., 'file: common/foo.yaml'
+  - url: a URL to a file that can be accessed remotely
+    * e.g., 'url: https://github.com/usr/repo/raw/main/foo.yaml'
+  - github: shorthand for a github URL
+    * e.g., 'github: usr/repo@branch_or_tag' -- expands to full Git URL
+* packages are accessed via the 'github' keyword
+  - e.g., 'github: jduanen/SensorNet/????'
+* package merging behavior: loaded packages merge recursively
+  - dictionaries by key, component lists by id, others by override (main config wins)
+* always use esphome to inspect the result of package includes
+  - e.g., 'esphome config file-name.yaml'
+* ?
+

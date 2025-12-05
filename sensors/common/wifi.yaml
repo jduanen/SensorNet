@@ -4,8 +4,7 @@ packages:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  #### FIXME
-  ##min_auth_mode: WPA2
+  min_auth_mode: WPA2
   ap:
     ssid: ${friendly_name}
     password: !secret wifi_ap_password

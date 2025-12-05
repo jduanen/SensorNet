@@ -17,9 +17,6 @@ i2c:
   frequency: 50kHz
 
 sensor:
-  - platform: wifi_signal
-    id: wifi_rssi
-    name: "${friendly_name} WiFi Signal"
   - platform: sps30
     pm_1_0:
       name: "PM <1µm Weight"

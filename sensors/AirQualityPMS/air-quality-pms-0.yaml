@@ -6,5 +6,6 @@ substitutions:
 
 packages:
 #  base_conf: github://jduanen/SensorNet/sensors/common/base.yaml
-  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
+  wifi_conf: github://jduanen/SensorNet/sensors/common/wifi.yaml
+#  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
   dev_conf: github://jduanen/SensorNet/sensors/AirQualityPMS/packages/air-quality-pms-base.yaml

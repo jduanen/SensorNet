@@ -72,10 +72,14 @@ packages:
   - github: shorthand for a github URL
     * e.g., 'github: usr/repo@branch_or_tag' -- expands to full Git URL
 * packages are accessed via the 'github' keyword
-  - e.g., 'github: jduanen/SensorNet/????'
+  - e.g., 'base_conf: github://jduanen/SensorNet/sensors/common/base.yaml'
 * package merging behavior: loaded packages merge recursively
   - dictionaries by key, component lists by id, others by override (main config wins)
 * always use esphome to inspect the result of package includes
-  - e.g., 'esphome config file-name.yaml'
+  - first flush cache and then compile: 'esphome clean file-name.yaml'
+  - just compile: 'esphome -vvvv config file-name.yaml'
+* get all the packages from github
+  - for system base packages, use '<fileName>_conf' label for '<fileName>.yaml'
+  - for device base packages, use the 'dev_conf' label
 * ?
 

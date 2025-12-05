@@ -1,43 +1,22 @@
 substitutions:
+  device_name: feeder-door
+  friendly_name: "Feeder Door Controller"
+  comment: "Cat Feeding Machine Door Open/Close Controller"
   max_number_of_steps: 2440.0  # hand-tuned
   max_transit_time: "8s"       # hand-tuned
   max_speed: "400 steps/s"     # hand-tuned  #### TODO set to 250????
-  friendly_name: "Feeder Door Controller"
 
 esphome:
-  name: feeder-door
-  friendly_name: ${friendly_name}
-  comment: "Cat Feeding Machine Door Open/Close Controller"
 #  on_boot:
 #    priority: 600  # after HW, but before WiFi
 #    then:
 #      - script.execute: home_door_backward
 
+packages:
+  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
+
 esp8266:
   board: esp01_1m
-
-logger:
-  level: DEBUG
-
-api:
-  encryption:
-    key: !secret api_encryption_key
-
-ota:
-  - platform: esphome
-    password: !secret ota_password
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  ap:
-    ssid: ${friendly_name}
-    password: !secret wifi_ap_password
-
-captive_portal:
-
-web_server:
-  port: 80
 
 sensor:
   - platform: wifi_signal

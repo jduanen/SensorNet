@@ -5,9 +5,6 @@ substitutions:
   log_level: WARN
 
 packages:
-  base_conf: github://jduanen/SensorNet/sensors/common/base.yaml
+#  base_conf: github://jduanen/SensorNet/sensors/common/base.yaml
+  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
   dev_conf: github://jduanen/SensorNet/sensors/AirQualityPMS/packages/air-quality-pms-base.yaml
-
-#### Also Works
-#  base_conf: !include common/base.yaml
-#  dev_conf: !include packages/air-quality-pms-base.yaml

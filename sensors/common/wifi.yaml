@@ -4,11 +4,13 @@ packages:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  min_auth_mode: WPA2
+  #### FIXME
+  ##min_auth_mode: WPA2
   ap:
     ssid: ${friendly_name}
     password: !secret wifi_ap_password
-  captive_portal:
+
+captive_portal:
 
 ota:
   - platform: esphome

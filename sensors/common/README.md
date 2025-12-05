@@ -53,17 +53,17 @@ packages:
   - values: package references that load and merge external YAML files into the config
 * the declarations of packages can be simplified
   - e.g., 
-'''
+```
 packages:
   hardware: !include packages/air-quality-pms-base.yaml
-'''
+```
 is equivalent to
-'''
+```
 packages:
   hardware:
     !include:
       file: packages/device-type-base.yaml
-'''
+```
 * packages can be define by local files, urls, or github urls, by using (respectively) the 'file', 'url', and 'github' keywords
   - file: a local file, relative the the caller's location
     * e.g., 'file: common/foo.yaml'

@@ -5,4 +5,9 @@ substitutions:
   log_level: WARN
 
 packages:
-  dev_config: !include packages/air-quality-pms-base.yaml
+  dev_config:
+    url: https://github.com/jduanen/SensorNet.git
+    files:
+      - sensors/common/base.yaml
+      - sensors/AirQualityPMS/packages/air-quality-pms-base.yaml
+    refresh: 0d  # refresh on rebuild #### TMP TMP TMP

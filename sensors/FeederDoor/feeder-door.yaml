@@ -2,6 +2,7 @@ substitutions:
   device_name: feeder-door
   friendly_name: "Feeder Door Controller"
   comment: "Cat Feeding Machine Door Open/Close Controller"
+  log_level: WARN
   max_number_of_steps: 2440.0  # hand-tuned
   max_transit_time: "8s"       # hand-tuned
   max_speed: "400 steps/s"     # hand-tuned  #### TODO set to 250????

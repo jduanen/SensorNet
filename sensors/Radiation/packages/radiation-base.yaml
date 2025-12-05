@@ -11,10 +11,6 @@ external_components:
       url: https://github.com/jduanen/ESPHomeComponents
     components: [ geigerkit ]
     refresh: always
-#  - source:
-#      type: local
-#      path: /home/jdn/Code/ESPHomeComponents/components/
-#    components: [ geigerkit ]
 
 uart:
   id: uart_bus

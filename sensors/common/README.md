@@ -76,8 +76,9 @@ packages:
 * package merging behavior: loaded packages merge recursively
   - dictionaries by key, component lists by id, others by override (main config wins)
 * always use esphome to inspect the result of package includes
-  - first flush cache and then compile: 'esphome clean file-name.yaml'
-  - just compile: 'esphome -vvvv config file-name.yaml'
+  - first flush cache and then config: 'esphome clean file-name.yaml'
+  - just config: 'esphome -vvvv config file-name.yaml'
+  - compile: 'esphome -vvvv compile file-name.yaml'
 * get all the packages from github
   - for system base packages, use '<fileName>_conf' label for '<fileName>.yaml'
   - for device base packages, use the 'dev_conf' label

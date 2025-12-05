@@ -43,9 +43,6 @@ i2c:
   frequency: 50kHz  #### 50kHz 100kHz, 400kHz
 
 sensor:
-  - platform: wifi_signal
-    id: wifi_rssi
-    name: "${friendly_name} WiFi Signal"
   - platform: aht10
     variant: AHT20
     i2c_id: i2cBus

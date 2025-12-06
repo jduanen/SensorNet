@@ -21,10 +21,12 @@ echo "Pulling..."
 
 cd /root/config/esphome
 
+
 # **Controllers
 # Feeder Door
 yamlFiles="feeder-door.yaml"
 sshpass -e scp ${CONTROLLERS}/FeederDoor/${yamlFiles} .
+
 
 # **Sensors
 # Air Quality Sensors (PMS)
@@ -50,7 +52,7 @@ sshpass -e scp ${SENSORS}/KittyCamV2/${yamlFiles} .
 
 # LED Sign
 yamlFiles="led-sign.yaml"
-sshpass -e scp ${SENSORS}/LedDisplay/${yamlFiles} .
+sshpass -e scp ${SENSORS}/LedSign/${yamlFiles} .
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
@@ -78,6 +80,7 @@ sshpass -e scp ${SENSORS}/WaterHeater/${yamlFiles} .
 yamlFiles="waterheater-leak-detector.yaml"
 sshpass -e scp ${SENSORS}/WaterHeaterLeak/${yamlFiles} .
 
+
 # **Voice Assistants
 # Home Assistant Voice
 yamlFiles="home-assistant-voice-0.yaml"
@@ -92,6 +95,7 @@ yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 for f in ${yamlFiles}; do
     sshpass -e scp ${VOICE_ASSISTANTS}/WaveshareSatellite/${f} .
 done
+
 
 # **Secrets file
 sshpass -e scp ${SOURCE}/common/secrets.yaml .

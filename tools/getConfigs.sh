@@ -7,6 +7,13 @@ SOURCE="/home/jdn/Code/SensorNet/sensors"
 
 echo "Copying..."
 
+# **Controllers
+# Feeder Door
+yamlFiles="feeder-door.yaml"
+cp ${SOURCE}/FeederDoor/${yamlFiles} .
+
+
+# **Sensors
 # Air Quality Sensors (PMS)
 yamlFiles="air-quality-pms-0.yaml air-quality-pms-1.yaml air-quality-pms-2.yaml"
 for f in ${yamlFiles}; do
@@ -21,14 +28,6 @@ cp ${SOURCE}/AirQualitySPS/${yamlFiles} .
 yamlFiles="env-sensors.yaml"
 cp ${SOURCE}/EnvironmentalSensors/${yamlFiles} .
 
-# Feeder Door
-yamlFiles="feeder-door.yaml"
-cp ${SOURCE}/FeederDoor/${yamlFiles} .
-
-# Home Assistant Voice
-yamlFiles="home-assistant-voice-0.yaml"
-cp ${SOURCE}/HomeAssistantVoicePE/${yamlFiles} .
-
 # KittyCams
 yamlFiles="kittycam.yaml"
 cp ${SOURCE}/KittyCam/${yamlFiles} .
@@ -38,17 +37,13 @@ cp ${SOURCE}/KittyCamV2/${yamlFiles} .
 
 # LED Sign
 yamlFiles="led-sign.yaml"
-cp ${SOURCE}/LedDisplay/${yamlFiles} .
+cp ${SOURCE}/LedSign/${yamlFiles} .
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
 for f in ${yamlFiles}; do
     cp ${SOURCE}/Radiation/${f} .
 done
-
-# Respeaker XVF3800 Satellite
-yamlFiles="respeaker-xvf3800-0.yaml"
-cp ${SOURCE}/ReSpeakerVXF3800Satellite/${yamlFiles} .
 
 # Smart Plugs (EMS01)
 yamlFiles="smart-plug-ems01-0.yaml"
@@ -69,6 +64,16 @@ cp ${SOURCE}/WaterHeater/${yamlFiles} .
 # Water Heater Leak Detector
 yamlFiles="waterheater-leak-detector.yaml"
 cp ${SOURCE}/WaterHeaterLeak/${yamlFiles} .
+
+
+# **Voice Assistants
+# Home Assistant Voice
+yamlFiles="home-assistant-voice-0.yaml"
+cp ${SOURCE}/HomeAssistantVoicePE/${yamlFiles} .
+
+# Respeaker XVF3800 Satellite
+yamlFiles="respeaker-xvf3800-0.yaml"
+cp ${SOURCE}/ReSpeakerVXF3800Satellite/${yamlFiles} .
 
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"

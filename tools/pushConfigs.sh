@@ -18,6 +18,14 @@ echo "Pushing..."
 
 cd /root/config/esphome
 
+
+# **Controllers
+# Feeder Door
+yamlFiles="feeder-door.yaml"
+sshpass -e scp ${yamlFiles} ${TARGET}
+
+
+# **Sensors
 # Air Quality Sensors (PMS)
 yamlFiles="air-quality-pms-0.yaml air-quality-pms-1.yaml air-quality-pms-2.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
@@ -28,14 +36,6 @@ sshpass -e scp ${yamlFiles} ${TARGET}
 
 # Environmental Sensors
 yamlFiles="env-sensors.yaml"
-sshpass -e scp ${yamlFiles} ${TARGET}
-
-# Feeder Door
-yamlFiles="feeder-door.yaml"
-sshpass -e scp ${yamlFiles} ${TARGET}
-
-# Home Assistant Voice
-yamlFiles="home-assistant-voice-0.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
 
 # KittyCams
@@ -51,10 +51,6 @@ sshpass -e scp ${yamlFiles} ${TARGET}
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
-sshpass -e scp ${yamlFiles} ${TARGET}
-
-# Respeaker XVF3800 Satellite
-yamlFiles="respeaker-xvf3800-0.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
 
 # Smart Plugs (EMS01)
@@ -77,9 +73,20 @@ sshpass -e scp ${yamlFiles} ${TARGET}
 yamlFiles="waterheater-leak-detector.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
 
+
+# **Voice Assistants
+# Home Assistant Voice
+yamlFiles="home-assistant-voice-0.yaml"
+sshpass -e scp ${yamlFiles} ${TARGET}
+
+# Respeaker XVF3800 Satellite
+yamlFiles="respeaker-xvf3800-0.yaml"
+sshpass -e scp ${yamlFiles} ${TARGET}
+
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
+
 
 # Finish up
 #### TODO print any failures (after making this detect failures and go on)

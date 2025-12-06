@@ -5,5 +5,5 @@ substitutions:
   log_level: WARN
 
 packages:
-  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
   dev_conf: github://jduanen/SensorNet/sensors/AirQualityPMS/packages/air-quality-pms-base.yaml

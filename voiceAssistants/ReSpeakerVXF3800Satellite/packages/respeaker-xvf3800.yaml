@@ -30,6 +30,7 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+  comment: ${comment}
   project: 
     name: formatbce.Respeaker XVF3800 Satellite
     version: 2025.9.0
@@ -105,7 +106,7 @@ network:
   enable_ipv6: true
 
 logger:
-  level: INFO  #### FIXME
+  level: ${log_level}
   initial_level: INFO
   logs:
     sensor: WARN

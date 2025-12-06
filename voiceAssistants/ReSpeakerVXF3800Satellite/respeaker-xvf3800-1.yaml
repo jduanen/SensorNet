@@ -5,4 +5,4 @@ substitutions:
   log_level: WARN
 
 packages:
-  hardware: !include packages/respeaker-xvf3800.yaml
+  dev_conf: github://jduanen/SensorNet/voiceAssistants/ReSpeakerVXF3800Satellite/packages/respeaker-xvf3800.yaml

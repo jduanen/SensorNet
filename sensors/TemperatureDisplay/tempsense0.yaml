@@ -10,7 +10,7 @@ esphome:
     board_build.mcu: esp32c3
 
 packages:
-  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
 
 esp32:
   board: esp32-c3-devkitm-1

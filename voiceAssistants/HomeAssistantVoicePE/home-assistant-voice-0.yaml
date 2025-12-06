@@ -5,4 +5,4 @@ substitutions:
   log_level: WARN
 
 packages:
-  hardware: !include packages/home-assistant-voice.yaml
+  dev_conf: github://jduanen/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/home-assistant-voice.yaml

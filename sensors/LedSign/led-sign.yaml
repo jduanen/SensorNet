@@ -18,7 +18,7 @@ external_components:
     refresh: always
 
 packages:
-  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi_ws.yaml
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
 
 esp32:
   board: seeed_xiao_esp32c3

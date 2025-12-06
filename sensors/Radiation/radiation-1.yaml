@@ -5,5 +5,5 @@ substitutions:
   log_level: WARN
 
 packages:
-  wifi_ws_conf: github://jduanen/SensorNet/sensors/common/wifi.yaml
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi.yaml
   dev_conf: github://jduanen/SensorNet/sensors/Radiation/packages/radiation-base.yaml

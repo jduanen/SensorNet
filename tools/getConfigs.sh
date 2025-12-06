@@ -3,82 +3,86 @@
 # Script to copy ESPHome config files from their github locations to the local dir
 #
 
-SOURCE="/home/jdn/Code/SensorNet/sensors"
+SOURCE="/home/jdn/Code/SensorNet"
+CONTROLLERS="${SOURCE}/controllers"
+SENSORS="${SOURCE}/sensors"
+VOICE_ASSISTANTS="${SOURCE}/voiceAssistants"
 
 echo "Copying..."
+
 
 # **Controllers
 # Feeder Door
 yamlFiles="feeder-door.yaml"
-cp ${SOURCE}/FeederDoor/${yamlFiles} .
+cp ${CONTROLLERS}/FeederDoor/${yamlFiles} .
 
 
 # **Sensors
 # Air Quality Sensors (PMS)
 yamlFiles="air-quality-pms-0.yaml air-quality-pms-1.yaml air-quality-pms-2.yaml"
 for f in ${yamlFiles}; do
-  cp ${SOURCE}/AirQualityPMS/${f} .
+  cp ${SENSORS}/AirQualityPMS/${f} .
 done
 
 # Air Quality Sensors (SPS)
 yamlFiles="air-quality-sps-0.yaml"
-cp ${SOURCE}/AirQualitySPS/${yamlFiles} .
+cp ${SENSORS}/AirQualitySPS/${yamlFiles} .
 
 # Environmental Sensors
 yamlFiles="env-sensors.yaml"
-cp ${SOURCE}/EnvironmentalSensors/${yamlFiles} .
+cp ${SENSORS}/EnvironmentalSensors/${yamlFiles} .
 
 # KittyCams
 yamlFiles="kittycam.yaml"
-cp ${SOURCE}/KittyCam/${yamlFiles} .
+cp ${SENSORS}/KittyCam/${yamlFiles} .
 
 yamlFiles="kittycam2.yaml"
-cp ${SOURCE}/KittyCamV2/${yamlFiles} .
+cp ${SENSORS}/KittyCamV2/${yamlFiles} .
 
 # LED Sign
 yamlFiles="led-sign.yaml"
-cp ${SOURCE}/LedSign/${yamlFiles} .
+cp ${SENSORS}/LedSign/${yamlFiles} .
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
 for f in ${yamlFiles}; do
-    cp ${SOURCE}/Radiation/${f} .
+    cp ${SENSORS}/Radiation/${f} .
 done
 
 # Smart Plugs (EMS01)
 yamlFiles="smart-plug-ems01-0.yaml"
-cp ${SOURCE}/SmartPlugEMS01/${yamlFiles} .
+cp ${SENSORS}/SmartPlugEMS01/${yamlFiles} .
 
 # Temperature Sensor with Display
 yamlFiles="tempsense0.yaml"
-cp ${SOURCE}/TemperatureDisplay/${yamlFiles} .
+cp ${SENSORS}/TemperatureDisplay/${yamlFiles} .
 
 # Temperature Sensor
 yamlFiles="tempsense1.yaml"
-cp ${SOURCE}/Temperature/${yamlFiles} .
+cp ${SENSORS}/Temperature/${yamlFiles} .
 
 # Water Heater Temperature Sensor
 yamlFiles="water-temperature.yaml"
-cp ${SOURCE}/WaterHeater/${yamlFiles} .
+cp ${SENSORS}/WaterHeater/${yamlFiles} .
 
 # Water Heater Leak Detector
 yamlFiles="waterheater-leak-detector.yaml"
-cp ${SOURCE}/WaterHeaterLeak/${yamlFiles} .
+cp ${SENSORS}/WaterHeaterLeak/${yamlFiles} .
 
 
 # **Voice Assistants
 # Home Assistant Voice
 yamlFiles="home-assistant-voice-0.yaml"
-cp ${SOURCE}/HomeAssistantVoicePE/${yamlFiles} .
+cp ${VOICE_ASSISTANTS}/HomeAssistantVoicePE/${yamlFiles} .
 
 # Respeaker XVF3800 Satellite
 yamlFiles="respeaker-xvf3800-0.yaml"
-cp ${SOURCE}/ReSpeakerVXF3800Satellite/${yamlFiles} .
+cp ${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/${yamlFiles} .
 
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 for f in ${yamlFiles}; do
-    cp ${SOURCE}/WaveshareSatellite/${f} .
+    cp ${VOICE_ASSISTANTS}/WaveshareSatellite/${f} .
 done
 
 # Finish up

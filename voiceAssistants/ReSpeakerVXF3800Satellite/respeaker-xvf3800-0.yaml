@@ -2,7 +2,7 @@ substitutions:
   device_name: respeaker-xvf3800-0
   friendly_name: "ReSpeaker XVF3800 0"
   comment: "ReSpeaker with XVF3800 and ESP32-S3 Voice Assistant"
-  log_level: WARN
+  log_level: INFO
 
 packages:
   dev_conf: github://jduanen/SensorNet/voiceAssistants/ReSpeakerVXF3800Satellite/packages/respeaker-xvf3800.yaml

@@ -2,7 +2,7 @@ substitutions:
   web_server_port: 80
 
 packages:
-  wifi_conf: github://jduanen/SensorNet/sensors/common/wifi.yaml
+  wifi_conf: github://jduanen/SensorNet/common/wifi.yaml
 
 web_server:
   port: ${web_server_port}

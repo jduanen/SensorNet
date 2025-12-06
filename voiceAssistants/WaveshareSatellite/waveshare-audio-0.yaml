@@ -5,4 +5,4 @@ substitutions:
   log_level: WARN
 
 packages:
-  hardware: !include packages/waveshare-audio-esp32-s3.yaml
+  dev_conf: github://jduanen/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-audio-esp32-s3.yaml

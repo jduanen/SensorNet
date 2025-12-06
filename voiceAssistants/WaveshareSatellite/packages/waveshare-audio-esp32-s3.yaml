@@ -1,6 +1,4 @@
 substitutions:
-  device_name: ${device_name}
-  
   # Phases of the Voice Assistant
   voice_assist_idle_phase_id: '1' # ready to be triggered by a wake word
   voice_assist_waiting_for_command_phase_id: '2' # waiting for a voice command (after being triggered by the wake word)

@@ -8,85 +8,109 @@ CONTROLLERS="${SOURCE}/controllers"
 SENSORS="${SOURCE}/sensors"
 VOICE_ASSISTANTS="${SOURCE}/voiceAssistants"
 
+FAILED=
+
+copyFile() {
+    f="$1"
+    ##echo "trying: $f"
+    cp "$f" . >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        b=${f##*/}
+        if [ -z "$FAILED" ]; then
+            FAILED="$b"
+        else
+            FAILED="${FAILED} $b"
+        fi
+    fi
+}
+
 echo "Copying..."
 
 
 # **Controllers
 # Feeder Door
 yamlFiles="feeder-door.yaml"
-cp ${CONTROLLERS}/FeederDoor/${yamlFiles} .
+copyFile ${CONTROLLERS}/FeederDoor/${yamlFiles}
 
 
 # **Sensors
 # Air Quality Sensors (PMS)
 yamlFiles="air-quality-pms-0.yaml air-quality-pms-1.yaml air-quality-pms-2.yaml"
 for f in ${yamlFiles}; do
-  cp ${SENSORS}/AirQualityPMS/${f} .
+  copyFile ${SENSORS}/AirQualityPMS/${f}
 done
 
 # Air Quality Sensors (SPS)
 yamlFiles="air-quality-sps-0.yaml"
-cp ${SENSORS}/AirQualitySPS/${yamlFiles} .
+copyFile ${SENSORS}/AirQualitySPS/${yamlFiles}
 
 # Environmental Sensors
 yamlFiles="env-sensors.yaml"
-cp ${SENSORS}/EnvironmentalSensors/${yamlFiles} .
+copyFile ${SENSORS}/EnvironmentalSensors/${yamlFiles}
 
 # KittyCams
 yamlFiles="kittycam.yaml"
-cp ${SENSORS}/KittyCam/${yamlFiles} .
+copyFile ${SENSORS}/KittyCam/${yamlFiles}
 
 yamlFiles="kittycam2.yaml"
-cp ${SENSORS}/KittyCamV2/${yamlFiles} .
+copyFile ${SENSORS}/KittyCamV2/${yamlFiles}
 
 # LED Sign
 yamlFiles="led-sign.yaml"
-cp ${SENSORS}/LedSign/${yamlFiles} .
+copyFile ${SENSORS}/LedSign/${yamlFiles}
 
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
 for f in ${yamlFiles}; do
-    cp ${SENSORS}/Radiation/${f} .
+    copyFile ${SENSORS}/Radiation/${f}
 done
 
 # Smart Plugs (EMS01)
 yamlFiles="smart-plug-ems01-0.yaml"
-cp ${SENSORS}/SmartPlugEMS01/${yamlFiles} .
+copyFile ${SENSORS}/SmartPlugEMS01/${yamlFiles}
 
 # Temperature Sensor with Display
 yamlFiles="tempsense0.yaml"
-cp ${SENSORS}/TemperatureDisplay/${yamlFiles} .
+copyFile ${SENSORS}/TemperatureDisplay/${yamlFiles}
 
 # Temperature Sensor
 yamlFiles="tempsense1.yaml"
-cp ${SENSORS}/Temperature/${yamlFiles} .
+copyFile ${SENSORS}/Temperature/${yamlFiles}
 
 # Water Heater Temperature Sensor
 yamlFiles="water-temperature.yaml"
-cp ${SENSORS}/WaterHeater/${yamlFiles} .
+copyFile ${SENSORS}/WaterHeater/${yamlFiles}
 
 # Water Heater Leak Detector
 yamlFiles="waterheater-leak-detector.yaml"
-cp ${SENSORS}/WaterHeaterLeak/${yamlFiles} .
+copyFile ${SENSORS}/WaterHeaterLeak/${yamlFiles}
 
 
 # **Voice Assistants
 # Home Assistant Voice
 yamlFiles="home-assistant-voice-0.yaml"
-cp ${VOICE_ASSISTANTS}/HomeAssistantVoicePE/${yamlFiles} .
+copyFile ${VOICE_ASSISTANTS}/HomeAssistantVoicePE/${yamlFiles}
 
 # Respeaker XVF3800 Satellite
 yamlFiles="respeaker-xvf3800-0.yaml"
-cp ${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/${yamlFiles} .
+copyFile ${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/${yamlFiles}
 
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 for f in ${yamlFiles}; do
-    cp ${VOICE_ASSISTANTS}/WaveshareSatellite/${f} .
+    copyFile ${VOICE_ASSISTANTS}/WaveshareSatellite/${f}
 done
 
 # Finish up
-#### TODO print any failures (after making this detect failures and go on)
+if [ -z "$FAILED" ]; then
+    echo "    All Succeeded"
+    r=0
+else
+    echo "    Failed: $FAILED"
+    r=1
+fi
 
 unset SSHPASS
 echo "Done copying"
+
+exit $r

@@ -27,6 +27,7 @@ if [ $? == 0 ]; then
     echo "${d##*/}: is up to date"
 else
     echo "${d##*/}: needs to be updated"
+    #### TODO apply patch
 fi
 
 # ReSpeakerXVF3800
@@ -37,6 +38,7 @@ if [ $? == 0 ]; then
     echo "${d##*/}: is up to date"
 else
     echo "${d##*/}: needs to be updated"
+    #### TODO apply patch
 fi
 
 # Waveshare Satellite
@@ -47,4 +49,5 @@ if [ $? == 0 ]; then
     echo "${d##*/}: is up to date"
 else
     echo "${d##*/}: needs to be updated"
+    #### TODO apply patch
 fi

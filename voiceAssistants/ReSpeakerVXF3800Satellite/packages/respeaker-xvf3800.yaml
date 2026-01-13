@@ -16,8 +16,7 @@ substitutions:
   voice_assist_error_phase_id: '11'
   # Change this to true in case you ahve a hidden SSID at home.
   hidden_ssid: "false"
-
-   # Substitutions for audio files
+  # Substitutions for audio files
   mute_switch_on_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/mute_switch_on.flac
   mute_switch_off_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/mute_switch_off.flac
   timer_finished_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/timer_finished.flac
@@ -26,15 +25,19 @@ substitutions:
   center_button_double_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_double_press.flac
   center_button_triple_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_triple_press.flac
   center_button_long_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_long_press.flac
+  factory_reset_initiated_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_initiated.mp3
+  factory_reset_cancelled_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_cancelled.mp3
+  factory_reset_confirmed_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_confirmed.mp3
+  error_cloud_expired_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/error_cloud_expired.mp3
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
   comment: ${comment}
-  project: 
+  project:
     name: formatbce.Respeaker XVF3800 Satellite
-    version: 2025.9.0
-  min_version: 2025.9.0
+    version: 2026.1.1
+  min_version: 2025.12.0
   on_boot:
     - priority: 375
       then:
@@ -70,7 +73,7 @@ esp32:
   flash_size: 8MB
   framework:
     type: esp-idf
-    version: recommended
+    version: 5.5.1
     sdkconfig_options:
       CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
       CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
@@ -181,6 +184,7 @@ i2c:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false  # The VPE has PSRAM, so this is safe. Allows configuring WiFi driver to use more resources (done automatically by the speaker media player)
 
 globals:
   - id: user_led_ring_color_r
@@ -284,7 +288,7 @@ time:
           - script.execute: check_alarm
     on_time_sync:
       - script.execute: publish_current_time
-          
+
 switch:
   # Mute Sound Switch.
   - platform: template
@@ -316,9 +320,11 @@ switch:
       - if:
           condition:
             media_player.is_announcing:
+              id: external_media_player
           then:
             media_player.stop:
               announcement: true
+              id: external_media_player
       # Set back ducking ratio to zero
       - mixer_speaker.apply_ducking:
           id: media_mixing_input
@@ -370,9 +376,6 @@ number:
     mode: slider
 
 sensor:
-  - platform: wifi_signal
-    id: wifi_rssi
-    name: "${friendly_name} WiFi Signal"
   - platform: template
     id: next_timer
     name: "Next timer"
@@ -456,7 +459,7 @@ script:
           } else {
             id(last_led_update_time) = millis(); // Reset timer for smooth animation start
           }
-          
+
   # Individual update scripts for each animated effect
   - id: update_breathe_effect
     then:
@@ -478,7 +481,7 @@ script:
           uint32_t current_color = (r << 16) | (g << 8) | b;
 
           uint32_t colors[12];
-          for (int i = 0; i < 12; i++) colors[i] = current_color;
+          for (int i = 0; i < 12; i++) colors] = current_color;
           id(respeaker).set_led_ring(colors);
 
   - id: update_rainbow_effect
@@ -639,7 +642,7 @@ script:
       - lambda: |-
           constexpr int NUM_LEDS = 12;
           static int tick_index = 0;
-          
+
           uint32_t now = millis();
           // Only update tick position every 100ms to reduce I2C traffic
           static uint32_t last_tick_update = 0;
@@ -647,13 +650,13 @@ script:
             tick_index = (tick_index - 1 + NUM_LEDS) % NUM_LEDS;
             last_tick_update = now;
           }
-          
+
           uint32_t colors[NUM_LEDS] = {0};
           uint32_t seconds_left = id(first_active_timer).seconds_left;
           uint32_t total_seconds = id(first_active_timer).total_seconds;
 
           float timer_ratio = (float)NUM_LEDS * seconds_left / std::max(total_seconds, (uint32_t)1);
-          
+
           float master_brightness = id(user_led_ring_brightness).state * id(effect_brightness);
 
           for (int i = 0; i < NUM_LEDS; i++) {
@@ -741,7 +744,7 @@ script:
 
             // Render the smoothed beam
             float master_brightness = id(user_led_ring_brightness).state * id(effect_brightness);
-           
+
             for (int i = 0; i < NUM_LEDS; i++) {
               // Calculate circular distance from current LED to the animated position
               float dist = abs(i - current_pos);
@@ -763,7 +766,7 @@ script:
             }
           }
           id(respeaker).set_led_ring(colors);
-          
+
   # Master script controlling the LEDs, based on different conditions : initialization in progress, wifi and api connected and voice assistant phase.
   # For the sake of simplicity and re-usability, the script calls child scripts defined below.
   # This script will be called every time one of these conditions is changing.
@@ -780,7 +783,7 @@ script:
           static bool last_timer_active = false;
           static bool last_improv_ble = false;
           static bool last_init_progress = false;
-          
+
           bool respeaker_failed = id(respeaker).is_failed();
           bool wifi_connected = id(wifi_id).is_connected();
           bool api_connected = id(api_id).is_connected();
@@ -788,7 +791,7 @@ script:
           bool new_timer_ringing = id(timer_ringing).state;
           bool improv_ble = id(improv_ble_in_progress);
           bool init_progress = id(init_in_progress);
-          
+
           // Only update if something actually changed
           bool needs_update = (
             respeaker_failed != last_respeaker_failed ||
@@ -799,9 +802,9 @@ script:
             improv_ble != last_improv_ble ||
             init_progress != last_init_progress
           );
-          
+
           if (!needs_update) return;
-          
+
           // Update cache
           last_respeaker_failed = respeaker_failed;
           last_wifi_connected = wifi_connected;
@@ -810,18 +813,18 @@ script:
           last_timer_ringing = new_timer_ringing;
           last_improv_ble = improv_ble;
           last_init_progress = init_progress;
-          
+
           if (respeaker_failed) {
             id(control_leds_respeaker_startup_failed).execute();
             return;
           }
-          
+
           // Only check timers if we need to
           id(check_if_timers_active).execute();
           if (id(is_timer_active)){
             id(fetch_first_active_timer).execute();
           }
-          
+
           // Continue with existing logic...
           if (improv_ble) {
             id(control_leds_improv_ble_state).execute();
@@ -1037,49 +1040,49 @@ script:
       - script.execute:
           id: play_sound
           priority: true
-          sound_file: !lambda return id(timer_finished_sound);
+          sound_file: "timer_finished_sound"
 
   # Script executed when the timer is ringing, to repeat the timer finished sound.
   - id: enable_repeat_one
     then:
+      - media_player.repeat_one:
+          id: external_media_player
+          announcement: true
       # Turn on the repeat mode and pause for 500 ms between playlist items/repeats
       - lambda: |-
-            id(external_media_player)
-              ->make_call()
-              .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_REPEAT_ONE)
-              .set_announcement(true)
-              .perform();
-            id(external_media_player)->set_playlist_delay_ms(speaker::AudioPipelineType::ANNOUNCEMENT, 500);
+            id(external_media_player)->set_playlist_delay_ms(1, 500);
 
   # Script execute when the timer is done ringing, to disable repeat mode.
   - id: disable_repeat
     then:
       # Turn off the repeat mode and pause for 0 ms between playlist items/repeats
+      - media_player.repeat_off:
+          id: external_media_player
+          announcement: true
       - lambda: |-
-            id(external_media_player)
-              ->make_call()
-              .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_REPEAT_OFF)
-              .set_announcement(true)
-              .perform();
-            id(external_media_player)->set_playlist_delay_ms(speaker::AudioPipelineType::ANNOUNCEMENT, 0);
+            id(external_media_player)->set_playlist_delay_ms(1, 0);
 
   # Script executed when we want to play sounds on the device.
   - id: play_sound
     parameters:
       priority: bool
-      sound_file: "audio::AudioFile*"
+      # sound_file: "audio::AudioFile*"
+      sound_file: string
     then:
+      - if:
+          condition:
+            lambda: return priority;
+          then:
+            - media_player.stop:
+                id: external_media_player
+                announcement: true
       - lambda: |-
-          if (priority) {
-            id(external_media_player)
-              ->make_call()
-              .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
-              .set_announcement(true)
-              .perform();
-          }
           if ( (id(external_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
             id(external_media_player)
-              ->play_file(sound_file, true, false);
+              ->make_call()
+              .set_media_url("file://" + sound_file)
+              .set_announcement(true)
+              .perform();
           }
 
   # Script used to fetch the first active timer (Stored in global first_active_timer)
@@ -1089,17 +1092,17 @@ script:
       - lambda: |
           static uint32_t last_fetch_time = 0;
           uint32_t now = millis();
-          
+
           // Only fetch every 500ms to reduce overhead
           if (now - last_fetch_time < 500) return;
           last_fetch_time = now;
-          
+
           const auto timers = id(va).get_timers();
           if (timers.empty()) return;
-          
+
           auto output_timer = timers.begin()->second;
           for (auto &iterable_timer : timers) {
-            if (iterable_timer.second.is_active && 
+            if (iterable_timer.second.is_active &&
                 iterable_timer.second.seconds_left <= output_timer.seconds_left) {
               output_timer = iterable_timer.second;
             }
@@ -1127,6 +1130,10 @@ script:
   #   This allows us to prevent having the deactivation of the stop word before its own activation.
   - id: activate_stop_word_once
     then:
+      - wait_until:
+          condition:
+            media_player.is_announcing:
+              id: external_media_player
       - delay: 1s
       # Enable stop wake word
       - if:
@@ -1137,6 +1144,7 @@ script:
             - wait_until:
                 not:
                   media_player.is_announcing:
+                    id: external_media_player
             - if:
                 condition:
                   switch.is_off: timer_ringing
@@ -1168,7 +1176,7 @@ script:
                 } else if (action == "Sound and event") {
                   id(timer_ringing).turn_on();
                   id(send_alarm_event).execute();
-                } 
+                }
               }
             } else {
               ESP_LOGW("alarm", "Incorrect alarm time setting");
@@ -1201,7 +1209,7 @@ script:
           static std::string last_time_string = "";
           auto time_now = id(homeassistant_time).now();
           std::string current_time_string = time_now.strftime("%H:%M");
-          
+
           // Only publish if time actually changed
           if (current_time_string != last_time_string) {
             id(current_time).publish_state(current_time_string);
@@ -1210,24 +1218,24 @@ script:
 
 i2s_audio:
   - id: i2s_output
-    i2s_lrclk_pin: 
+    i2s_lrclk_pin:
       number: GPIO7
       allow_other_uses: true
-    i2s_bclk_pin:  
+    i2s_bclk_pin:
       number: GPIO8
       allow_other_uses: true
-    # i2s_mclk_pin:  
+    # i2s_mclk_pin:
     #   number: GPIO9
     #   allow_other_uses: true
 
   - id: i2s_input
-    i2s_lrclk_pin:  
+    i2s_lrclk_pin:
       number: GPIO7
       allow_other_uses: true
-    i2s_bclk_pin:  
+    i2s_bclk_pin:
       number: GPIO8
       allow_other_uses: true
-    # i2s_mclk_pin:  
+    # i2s_mclk_pin:
     #   number: GPIO9
     #   allow_other_uses: true
 
@@ -1242,7 +1250,7 @@ microphone:
     i2s_mode: secondary
     i2s_audio_id: i2s_input
     channel: stereo
-      
+
 speaker:
   # Hardware speaker output
   - platform: i2s_audio
@@ -1263,13 +1271,14 @@ speaker:
     id: mixing_speaker
     output_speaker: i2s_audio_speaker
     num_channels: 2
+    task_stack_in_psram: true
     source_speakers:
       - id: announcement_mixing_input
         timeout: never
       - id: media_mixing_input
         timeout: never
 
-  # Vritual speakers to resample each pipelines' audio, if necessary, as the mixer speaker requires the same sample rate
+  # Virtual speakers to resample each pipelines' audio, if necessary, as the mixer speaker requires the same sample rate
   - platform: resampler
     id: announcement_resampling_speaker
     output_speaker: announcement_mixing_input
@@ -1281,24 +1290,67 @@ speaker:
     sample_rate: 48000
     bits_per_sample: 16
 
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: true
+  kalman_process_error: 0.01
+
+media_source:
+  - platform: sendspin
+    id: sendspin_source
+  - platform: http_request
+    id: http_source
+    buffer_size: 500000
+  - platform: file
+    id: file_source
+    files:
+      - id: mute_switch_on_sound
+        file: ${mute_switch_on_sound_file}
+      - id: mute_switch_off_sound
+        file: ${mute_switch_off_sound_file}
+      - id: timer_finished_sound
+        file: ${timer_finished_sound_file}
+      - id: wake_word_triggered_sound
+        file: ${wake_word_triggered_sound_file}
+      - id: error_cloud_expired
+        file: ${error_cloud_expired_sound_file}
+
 media_player:
-  - platform: speaker
+  - platform: sendspin
+    id: sendspin_group_media_player
+  - platform: speaker_source
     id: external_media_player
-    name: None
-    internal: False
-    volume_increment: 0.05
-    volume_min: 0.0
-    volume_max: 1.0
+    name: Media Player
+    announcement_speaker: announcement_resampling_speaker
+    media_speaker: media_resampling_speaker
     announcement_pipeline:
-      speaker: announcement_resampling_speaker
       format: FLAC     # FLAC is the least processor intensive codec
       num_channels: 1  # Stereo audio is unnecessary for announcements
       sample_rate: 48000
     media_pipeline:
-      speaker: media_resampling_speaker
       format: FLAC     # FLAC is the least processor intensive codec
       num_channels: 2
       sample_rate: 48000
+    volume_increment: 0.05
+    volume_min: 0.0
+    volume_max: 1.0
+    sources:
+      - file_source
+      - http_source
+      - sendspin_source
+    on_mute:
+      - delay: 100ms  # Debounce
+      - script.execute: control_leds_volume_changed
+    on_unmute:
+      - delay: 100ms  # Debounce
+      - script.execute: control_leds_volume_changed
+    on_volume:
+      if:
+        condition:
+          - lambda: return !id(init_in_progress);
+        then:
+          - delay: 100ms  # Debounce
+          - script.execute: control_leds_volume_changed
     on_announcement:
       - mixer_speaker.apply_ducking:
           id: media_mixing_input
@@ -1312,51 +1364,12 @@ media_player:
             - not:
                 voice_assistant.is_running:
             - not:
-                media_player.is_announcing:
+                media_player.is_announcing: external_media_player
         then:
           - mixer_speaker.apply_ducking:
               id: media_mixing_input
               decibel_reduction: 0
               duration: 1.0s
-    on_mute:
-      - delay: 100ms  # Debounce
-      - script.execute: control_leds_volume_changed
-    on_unmute:
-      - delay: 100ms  # Debounce
-      - script.execute: control_leds_volume_changed
-    on_volume:
-      if:
-        condition:
-          - lambda: return !id(init_in_progress);
-        then:  
-          - delay: 100ms  # Debounce
-          - script.execute: control_leds_volume_changed
-    files:
-      # - id: center_button_press_sound
-      #   file: ${center_button_press_sound_file}
-      # - id: center_button_double_press_sound
-      #   file: ${center_button_double_press_sound_file}
-      # - id: center_button_triple_press_sound
-      #   file: ${center_button_triple_press_sound_file}
-      # - id: center_button_long_press_sound
-      #   file: ${center_button_long_press_sound_file}
-      # - id: factory_reset_initiated_sound
-      #   file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_initiated.mp3
-      # - id: factory_reset_cancelled_sound
-      #   file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_cancelled.mp3
-      # - id: factory_reset_confirmed_sound
-      #   file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_confirmed.mp3
-      - id: mute_switch_on_sound
-        file: ${mute_switch_on_sound_file}
-      - id: mute_switch_off_sound
-        file: ${mute_switch_off_sound_file}
-      - id: timer_finished_sound
-        file: ${timer_finished_sound_file}
-      - id: wake_word_triggered_sound
-        file: ${wake_word_triggered_sound_file}
-      - id: error_cloud_expired
-        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/error_cloud_expired.mp3
-
 
 external_components:
   - source:
@@ -1370,10 +1383,47 @@ external_components:
       type: git
       url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration
       ref: main
-    components: 
+    components:
       - respeaker_xvf3800
       - aic3104
     refresh: 0s
+  - source:
+      # https://github.com/esphome/esphome/pull/12253
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 0fe230114c80b6d3378f04c777baadee178e40ad
+    components: [mixer]
+  - source:
+      # https://github.com/esphome/esphome/pull/12254
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 1ab4b990092ae063a16cb1511a188c536fdb336e
+    components: [resampler]
+  - source:
+      # https://github.com/esphome/esphome/pull/12256
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 047ba60f01af84513f8d5aabaa2a53074facee8f
+    components: [audio]
+  - source:
+      # https://github.com/esphome/esphome/pull/12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: bff22983a390352360796f8e1363127e0cd1f898
+    components: [media_player]
+  - source:
+      # https://github.com/esphome/esphome/pull/12284
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 71c8c6bdfc8006902eb0ea7b15bc86c575cef9be
+    components: [mdns, sendspin]
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: f5c1a8111df78e32d07d7a7bb800018808cdc0e7
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
 
 respeaker_xvf3800:
   id: respeaker
@@ -1392,7 +1442,7 @@ respeaker_xvf3800:
             - script.execute:
                 id: play_sound
                 priority: false
-                sound_file: !lambda return id(mute_switch_on_sound);
+                sound_file: "mute_switch_on_sound"
     on_turn_off:
       - if:
           condition:
@@ -1403,18 +1453,18 @@ respeaker_xvf3800:
             - script.execute:
                 id: play_sound
                 priority: false
-                sound_file: !lambda return id(mute_switch_off_sound);
+                sound_file: "mute_switch_off_sound"
   dfu_version:
-    name: "Firmware Version" 
+    name: "Firmware Version"
     update_interval: 120s
   led_beam_sensor:
     name: "Voice Beam Direction"
     id: beam_direction
     internal: true
   firmware:
-    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration/raw/refs/heads/main/respeaker_xvf3800_i2s_master_dfu_firmware_v1.0.5_48k.bin
-    version: "1.0.5"
-    md5: be440ddef7d34571f01b74513005887f
+    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration/raw/refs/heads/main/application_xvf3800_inthost-lr48-sqr-i2c-v1.0.7-release.bin
+    version: "1.0.7"
+    md5: 043a848f544ff2c7265ac19685daf5de
 
 audio_dac:
   - platform: aic3104
@@ -1467,9 +1517,11 @@ micro_wake_word:
                       - if:
                           condition:
                             media_player.is_announcing:
+                              id: external_media_player
                           then:
                             - media_player.stop:
                                 announcement: true
+                                id: external_media_player
                           # Start the voice assistant and play the wake sound, if enabled
                           else:
                             - if:
@@ -1479,7 +1531,7 @@ micro_wake_word:
                                   - script.execute:
                                       id: play_sound
                                       priority: true
-                                      sound_file: !lambda return id(wake_word_triggered_sound);
+                                      sound_file: "wake_word_triggered_sound"
                                   - delay: 300ms
                             - voice_assistant.start:
                                 wake_word: !lambda return wake_word;
@@ -1542,7 +1594,7 @@ select:
     initial_option: "Custom"
     options:
       - "Purple"
-      - "Blue" 
+      - "Blue"
       - "Green"
       - "Yellow"
       - "Cyan"
@@ -1632,13 +1684,13 @@ voice_assistant:
           - script.execute:
               id: play_sound
               priority: true
-              sound_file: !lambda return id(error_cloud_expired);
+              sound_file: "error_cloud_expired"
   # When the voice assistant starts: Play a wake up sound, duck audio.
   on_start:
     - mixer_speaker.apply_ducking:
         id: media_mixing_input
         decibel_reduction: 20  # Number of dB quieter; higher implies more quiet, 0 implies full volume
-        duration: 0.0s         # The duration of the transition (default is no transition)
+        duration: 0.0s  # The duration of the transition (default is no transition)
   on_listening:
     - lambda: id(voice_assistant_phase) = ${voice_assist_waiting_for_command_phase_id};
     - script.execute: control_leds
@@ -1676,7 +1728,7 @@ voice_assistant:
     - script.execute:
         id: send_stt_text_event
         stt_text: !lambda 'return x;'
-    
+
   # When the voice assistant ends ...
   on_end:
     - wait_until:
@@ -1733,7 +1785,7 @@ voice_assistant:
     - script.execute: control_leds
   on_timer_tick:
     # Reduce LED updates - only every 5 seconds instead of every second
-    - lambda: | 
+    - lambda: |
         id(fetch_first_active_timer).execute();
         int seconds_left = id(first_active_timer).seconds_left;
         if (seconds_left % 5 == 0) {

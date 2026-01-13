@@ -1,7 +1,7 @@
 substitutions:
   device_name: home-assistant-voice-0
   friendly_name: "Voice Assistant PE DWR"
-  comment: "Home Assistant Voice Assistant Preview Edition "
+  comment: "Home Assistant Voice Assistant Preview Edition"
   log_level: WARN
 
 packages:

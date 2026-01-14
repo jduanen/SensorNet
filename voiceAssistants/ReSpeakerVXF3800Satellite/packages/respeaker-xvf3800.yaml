@@ -165,8 +165,8 @@ api:
   on_client_disconnected:
     - script.execute: control_leds
 
+http_request:
 # Uncomment this, if you have problems with text-to-speech because of Home Assistant HTTPS internal URL
-# http_request:
 #   verify_ssl: false
 
 ota:
@@ -481,7 +481,7 @@ script:
           uint32_t current_color = (r << 16) | (g << 8) | b;
 
           uint32_t colors[12];
-          for (int i = 0; i < 12; i++) colors] = current_color;
+          for (int i = 0; i < 12; i++) colors[i] = current_color;
           id(respeaker).set_led_ring(colors);
 
   - id: update_rainbow_effect

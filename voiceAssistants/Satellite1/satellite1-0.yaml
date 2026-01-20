@@ -1,0 +1,8 @@
+substitutions:
+  device_name: satellite1-0
+  friendly_name: "FPH Satellite1 0"
+  comment: "FutureProofHome Satellite1 Voice Assistant 0"
+  log_level: INFO
+
+packages:
+  dev_conf: github://jduanen/SensorNet/voiceAssistants/Satellite1/packages/satellite1.yaml

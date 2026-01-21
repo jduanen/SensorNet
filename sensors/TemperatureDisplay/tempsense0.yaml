@@ -3,6 +3,7 @@ substitutions:
   friendly_name: "Temperature Sensor Garage"
   comment: "Temperature Sensor with Display in Middle of the Garage"
   log_level: WARN
+  a;lsdkfjasdf;lkjadsf
 
 esphome:
   platformio_options:
@@ -16,8 +17,7 @@ esp32:
   board: esp32-c3-devkitm-1
   variant: esp32c3
   framework:
-    type: arduino
-    version: latest
+    type: esp-idf
 
 text_sensor:
   - platform: wifi_info
@@ -66,7 +66,7 @@ display:
     pages:
       - id: page1
         lambda: |-
-          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${upper_devicename}");
+          it.printf(64, 0, id(roboto), TextAlign::TOP_CENTER, "${device_name}");
           it.printf(64, 16, id(roboto), TextAlign::TOP_CENTER, "IPA: %s", id(ipAddr).state.c_str());
           it.printf(64, 32, id(roboto), TextAlign::TOP_CENTER, "RSSI: %.0f dB", id(wifi_rssi).state);
           it.printf(64, 50, id(roboto), TextAlign::TOP_CENTER, "M: %s", id(macAddr).state.c_str());

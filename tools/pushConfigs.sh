@@ -24,6 +24,7 @@ cd /root/config/esphome
 yamlFiles="feeder-door.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
 
+#### FIXME DRY this up or change method
 
 # **Sensors
 # Air Quality Sensors (PMS)
@@ -81,6 +82,10 @@ sshpass -e scp ${yamlFiles} ${TARGET}
 
 # Respeaker XVF3800 Satellite
 yamlFiles="respeaker-xvf3800-0.yaml"
+sshpass -e scp ${yamlFiles} ${TARGET}
+
+# FutureProofHomes Satellite1
+yamlFiles="satellite1-cfec40.yaml"
 sshpass -e scp ${yamlFiles} ${TARGET}
 
 # Waveshare Satellites

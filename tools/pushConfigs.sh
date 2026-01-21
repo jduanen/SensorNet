@@ -43,10 +43,11 @@ KEY="~/.ssh/rsyncKey"
 trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
 
 for file in "${LOCAL_FILES[@]}"; do
-  FILE_PATH="$SOURCE_DIR/$file"
-  if [[ -f "$FILE_PATH" ]]; then
-    rsync -avqz -e "ssh -i $KEY" --protect-args "$FILE_PATH" "$REMOTE"
-  else
-    echo "ERROR: Skipping missing file ($FILE_PATH)"
-  fi
+    FILE_PATH="$SOURCE_DIR/$file"
+    if [[ -f "$FILE_PATH" ]]; then
+        rsync -avqz -e "ssh -i $KEY" --protect-args "$FILE_PATH" "$REMOTE"
+    else
+        echo "ERROR: Missing file ($FILE_PATH)"
+        exit 1
+    fi
 done

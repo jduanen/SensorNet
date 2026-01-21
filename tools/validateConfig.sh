@@ -41,6 +41,8 @@ SUCCEEDED=
 FAILED=
 
 date > $LOG_FILE
+echo "----------------" >> $LOG_FILE
+
 for file in "${SOURCE_FILES[@]}"; do
     if [[ -f "$file" ]]; then
         if [[ -n "$VERBOSE" ]]; then

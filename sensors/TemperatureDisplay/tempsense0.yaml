@@ -3,7 +3,6 @@ substitutions:
   friendly_name: "Temperature Sensor Garage"
   comment: "Temperature Sensor with Display in Middle of the Garage"
   log_level: WARN
-  a;lsdkfjasdf;lkjadsf
 
 esphome:
   platformio_options:

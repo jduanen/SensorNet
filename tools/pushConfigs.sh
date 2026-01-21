@@ -11,7 +11,7 @@
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
 REMOTE_USER_HOST="jdn@gpuServer1.local"
-REMOTE_DIR="Code/SensorNet/config/esphome"
+REMOTE_DIR="Code/SensorNet"
 
 LOCAL_DIR="/root/config/esphome"
 
@@ -48,6 +48,6 @@ KEY="~/.ssh/rsyncKey"
 trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
 
 for remoteFile in "${REMOTE_FILES[@]}"; do
-    localFile="${remoteFile##*/}"
-    echo rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile "$remoteFile"
+    localFile="$LOCAL_DIR/${remoteFile##*/}"
+    rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile" "$REMOTE_USER_HOST:$remoteFile"
 done

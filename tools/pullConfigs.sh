@@ -11,7 +11,7 @@
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
 REMOTE_USER_HOST="jdn@gpuServer1.local"
-REMOTE_DIR="Code/SensorNet/config/esphome"
+REMOTE_DIR="Code/SensorNet"
 
 LOCAL_DIR="/root/config/esphome"
 

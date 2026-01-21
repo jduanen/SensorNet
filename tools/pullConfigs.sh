@@ -10,13 +10,14 @@
 # Test with:
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
-REMOTE_DIR="jdn@gpuServer1.local:Code/SensorNet/config/esphome/"
+REMOTE_USER_HOST="jdn@gpuServer1.local"
+REMOTE_DIR="Code/SensorNet/config/esphome"
 
 LOCAL_DIR="/root/config/esphome"
 
-CONTROLLERS="${SOURCE}/controllers"
-SENSORS="${SOURCE}/sensors"
-VOICE_ASSISTANTS="${SOURCE}/voiceAssistants"
+CONTROLLERS="${REMOTE_DIR}/controllers"
+SENSORS="${REMOTE_DIR}/sensors"
+VOICE_ASSISTANTS="${REMOTE_DIR}/voiceAssistants"
 
 REMOTE_FILES=(
     "${CONTROLLERS}/FeederDoor/feeder-door.yaml"
@@ -46,11 +47,12 @@ KEY="~/.ssh/rsyncKey"
 
 trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
 
-for file in "${REMOTE_FILES[@]}"; do
-    if [[ -f "$file" ]]; then
-        rsync -avqz -e "ssh -i $KEY" --protect-args "$REMOTE" "$file"
+for remoteFile in "${REMOTE_FILES[@]}"; do
+    localFile="${remoteFile##*/}"
+    if [[ -f "$localFile" ]]; then
+        rsync -avqz -e "ssh -i $KEY" --protect-args "$REMOTE_USER_HOST:$remoteFile" "$localFile"
     else
-        echo "ERROR: Missing file ($file)"
+        echo "ERROR: Missing file ($localFile)"
         exit 1
     fi
 done

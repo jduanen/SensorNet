@@ -24,7 +24,7 @@ packages:
     #- config/common/mmwave_ld2450.yaml
 
     ## OPTIONALLY, uncomment if want extra memory, wifi and xmos control of the device.
-    - config/common/debug.yaml
+    #- config/common/debug.yaml
 logger:
   level: ${log_level}
 

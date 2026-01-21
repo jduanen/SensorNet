@@ -10,44 +10,44 @@
 # Test with:
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
-REMOTE="jdn@gpuServer1.local:Code/SensorNet/config/esphome/"
+REMOTE_USER_HOST="jdn@gpuServer1.local"
+REMOTE_DIR="Code/SensorNet/config/esphome"
 
-SOURCE_DIR="/root/config/esphome"
+LOCAL_DIR="/root/config/esphome"
 
-LOCAL_FILES=(
-    "feeder-door.yaml"
-    "air-quality-pms-0.yaml"
-    "air-quality-pms-1.yaml"
-    "air-quality-pms-2.yaml"
-    "air-quality-sps-0.yaml"
-    "env-sensors.yaml"
-    "kittycam.yaml"
-    "kittycam2.yaml"
-    "led-sign.yaml"
-    "radiation-0.yaml"
-    "radiation-1.yaml"
-    "smart-plug-ems01-0.yaml"
-    "tempsense0.yaml"
-    "tempsense1.yaml"
-    "water-temperature.yaml"
-    "waterheater-leak-detector.yaml"
-    "home-assistant-voice-0.yaml"
-    "respeaker-xvf3800-0.yaml"
-    "satellite1-cfec40.yaml"
-    "waveshare-audio-0.yaml"
-    "waveshare-audio-1.yaml"
+CONTROLLERS="${REMOTE_DIR}/controllers"
+SENSORS="${REMOTE_DIR}/sensors"
+VOICE_ASSISTANTS="${REMOTE_DIR}/voiceAssistants"
+
+REMOTE_FILES=(
+    "${CONTROLLERS}/FeederDoor/feeder-door.yaml"
+    "${SENSORS}/AirQualityPMS/air-quality-pms-0.yaml"
+    "${SENSORS}/AirQualityPMS/air-quality-pms-1.yaml"
+    "${SENSORS}/AirQualityPMS/air-quality-pms-2.yaml"
+    "${SENSORS}/AirQualitySPS/air-quality-sps-0.yaml"
+    "${SENSORS}/EnvironmentalSensors/env-sensors.yaml"
+    "${SENSORS}/KittyCam/kittycam.yaml"
+    "${SENSORS}/KittyCamV2/kittycam2.yaml"
+    "${SENSORS}/LedSign/led-sign.yaml"
+    "${SENSORS}/Radiation/radiation-0.yaml"
+    "${SENSORS}/Radiation/radiation-1.yaml"
+    "${SENSORS}/SmartPlugEMS01/smart-plug-ems01-0.yaml"
+    "${SENSORS}/TemperatureDisplay/tempsense0.yaml"
+    "${SENSORS}/Temperature/tempsense1.yaml"
+    "${SENSORS}/WaterHeater/water-temperature.yaml"
+    "${SENSORS}/WaterHeaterLeak/waterheater-leak-detector.yaml"
+    "${VOICE_ASSISTANTS}/HomeAssistantVoicePE/home-assistant-voice-0.yaml"
+    "${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/respeaker-xvf3800-0.yaml"
+    "${VOICE_ASSISTANTS}/Satellite1/satellite1-cfec40.yaml"
+    "${VOICE_ASSISTANTS}/WaveshareSatellite/waveshare-audio-0.yaml"
+    "${VOICE_ASSISTANTS}/WaveshareSatellite/waveshare-audio-1.yaml"
 )
 
 KEY="~/.ssh/rsyncKey"
 
 trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
 
-for file in "${LOCAL_FILES[@]}"; do
-    FILE_PATH="$SOURCE_DIR/$file"
-    if [[ -f "$FILE_PATH" ]]; then
-        rsync -avqz -e "ssh -i $KEY" --protect-args "$FILE_PATH" "$REMOTE"
-    else
-        echo "ERROR: Missing file ($FILE_PATH)"
-        exit 1
-    fi
+for remoteFile in "${REMOTE_FILES[@]}"; do
+    localFile="${remoteFile##*/}"
+    echo rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile "$remoteFile"
 done

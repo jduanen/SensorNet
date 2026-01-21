@@ -90,6 +90,10 @@ sshpass -e scp ${VOICE_ASSISTANTS}/HomeAssistantVoicePE/${yamlFiles} .
 yamlFiles="respeaker-xvf3800-0.yaml"
 sshpass -e scp ${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/${yamlFiles} .
 
+# FutureProofHomes Satellite1
+yamlFiles="satellite1-cfec40.yaml"
+sshpass -e scp ${VOICE_ASSISTANTS}/Satellite1/${yamlFiles} .
+
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 for f in ${yamlFiles}; do

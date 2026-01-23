@@ -7,6 +7,10 @@ esphome:
   friendly_name: ${friendly_name}
   comment: ${comment}
 
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
 packages:
   FutureProofHomes.Satellite1:
     url: https://github.com/futureproofhomes/satellite1-esphome
@@ -26,6 +30,7 @@ packages:
 
     ## OPTIONALLY, uncomment if want extra memory, wifi and xmos control of the device.
     #- config/common/debug.yaml
+
 logger:
   level: ${log_level}
 

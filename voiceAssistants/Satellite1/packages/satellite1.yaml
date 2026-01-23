@@ -5,6 +5,7 @@ esphome:
   name: ${device_name}
   name_add_mac_suffix: false
   friendly_name: ${friendly_name}
+  comment: ${comment}
 
 packages:
   FutureProofHomes.Satellite1:

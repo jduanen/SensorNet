@@ -35,9 +35,9 @@ logger:
 ## https://esphome.io/components/api.html
 ## Note: The documentation also provides a tool to generate a random key
 
-#api:
-#  encryption:
-#    key: REPLACE_BY_32_BIT_RANDOM_KEY
+api:
+  encryption:
+    key: !secret api_encryption_key
 
 ## OPTIONALLY, override the default Wi-Fi credentials provisioned on the Satellite1 device 
 ## during setup by using your Wi-Fi credentials stored in the `secrets.yaml` file of the 

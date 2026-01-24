@@ -10,6 +10,8 @@
 # Test with:
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
+#### TODO move this to a common file and include it
+
 REMOTE_USER_HOST="jdn@gpuServer1.local"
 REMOTE_DIR="Code/SensorNet"
 
@@ -17,6 +19,7 @@ LOCAL_DIR="/root/config/esphome"
 
 CONTROLLERS="${REMOTE_DIR}/controllers"
 SENSORS="${REMOTE_DIR}/sensors"
+DISPLAYS="${SOURCE_DIR}/displays"
 VOICE_ASSISTANTS="${REMOTE_DIR}/voiceAssistants"
 
 REMOTE_FILES=(
@@ -28,7 +31,6 @@ REMOTE_FILES=(
     "${SENSORS}/EnvironmentalSensors/env-sensors.yaml"
     "${SENSORS}/KittyCam/kittycam.yaml"
     "${SENSORS}/KittyCamV2/kittycam2.yaml"
-    "${SENSORS}/LedSign/led-sign.yaml"
     "${SENSORS}/Radiation/radiation-0.yaml"
     "${SENSORS}/Radiation/radiation-1.yaml"
     "${SENSORS}/SmartPlugEMS01/smart-plug-ems01-0.yaml"
@@ -36,6 +38,7 @@ REMOTE_FILES=(
     "${SENSORS}/Temperature/tempsense1.yaml"
     "${SENSORS}/WaterHeater/water-temperature.yaml"
     "${SENSORS}/WaterHeaterLeak/waterheater-leak-detector.yaml"
+    "${DISPLAYS}/LedSign/led-sign.yaml"
     "${VOICE_ASSISTANTS}/HomeAssistantVoicePE/home-assistant-voice-0.yaml"
     "${VOICE_ASSISTANTS}/ReSpeakerVXF3800Satellite/respeaker-xvf3800-0.yaml"
     "${VOICE_ASSISTANTS}/Satellite1/satellite1-cfec40.yaml"

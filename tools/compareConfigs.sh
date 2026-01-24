@@ -12,6 +12,7 @@ CONFIG_DIR="${SOURCE_DIR}/config/esphome"
 
 CONTROLLERS="${SOURCE_DIR}/controllers"
 SENSORS="${SOURCE_DIR}/sensors"
+DISPLAYS="${SOURCE_DIR}/displays"
 VOICE_ASSISTANTS="${SOURCE_DIR}/voiceAssistants"
 
 compareFile() {
@@ -74,10 +75,6 @@ compareFile "$CONFIG_DIR/$yamlFile" ${SENSORS}/KittyCam/${yamlFile}
 yamlFile="kittycam2.yaml"
 compareFile "$CONFIG_DIR/$yamlFile" ${SENSORS}/KittyCamV2/${yamlFile}
 
-# LED Sign
-yamlFile="led-sign.yaml"
-compareFile "$CONFIG_DIR/$yamlFile" ${SENSORS}/LedSign/${yamlFile}
-
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
 for f in ${yamlFiles}; do
@@ -104,6 +101,10 @@ compareFile "$CONFIG_DIR/$yamlFile" ${SENSORS}/WaterHeater/${yamlFile}
 yamlFile="waterheater-leak-detector.yaml"
 compareFile "$CONFIG_DIR/$yamlFile" ${SENSORS}/WaterHeaterLeak/${yamlFile}
 
+# **Displays
+# LED Sign
+yamlFile="led-sign.yaml"
+compareFile "$CONFIG_DIR/$yamlFile" ${DISPLAYS}/LedSign/${yamlFile}
 
 # **Voice Assistants
 # Home Assistant Voice

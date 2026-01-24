@@ -6,6 +6,7 @@
 SOURCE="/home/jdn/Code/SensorNet"
 CONTROLLERS="${SOURCE}/controllers"
 SENSORS="${SOURCE}/sensors"
+DISPLAYS="${SOURCE_DIR}/displays"
 VOICE_ASSISTANTS="${SOURCE}/voiceAssistants"
 
 FAILED=
@@ -55,10 +56,6 @@ copyFile ${SENSORS}/KittyCam/${yamlFiles}
 yamlFiles="kittycam2.yaml"
 copyFile ${SENSORS}/KittyCamV2/${yamlFiles}
 
-# LED Sign
-yamlFiles="led-sign.yaml"
-copyFile ${SENSORS}/LedSign/${yamlFiles}
-
 # Radiation Sensors
 yamlFiles="radiation-0.yaml radiation-1.yaml"
 for f in ${yamlFiles}; do
@@ -85,6 +82,10 @@ copyFile ${SENSORS}/WaterHeater/${yamlFiles}
 yamlFiles="waterheater-leak-detector.yaml"
 copyFile ${SENSORS}/WaterHeaterLeak/${yamlFiles}
 
+# **Displays
+# LED Sign
+yamlFiles="led-sign.yaml"
+copyFile ${SENSORS}/LedSign/${yamlFiles}
 
 # **Voice Assistants
 # Home Assistant Voice

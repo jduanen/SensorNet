@@ -1,72 +1,132 @@
 substitutions:
-  xmos_fw_version: v1.0.3
-  ref_branch: staging  ## develop
+  company_name: FutureProofHomes
+  project_name: Satellite1
 
-esphome:
-  name: ${device_name}
-  name_add_mac_suffix: false
-  friendly_name: ${friendly_name}
-  comment: ${comment}
-
-ota:
-  - platform: esphome
-    password: !secret ota_password
+  #set this version by GHA at build time
+  esp32_fw_version: dev
 
 packages:
-  FutureProofHomes.Satellite1:
-    url: https://github.com/futureproofhomes/satellite1-esphome
-    ref: ${ref_branch} # Make sure to also change the ext_comp_repo_ref below
-    refresh: 1s
-    files:
-    # Main config files, don't remove
-    - config/satellite1.base.yaml
-    - config/common/dashboard_build.yaml
-    - path: config/common/components.external.yaml
-      vars:
-        ext_comp_repo_ref: ${ref_branch} # Make sure to set this to the same as the ref above
-    ## OPTIONALLY, uncomment if you have the smaller LD2410 mmWave sensor connected to your HAT.
-    #- config/common/mmwave_ld2410.yaml    
-    ## OPTIONALLY, uncomment if you have the larger LD2450 mmWave sensor connected to your HAT.
-    #- config/common/mmwave_ld2450.yaml
+  # This is an inline package to prefix the on_client_connected with the wait_until action
+  # It must appear before the actual package so it becomes the orignal config and the
+  # on_client_connected list from the package config is appended onto this one.
+  va_connected_wait_for_ble_and_flasher:
+    voice_assistant:
+      on_client_connected:
+        - wait_until:
+            not: ble.enabled
+        - wait_until:
+            not: memory_flasher.in_progress
+        - delay: 2s
 
-    ## OPTIONALLY, uncomment if want extra memory, wifi and xmos control of the device.
-    #- config/common/debug.yaml
+    wifi:
+      on_disconnect:
+        - ble.enable:
+      on_connect:
+        - delay: 5s  # Gives time for improv results to be transmitted
+        - ble.disable:
+
+    satellite1:
+      on_xmos_no_response:
+        then:
+          - if:
+              condition:
+                - lambda: return id(init_in_progress);
+                - lambda: return id(xflash).has_image_embedded();
+              then:
+                - memory_flasher.write_embedded_image:
+
+      on_xmos_connected:
+        then:
+          - delay: 1s
+          - script.execute: control_leds
+          - if:
+              condition:
+                - lambda: return id(init_in_progress);
+                - lambda: return id(xflash).has_image_embedded();
+                - lambda: return !id(xflash).match_embedded( id(satellite1_id).xmos_fw_version );
+              then:
+                - memory_flasher.write_embedded_image:
+
+  home-assistant-voice: !include satellite1.base.yaml
+
+
+esphome:
+  project:
+    name: ${company_name}.${project_name}
+    version: ${esp32_fw_version}
+
+
+
+esp32_improv:
+  authorizer: btn_action
+  on_start:
+    - lambda: id(improv_ble_in_progress) = true;
+    - script.execute: control_leds
+  on_provisioned:
+    - lambda: id(improv_ble_in_progress) = false;
+    - script.execute: control_leds
+  on_stop:
+    - lambda: id(improv_ble_in_progress) = false;
+    - script.execute: control_leds
+
+
+
+http_request:
+
+ota:
+  - platform: http_request
+    id: ota_http_request
+
+update:
+  - platform: http_request
+    name: None
+    id: update_http_request
+    source: https://raw.githubusercontent.com/FutureProofHomes/Documentation/refs/heads/main/manifest.json
+
+
+switch:
+  - platform: template
+    id: beta_firmware
+    name: Beta firmware
+    icon: "mdi:test-tube"
+    entity_category: diagnostic
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - logger.log: "OTA updates set to use Beta firmware"
+      - lambda: id(update_http_request).set_source_url("https://raw.githubusercontent.com/FutureProofHomes/Documentation/refs/heads/main/manifest-beta.json");
+      - component.update: update_http_request
+    on_turn_off:
+      - logger.log: "OTA updates set to use Production firmware"
+      - lambda: id(update_http_request).set_source_url("https://raw.githubusercontent.com/FutureProofHomes/Documentation/refs/heads/main/manifest.json");
+      - component.update: update_http_request
+
+
+external_components:
+  - source:
+      type: local
+      path: ../esphome/components
+    components:
+        - audio
+        - fusb302b
+        - i2s_audio
+        - memory_flasher
+        - micro_wake_word
+        - mixer
+        - pcm5122
+        - resampler
+        - satellite1
+        - snapcast
+        - speaker
+        - tas2780
+
+
 
 logger:
+  deassert_rts_dtr: true
+  hardware_uart : USB_SERIAL_JTAG
   level: ${log_level}
+  logs:
+    ltr_als_ps: WARN
 
-## OPTIONALLY, enable transport encryption for the API layer by uncommenting the following lines 
-## and replacing "REPLACE_BY_32_BIT_RANDOM_KEY" with a 32-character random key.
-## For more information, refer to the ESPHome documentation:
-## https://esphome.io/components/api.html
-## Note: The documentation also provides a tool to generate a random key
 
-api:
-  encryption:
-    key: !secret api_encryption_key
-
-## OPTIONALLY, override the default Wi-Fi credentials provisioned on the Satellite1 device 
-## during setup by using your Wi-Fi credentials stored in the `secrets.yaml` file of the 
-## ESPHome dashboard. Uncomment the below lines to enable this feature, allowing you 
-## to manage Wi-Fi credentials centrally for all your devices.
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-
-## OPTIONALLY, uncomment the following lines to customize the Snapcast server to connect to.
-#snapcast:
-#  id: snapcast_client
-#  server_ip: 192.168.178.101
-
-## OPTIONALLY, uncomment the following lines to set a custom micro wake word model
-#micro_wake_word:
-#  id: mww
-#  models:
-#    - id: new_wake_word
-#      model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
-#    # uncomment the following line to remove the default "hey_jarvis" wake word
-#    - id: !remove hey_jarvis
-# you also want to remove the sensitivity selector as it is hard coded to the provided models
-#select:
-#  id: !remove mww_sensitivity_select

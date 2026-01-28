@@ -42,7 +42,7 @@ esphome:
   comment: ${comment}
   
   project:
-    name: ${company_name}.${project_name}
+    name: ${company_name}_${project_name}
     version: ${esp32_fw_version}
   
   on_boot:

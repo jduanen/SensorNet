@@ -57,11 +57,12 @@ updateYaml -yri $TMP_FILE '(.logger.level = "${log_level}")'
 updateYaml -yri $TMP_FILE '(.api.key = "!secret api_encryption_key")'
 updateYaml -yri $TMP_FILE '(.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 
+mv $TMP_FILE $DST_FILE
+
 if [[ "$DEBUG" == "true" ]]; then
     echo ""
     ls -l $SRC_FILE $TMP_FILE
     tkdiff $SRC_FILE $TMP_FILE
+else
+    rm $SRC_FILE $TMP_FILE
 fi
-
-rm $SRC_FILE
-mv $TMP_FILE $DST_FILE

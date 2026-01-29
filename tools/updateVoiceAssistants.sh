@@ -3,6 +3,8 @@
 # Script to update the HA voice assistants
 #
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 checkRepoOLD() {
     local gitDir="$1"
     (
@@ -72,15 +74,21 @@ checkRepo() {
 declare -A handlers
 dirs=()
 
-baseDir="/home/jdn/Code2/"
+baseDir="/home/jdn/Code2"
 
 # Home Assistant Voice Assistant Preview Edition (PE)
 patchHAVAPE () {
-    echo "TBD: HAVAPE"
+    if ! ${SCRIPT_DIR}/patchHAVAPE.sh; then
+        echo "ERROR: Failed to patch HAVA PE"
+        exit 1
+    fi
 }
 d="home-assistant-voice-pe"
 dirs+=(${d})
 handlers[${d}]="patchHAVAPE"
+
+# ReSpeakerV2
+#### TODO
 
 # ReSpeakerXVF3800
 patchRSX () {
@@ -90,6 +98,14 @@ d="Respeaker-XVF3800-ESPHome-integration"
 dirs+=(${d})
 handlers[${d}]="patchRSX"
 
+# FutureProofHomes Satellite1
+patchSAT1 () {
+    echo "TBD: SAT1"
+}
+d="FutureProofHomes/satellite1-esphome"
+dirs+=(${d})
+handlers[${d}]="patchSAT1"
+
 # Waveshare Satellite
 patchWSS () {
     echo "TBD: WSS"
@@ -98,7 +114,7 @@ d="waveshare-s2-audio_esphome_voice"
 dirs+=(${d})
 handlers["${d}"]="patchWSS"
 
-
+# loop through dirs and check if updates are required
 for dir in "${dirs[@]}"; do
     path="${baseDir}/${dir}"
     echo "Checking: ${path##*/} @ ${path}"

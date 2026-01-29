@@ -92,7 +92,10 @@ handlers[${d}]="patchHAVAPE"
 
 # ReSpeakerXVF3800
 patchRSX () {
-    echo "TBD: RSX"
+    if ! ${SCRIPT_DIR}/patchRSX.sh; then
+        echo "ERROR: Failed to patch ReSpeaker-XVF3800"
+        exit 1
+    fi
 }
 d="Respeaker-XVF3800-ESPHome-integration"
 dirs+=(${d})
@@ -108,7 +111,10 @@ handlers[${d}]="patchSAT1"
 
 # Waveshare Satellite
 patchWSS () {
-    echo "TBD: WSS"
+    if ! ${SCRIPT_DIR}/patchWSS.sh; then
+        echo "ERROR: Failed to patch Waveshare S2 Satellite"
+        exit 1
+    fi
 }
 d="waveshare-s2-audio_esphome_voice"
 dirs+=(${d})

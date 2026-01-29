@@ -60,7 +60,7 @@ checkRepo() {
             git pull --ff-only
             echo "  Repository updated."
         else
-            echo "  Already up to date with upstream."
+            echo "  Already up to date with upstream, no config update needed."
         fi
 
         # warning if ahead
@@ -79,7 +79,7 @@ baseDir="/home/jdn/Code2"
 # Home Assistant Voice Assistant Preview Edition (PE)
 patchHAVAPE () {
     if ! ${SCRIPT_DIR}/patchHAVAPE.sh; then
-        echo "ERROR: Failed to patch HAVA PE"
+        echo "ERROR: Failed to patch HAVA PE config file"
         exit 1
     fi
 }
@@ -93,7 +93,7 @@ handlers[${d}]="patchHAVAPE"
 # ReSpeakerXVF3800
 patchRSX () {
     if ! ${SCRIPT_DIR}/patchRSX.sh; then
-        echo "ERROR: Failed to patch ReSpeaker-XVF3800"
+        echo "ERROR: Failed to patch ReSpeaker-XVF3800 config file"
         exit 1
     fi
 }
@@ -103,7 +103,10 @@ handlers[${d}]="patchRSX"
 
 # FutureProofHomes Satellite1
 patchSAT1 () {
-    echo "TBD: SAT1"
+    if ! ${SCRIPT_DIR}/patchSAT1.sh; then
+        echo "ERROR: Failed to patch FutureProofHomes Satellite1 config file"
+        exit 1
+    fi
 }
 d="FutureProofHomes/satellite1-esphome"
 dirs+=(${d})
@@ -112,7 +115,7 @@ handlers[${d}]="patchSAT1"
 # Waveshare Satellite
 patchWSS () {
     if ! ${SCRIPT_DIR}/patchWSS.sh; then
-        echo "ERROR: Failed to patch Waveshare S2 Satellite"
+        echo "ERROR: Failed to patch Waveshare S2 Satellite config file"
         exit 1
     fi
 }

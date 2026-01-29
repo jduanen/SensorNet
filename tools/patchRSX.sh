@@ -28,7 +28,7 @@ SOURCE_FILE="${HOME}/Code2/Respeaker-XVF3800-ESPHome-integration/config/respeake
 
 SRC_FILE="/tmp/src.yaml"
 TMP_FILE="/tmp/tmp.yaml"
-DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/ReSpeakerVXF3800Satellite/packages/respeaker-xvf3800.yaml
+DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/ReSpeakerVXF3800Satellite/packages/respeaker-xvf3800.yaml"
 
 updateYaml() {
     local opts="$1"

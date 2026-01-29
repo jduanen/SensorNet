@@ -31,9 +31,9 @@ DEBUG=${DEBUG:-false}
 
 SOURCE_FILE="${HOME}/Code2/home-assistant-voice-pe/home-assistant-voice.yaml"
 
-SRC_FILE="./src.yaml"
-TMP_FILE="./tmp.yaml"
-DST_FILE="./home-assistant-voice.yaml"
+SRC_FILE="/tmp/src.yaml"
+TMP_FILE="/tmp/tmp.yaml"
+DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/home-assistant-voice.yaml"
 
 updateYaml() {
     local opts="$1"

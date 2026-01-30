@@ -139,7 +139,6 @@ api:
     - script.execute: control_leds
   on_client_disconnected:
     - script.execute: control_leds
-  key: '!secret api_encryption_key'
 http_request: null
 ota:
   - platform: esphome

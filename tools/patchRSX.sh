@@ -19,6 +19,9 @@
 #          id: wifi_rssi
 #          name: ${friendly_name} WiFi Signal"
 
+echo "FIXME: corrupts parts with lambdas"
+exit 1
+
 DEBUG=${DEBUG:-false}
 
 SOURCE_FILE="${HOME}/Code2/Respeaker-XVF3800-ESPHome-integration/config/respeaker-xvf-satellite-example.yaml"

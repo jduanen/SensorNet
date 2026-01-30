@@ -13,9 +13,6 @@
 #  - logger:
 #    * edit:
 #      - level: ${log_level}
-#  - api:
-#    * add:
-#      - key: !secret api_encryption_key
 #  - sensor:
 #    * add:
 #      - - platform: wifi_signal
@@ -54,7 +51,6 @@ updateYaml -yri $TMP_FILE '(.esphome.name = "${device_name}")'
 updateYaml -yri $TMP_FILE '(.esphome.friendly_name = "${friendly_name}")'
 updateYaml -yri $TMP_FILE '(.esphome.comment = "${comment}")'
 updateYaml -yri $TMP_FILE '(.logger.level = "${log_level}")'
-updateYaml -yri $TMP_FILE '(.api.key = "!secret api_encryption_key")'
 updateYaml -yri $TMP_FILE '(.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 
 cp $TMP_FILE $DST_FILE

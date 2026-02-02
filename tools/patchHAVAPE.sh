@@ -19,8 +19,10 @@
 #    * edit:
 #      - level: ${log_level}
 #  - api:
-#    * add:
-#      - key: !secret api_encryption_key
+#    * edit:
+#      - encryption:
+#      * add:
+#        - key: !secret api_encryption_key
 #  - sensor:
 #    * add:
 #      - - platform: wifi_signal

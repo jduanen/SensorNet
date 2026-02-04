@@ -1052,7 +1052,7 @@ script:
   - id: control_leds_voice_assistant_replying_phase
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Replying
   - id: control_leds_voice_assistant_error_phase

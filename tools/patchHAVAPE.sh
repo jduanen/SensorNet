@@ -28,51 +28,31 @@
 #      - - platform: wifi_signal
 #          id: wifi_rssi
 #          name: ${friendly_name} WiFi Signal"
+#
+# N.B. Must use go-yq v4 ("mikefarah/yq"). Don't use the one installed by apt. 'sudo snap install yq'
 
-DEBUG=${DEBUG:-false}
+scriptDir="$(cd "$(dirname "$0")" && pwd)"
+source "$scriptDir/commonPatch.sh"
 
 SOURCE_FILE="${HOME}/Code2/home-assistant-voice-pe/home-assistant-voice.yaml"
 
-SRC_FILE="/tmp/src.yaml"
-TMP_FILE="/tmp/tmp.yaml"
 DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/home-assistant-voice.yaml"
 
-updateYaml() {
-    local opts="$1"
-    shift
-    local file="$1"
-    shift
+checkYQ
 
-    if ! yq $opts "$@" "$file"; then
-        echo "ERROR: yq failed on file '$file'"
-        exit 1
-    fi
-}
+convertToJson $SOURCE_FILE $SRC_FILE
 
-updateYaml -yr $SOURCE_FILE '.' > $SRC_FILE
-cp $SRC_FILE $TMP_FILE
-if [[ "$DEBUG" == "true" ]]; then
-    ls -l $SRC_FILE $TMP_FILE
-fi
+updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") | 
+    (.esphome.name_add_mac_suffix = false) |
+    (.esphome.friendly_name = "${friendly_name}") |
+    (.esphome.comment = "${comment}") |
+    (.wifi.ssid = "!secret wifi_ssid") |
+    (.wifi.password = "!secret wifi_password") |
+    (.logger.level = "${log_level}") |
+    (.api.encryption.key = "!secret api_encryption_key") |
+    (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 
-#### FIXME combine operators for efficiency
-#yq -yri '(.esphome.name = "${device_name}") | (.esphome.name_add_mac_suffix = false) , (.wifi.ssid = "!secret wifi_ssid") | (.wifi.password = "!secret wifi_password")' $TMP_FILE
-updateYaml -yri $TMP_FILE '(.esphome.name = "${device_name}")'
-updateYaml -yri $TMP_FILE '(.esphome.name_add_mac_suffix = false)'
-updateYaml -yri $TMP_FILE '(.esphome.friendly_name = "${friendly_name}")'
-updateYaml -yri $TMP_FILE '(.esphome.comment = "${comment}")'
-updateYaml -yri $TMP_FILE '(.wifi.ssid = "!secret wifi_ssid")'
-updateYaml -yri $TMP_FILE '(.wifi.password = "!secret wifi_password")'
-updateYaml -yri $TMP_FILE '(.logger.level = "${log_level}")'
-updateYaml -yri $TMP_FILE '(.api.key = "!secret api_encryption_key")'
-updateYaml -yri $TMP_FILE '(.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
-
-cp $TMP_FILE $DST_FILE
-
-if [[ "$DEBUG" == "true" ]]; then
-    echo ""
-    ls -l $SRC_FILE $TMP_FILE
-    tkdiff $SRC_FILE $TMP_FILE
-else
-    rm $SRC_FILE $TMP_FILE
+if ! yq -P -o=yaml '.' $TMP_FILE > $DST_FILE; then
+    echo "ERROR: failed to convert file back to YAML"
+    exit 1
 fi

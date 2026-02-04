@@ -1034,19 +1034,19 @@ script:
   - id: control_leds_voice_assistant_waiting_for_command_phase
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Waiting for Command
   - id: control_leds_voice_assistant_listening_for_command_phase
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Listening For Command
   - id: control_leds_voice_assistant_thinking_phase
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Thinking
   - id: control_leds_voice_assistant_replying_phase
@@ -1058,7 +1058,7 @@ script:
   - id: control_leds_voice_assistant_error_phase
     then:
       - light.turn_on:
-          brightness: return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
+          brightness: !lambda return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
           red: 1
           green: 0
           blue: 0
@@ -1067,7 +1067,7 @@ script:
   - id: control_leds_muted_or_silent
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Muted or Silent
   - id: control_leds_voice_assistant_not_ready_phase
@@ -1082,37 +1082,37 @@ script:
   - id: control_leds_dial_touched
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Volume Display
   - id: control_leds_jack_unplugged_recently
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Jack Unplugged
   - id: control_leds_jack_plugged_recently
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Jack Plugged
   - id: control_leds_center_button_touched
     then:
       - light.turn_on:
-          brightness: return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
+          brightness: !lambda return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
           id: voice_assistant_leds
           effect: Center Button Touched
   - id: control_leds_timer_ringing
     then:
       - light.turn_on:
-          brightness: return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
+          brightness: !lambda return min ( max( id(led_ring).current_values.get_brightness() , 0.2f ) + 0.1f , 1.0f );
           id: voice_assistant_leds
           effect: Timer Ring
   - id: control_leds_timer_ticking
     then:
       - light.turn_on:
-          brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );
+          brightness: !lambda return max( id(led_ring).current_values.get_brightness() , 0.2f );
           id: voice_assistant_leds
           effect: Timer tick
   - id: control_volume

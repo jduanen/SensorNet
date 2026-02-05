@@ -31,6 +31,10 @@
 #
 # N.B. Must use go-yq v4 ("mikefarah/yq"). Don't use the one installed by apt. 'sudo snap install yq'
 
+#### FIXME  remove single quotes from all that use !secret: e.g., key: '!secret api_encryption_key', and wifi/passwd
+#### FIXME  add '!lambda ' to all like this: 'brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );'
+
+
 scriptDir="$(cd "$(dirname "$0")" && pwd)"
 source "$scriptDir/commonPatch.sh"
 

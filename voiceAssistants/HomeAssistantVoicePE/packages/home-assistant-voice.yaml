@@ -1568,7 +1568,7 @@ micro_wake_word:
                                       sound_file: wake_word_triggered_sound
                                   - delay: 300ms
                             - voice_assistant.start:
-                                wake_word: return wake_word;
+                                wake_word: !lambda return wake_word;
 select:
   - platform: template
     name: Wake word sensitivity

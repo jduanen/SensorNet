@@ -31,10 +31,6 @@
 #
 # N.B. Must use go-yq v4 ("mikefarah/yq"). Don't use the one installed by apt. 'sudo snap install yq'
 
-#### FIXME  remove single quotes from all that use !secret: e.g., key: '!secret api_encryption_key', and wifi/passwd
-#### FIXME  add '!lambda ' to all like this: 'brightness: return max( id(led_ring).current_values.get_brightness() , 0.2f );'
-
-
 scriptDir="$(cd "$(dirname "$0")" && pwd)"
 source "$scriptDir/commonPatch.sh"
 
@@ -44,8 +40,23 @@ DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/h
 
 checkYQ
 
-convertToJson $SOURCE_FILE $SRC_FILE
+# pre-process YAML
+YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
+if ! sed -E "s/(\x21lambda .*$)/\'\1\'/" $SOURCE_FILE > $YAML_FILE; then
+    echo "ERROR: yaml file preprocessing failed"
+    exit 1
+fi
+if [[ "$DEBUG" == true ]]; then
+    diff $SOURCE_FILE $YAML_FILE
+else
+    rm -f $YAML_FILE
+fi
 
+convertToJson $YAML_FILE $SRC_FILE
+
+# pre-process JSON
+
+# edit JSON
 updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") | 
     (.esphome.name_add_mac_suffix = false) |
     (.esphome.friendly_name = "${friendly_name}") |
@@ -55,8 +66,14 @@ updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") |
     (.logger.level = "${log_level}") |
     (.api.encryption.key = "!secret api_encryption_key") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
+if [[ "$DEBUG" == true ]]; then
+    diff $SRC_FILE $TMP_FILE
+fi
 
-if ! yq -P -o=yaml '.' $TMP_FILE > $DST_FILE; then
+# convert to YAML and post-process it
+if ! yq -P -o=yaml '.' $TMP_FILE | sed -E "s/'(\x21.* [^']*)'/\1/g" > $DST_FILE; then
     echo "ERROR: failed to convert file back to YAML"
     exit 1
 fi
+
+# cleanup

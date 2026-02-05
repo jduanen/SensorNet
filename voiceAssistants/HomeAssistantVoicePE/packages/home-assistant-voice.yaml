@@ -68,8 +68,8 @@ wifi:
     - script.execute: control_leds
   on_disconnect:
     - script.execute: control_leds
-  ssid: '!secret wifi_ssid'
-  password: '!secret wifi_password'
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
 network:
   enable_ipv6: true
 logger:

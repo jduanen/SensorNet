@@ -21,51 +21,55 @@
 #      - - platform: wifi_signal
 #          id: wifi_rssi
 #          name: ${friendly_name} WiFi Signal"
+#
+# N.B. Must use go-yq v4 ("mikefarah/yq"). Don't use the one installed by apt. 'sudo snap install yq'
 
-DEBUG=${DEBUG:-false}
+scriptDir="$(cd "$(dirname "$0")" && pwd)"
+source "$scriptDir/commonPatch.sh"
 
 SOURCE_FILE="${HOME}/Code2/waveshare-s2-audio_esphome_voice/waveshare-s3-audio.yaml"
 
-SRC_FILE="/tmp/src.yaml"
-TMP_FILE="/tmp/tmp.yaml"
 DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-audio-esp32-s3.yaml"
 
-updateYaml() {
-    local opts="$1"
-    shift
-    local file="$1"
-    shift
+checkYQ
 
-    if ! yq $opts "$@" "$file"; then
-        echo "ERROR: yq failed on file '$file'"
-        exit 1
-    fi
-}
+# pre-process YAML
 
 #### TMP TMP TMP just fixing a typo in the source file
-sed -e 's/[[:space:]]*$//' -e '1194s/^  //' $SOURCE_FILE > $TMP_FILE
-## cp $SOURCE_FILE $TMP_FILE
-updateYaml -yr $TMP_FILE '.' > $SRC_FILE
+####sed -e 's/[[:space:]]*$//' -e '1194s/^  //' $SOURCE_FILE > $TMP_FILE
 
-if [[ "$DEBUG" == "true" ]]; then
-    ls -l $SRC_FILE $TMP_FILE
+YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
+if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/"  > $YAML_FILE; then
+    echo "ERROR: yaml file preprocessing failed"
+    exit 1
 fi
-
-#### FIXME combine operators for efficiency
-#yq -yri '(.esphome.name = "${device_name}") | (.esphome.name_add_mac_suffix = false) , (.wifi.ssid = "!secret wifi_ssid") | (.wifi.password = "!secret wifi_password")' $TMP_FILE
-updateYaml -yri $TMP_FILE '(.esphome.name = "${device_name}")'
-updateYaml -yri $TMP_FILE '(.esphome.friendly_name = "${friendly_name}")'
-updateYaml -yri $TMP_FILE '(.esphome.comment = "${comment}")'
-updateYaml -yri $TMP_FILE '(.logger.level = "${log_level}")'
-updateYaml -yri $TMP_FILE '(.api.key = "!secret api_encryption_key")'
-updateYaml -yri $TMP_FILE '(.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
-
-cp $TMP_FILE $DST_FILE
-
-if [[ "$DEBUG" == "true" ]]; then
-    echo ""
-    ls -l $SRC_FILE $TMP_FILE
-    tkdiff $SRC_FILE $TMP_FILE
+if [[ "$DEBUG" == true ]]; then
+    diff $SOURCE_FILE $YAML_FILE
 else
-    rm $SRC_FILE $TMP_FILE
+    rm -f $YAML_FILE
 fi
+
+convertToJson $YAML_FILE $SRC_FILE
+
+# pre-process JSON
+
+# edit JSON
+updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") | 
+    (.esphome.friendly_name = "${friendly_name}") |
+    (.esphome.comment = "${comment}") |
+    (.wifi.ssid = "!secret wifi_ssid") |
+    (.wifi.password = "!secret wifi_password") |
+    (.logger.level = "${log_level}") |
+    (.api.key = "!secret api_encryption_key") |
+    (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
+if [[ "$DEBUG" == true ]]; then
+    diff $SRC_FILE $TMP_FILE
+fi
+
+# convert to YAML and post-process it
+if ! yq -P -o=yaml '.' $TMP_FILE | sed -E "s/'(\x21.* [^']*)'/\1/g" > $DST_FILE; then
+    echo "ERROR: failed to convert file back to YAML"
+    exit 1
+fi
+
+# cleanup

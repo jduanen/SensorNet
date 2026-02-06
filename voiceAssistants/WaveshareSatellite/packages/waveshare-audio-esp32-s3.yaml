@@ -70,6 +70,8 @@ esphome:
             setenv("TZ", id(saved_time_zone).c_str(), 1);
             tzset();
   comment: ${comment}
+  platform: espressif32@3.5.0
+
 esp32:
   board: esp32-s3-devkitc-1
   cpu_frequency: 240MHz

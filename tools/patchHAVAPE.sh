@@ -42,7 +42,7 @@ checkYQ
 
 # pre-process YAML
 YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
-if ! sed -E "s/(\x21lambda .*$)/\'\1\'/" $SOURCE_FILE > $YAML_FILE; then
+if ! sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/" $SOURCE_FILE > $YAML_FILE; then
     echo "ERROR: yaml file preprocessing failed"
     exit 1
 fi
@@ -71,7 +71,7 @@ if [[ "$DEBUG" == true ]]; then
 fi
 
 # convert to YAML and post-process it
-if ! yq -P -o=yaml '.' $TMP_FILE | sed -E "s/'(\x21.* [^']*)'/\1/g" > $DST_FILE; then
+if ! yq -P -o=yaml '.' $TMP_FILE | sed -E "s/'(\x21.*[[:space:]][^']*)'/\1/g" > $DST_FILE; then
     echo "ERROR: failed to convert file back to YAML"
     exit 1
 fi

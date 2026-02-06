@@ -1,0 +1,13 @@
+substitutions:
+  device_name: home-assistant-voice-1
+  friendly_name: "Voice Assistant PE DWR"
+  comment: "Home Assistant Voice Assistant Preview Edition"
+  log_level: WARN
+
+packages:
+  dev_conf:
+    url: https://github.com/jduanen/SensorNet
+    ref: voiceAssistants/HomeAssistantVoicePE
+    path: packages
+    files: [home-assistant-voice.yaml]
+    refresh: 0s

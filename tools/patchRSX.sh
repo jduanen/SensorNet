@@ -32,7 +32,7 @@ checkYQ
 
 # pre-process YAML
 YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
-if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda) '(.+)'@\1\2@" | sed -E "s/(\x21lambda .*$)/\'\1\'/"  > $YAML_FILE; then
+if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/"  > $YAML_FILE; then
     echo "ERROR: yaml file preprocessing failed"
     exit 1
 fi

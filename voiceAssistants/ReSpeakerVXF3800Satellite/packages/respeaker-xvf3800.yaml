@@ -1554,11 +1554,11 @@ voice_assistant:
   on_tts_end:
     - script.execute:
         id: send_tts_uri_event
-        tts_uri: x;
+        tts_uri: !lambda return x;
   on_stt_end:
     - script.execute:
         id: send_stt_text_event
-        stt_text: x;
+        stt_text: !lambda return x;
   on_end:
     - wait_until:
         not:

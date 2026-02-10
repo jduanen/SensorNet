@@ -38,11 +38,10 @@ if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E
 fi
 if [[ "$DEBUG" == true ]]; then
     diff $SOURCE_FILE $YAML_FILE
-else
-    rm -f $YAML_FILE
 fi
 
 convertToJson $YAML_FILE $SRC_FILE
+rm $YAML_FILE
 
 # pre-process JSON
 

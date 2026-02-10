@@ -127,11 +127,16 @@ handlers["${d}"]="patchWSS"
 for dir in "${dirs[@]}"; do
     path="${baseDir}/${dir}"
     echo "Checking: ${path##*/} @ ${path}"
-    checkRepo "${path}"; r=$?
-    if [ $r == 1 ]; then
+    #### TODO refactor checkRepo and move to updateRepo
+    #### TODO print output from checkRepo only if verbose on
+    checkRepo "${path}"
+    if [ $? == 1 ]; then
         echo "  Was updated, needs to be patched"
+        #### TODO make patching conditional
         echo "    patching with: ${handlers[$dir]}"
         ${handlers[$dir]}
+    else
+        echo "  Not updated"
     fi
     echo ""
 done

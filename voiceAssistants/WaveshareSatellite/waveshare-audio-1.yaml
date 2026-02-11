@@ -5,5 +5,5 @@ substitutions:
   log_level: WARN
 
 packages:
-  dev_conf: github://jduanen/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-audio-esp32-s3.yaml
+  dev_conf: github://jduanen/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-s3-audio.yaml
   

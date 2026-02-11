@@ -14,8 +14,9 @@
 #    * edit:
 #      - level: ${log_level}
 #  - api:
-#    * edit:
-#      - key: !secret api_encryption_key
+#    * encryption:
+#      - edit:
+#        * key: !secret api_encryption_key
 #  - sensor:
 #    * add:
 #      - - platform: wifi_signal
@@ -29,15 +30,11 @@ source "$scriptDir/commonPatch.sh"
 
 SOURCE_FILE="${HOME}/Code2/waveshare-s2-audio_esphome_voice/waveshare-s3-audio.yaml"
 
-DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-audio-esp32-s3.yaml"
+DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-s3-audio.yaml"
 
 checkYQ
 
 # pre-process YAML
-
-#### TMP TMP TMP just fixing a typo in the source file
-####sed -e 's/[[:space:]]*$//' -e '1194s/^  //' $SOURCE_FILE > $TMP_FILE
-
 YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
 if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/"  > $YAML_FILE; then
     echo "ERROR: yaml file preprocessing failed"
@@ -57,10 +54,8 @@ convertToJson $YAML_FILE $SRC_FILE
 updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") | 
     (.esphome.friendly_name = "${friendly_name}") |
     (.esphome.comment = "${comment}") |
-    (.wifi.ssid = "!secret wifi_ssid") |
-    (.wifi.password = "!secret wifi_password") |
     (.logger.level = "${log_level}") |
-    (.api.key = "!secret api_encryption_key") |
+    (.api.encryption.key = "!secret api_encryption_key") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 if [[ "$DEBUG" == true ]]; then
     diff $SRC_FILE $TMP_FILE

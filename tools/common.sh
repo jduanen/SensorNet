@@ -4,9 +4,8 @@
 #
 
 REMOTE_USER_HOST="jdn@gpuServer1.local"
-REMOTE_DIR="Code/SensorNet"
 
-SOURCE_DIR="${HOME}/Code/SensorNet"
+SOURCE_DIR="/home/jdn/Code/SensorNet"
 
 CONTROLLERS="${SOURCE_DIR}/controllers"
 SENSORS="${SOURCE_DIR}/sensors"

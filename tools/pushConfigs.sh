@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script to push ESPHome config files from HA Server to gpuServer1.lan
+# Script to push ESPHome config files from HA Server to remote server
 #
 # Create key on HA server first:
 #  ssh-keygen -t ed25519 -f ~/.ssh/rsyncKey -C "rsync automation key"
@@ -10,6 +10,8 @@
 # Test with:
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
+trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
+
 SCRIPT_DIR="$(dirname "$0")"
 source "${SCRIPT_DIR}/common.sh"
 
@@ -17,9 +19,10 @@ LOCAL_DIR="/root/config/esphome"
 
 KEY="~/.ssh/rsyncKey"
 
-trap 'echo "Interrupted by Ctrl+C"; exit 130' INT
-
-for remoteFile in "${REMOTE_FILES[@]}"; do
+for remoteFile in "${SOURCE_FILES[@]}"; do
     localFile="$LOCAL_DIR/${remoteFile##*/}"
+    if [[ "$DEBUG" == true ]]; then
+        echo "$localFile -> $remoteFile"
+    fi
     rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile" "$REMOTE_USER_HOST:$remoteFile"
 done

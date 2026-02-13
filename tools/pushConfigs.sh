@@ -24,5 +24,11 @@ for remoteFile in "${SOURCE_FILES[@]}"; do
     if [[ "$DEBUG" == true ]]; then
         echo "$localFile -> $remoteFile"
     fi
-    rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile" "$REMOTE_USER_HOST:$remoteFile"
+    if [[ -f "$localFile" ]]; then
+        rsync -avqz -e "ssh -i $KEY" --protect-args "$localFile" "$REMOTE_USER_HOST:$remoteFile"
+    else
+        if [[ "$DEBUG" == true ]]; then
+            echo "WARNING: Missing local file ($localFile)"
+        fi
+    fi
 done

@@ -10,7 +10,8 @@
 # Test with:
 #  ssh -i /root/.ssh/rsyncKey jdn@gpuServer1.local
 
-source "${dirname "$0"}/common.sh"
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/common.sh"
 
 LOCAL_DIR="/root/config/esphome"
 

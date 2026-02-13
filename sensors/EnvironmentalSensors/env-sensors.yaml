@@ -66,19 +66,32 @@ sensor:
     i2c_id: i2cBus
     address: 0x69
     pm_1_0:
-      name: "Particulate Matter <1.0µm"
+      name: "PM <1.0µm"
+      id: pm1
     pm_2_5:
-      name: "Particulate Matter <2.5µm"
+      name: "PM <2.5µm"
+      id: pm2_5
     pm_4_0:
-      name: "Particulate Matter <4.0µm"
+      name: "PM <4.0µm"
+      id: pm4
     pm_10_0:
-      name: "Particulate Matter <10.0µm"
+      name: "PM <10.0µm"
+      id: pm10
     voc:
       name: "VOC Index"
+      id: voc_index
     nox:
       name: "NOx Index"
+      id: nox_index
     temperature:
       name: "SEN55 Temperature"
+      id: sen55_temp
     humidity:
       name: "SEN55 Humidity"
+      id: sen55_humid
     update_interval: 60s
+  - platform: aqi
+    name: "Air Quality Index"
+    pm_2_5: pm2_5
+    pm_10_0: pm10
+    calculation_type: AQI

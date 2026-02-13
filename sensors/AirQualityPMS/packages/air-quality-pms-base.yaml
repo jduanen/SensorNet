@@ -14,7 +14,7 @@ sensor:
   - platform: pmsx003
     type: PMSX003
     pm_1_0:
-      name: "Particulate Matter <1.0µm"
+      name: "PM <1.0µm"
       id: pms1
       accuracy_decimals: 1
       filters:
@@ -30,7 +30,7 @@ sensor:
             send_first_at: 1
         - debounce: 3s
     pm_2_5:
-      name: "Particulate Matter <2.5µm"
+      name: "PM <2.5µm"
       id: pms2_5
       accuracy_decimals: 1
       filters:
@@ -46,7 +46,7 @@ sensor:
             send_first_at: 1
         - debounce: 3s
     pm_10_0:
-      name: "Particulate Matter <10.0µm"
+      name: "PM <10.0µm"
       id: pms10
       accuracy_decimals: 1
       filters:
@@ -61,6 +61,11 @@ sensor:
             send_every: 1
             send_first_at: 1
         - debounce: 3s
+  - platform: aqi
+    name: "Air Quality Index"
+    pm_2_5: pms2_5
+    pm_10_0: pms10
+    calculation_type: AQI
 
 interval:
   - interval: 5min

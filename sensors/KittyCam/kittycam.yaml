@@ -25,9 +25,9 @@ microphone:
     channel: left
 
 i2c:
-   - id: camera_i2c
-     sda: GPIO40
-     scl: GPIO39
+  - id: camera_i2c
+    sda: GPIO40
+    scl: GPIO39
 
 i2s_audio:
   i2s_lrclk_pin: GPIO46
@@ -60,7 +60,7 @@ esp32_camera_web_server:
 binary_sensor:
   - platform: gpio
     pin: GPIO4
-    name: "Kittycam PIR Sensor"
+    name: "PIR Sensor"
     device_class: PRESENCE
 
 output:
@@ -74,4 +74,4 @@ output:
 light:
   - platform: monochromatic
     output: kittyCamLED
-    name: "Kittycam Light"
+    name: "Light"

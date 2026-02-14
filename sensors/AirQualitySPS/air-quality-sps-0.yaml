@@ -50,3 +50,8 @@ sensor:
       id: "pm_size"
     address: 0x69
     update_interval: 60s
+  - platform: aqi
+    name: "Air Quality Index"
+    pm_2_5: PM_2_5
+    pm_10_0: PM_10_0
+    calculation_type: AQI

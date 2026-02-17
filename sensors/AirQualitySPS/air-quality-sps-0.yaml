@@ -49,7 +49,8 @@ sensor:
       name: "Typical Particle size"
       id: "pm_size"
     address: 0x69
-    update_interval: 60s
+    update_interval: 10s
+    idle_interval: 5min
   - platform: aqi
     name: "Air Quality Index"
     pm_2_5: PM_2_5

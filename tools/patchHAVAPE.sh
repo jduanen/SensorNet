@@ -36,28 +36,25 @@ source "$scriptDir/commonPatch.sh"
 
 SOURCE_FILE="${HOME}/Code2/home-assistant-voice-pe/home-assistant-voice.yaml"
 
-DST_FILE="${HOME}/Code/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/home-assistant-voice.yaml"
+DEST_FILE="${HOME}/Code/SensorNet/voiceAssistants/HomeAssistantVoicePE/packages/home-assistant-voice.yaml"
 
 checkYQ
 
 # pre-process YAML
-YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
-if ! sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/" $SOURCE_FILE > $YAML_FILE; then
+if ! sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/" $SOURCE_FILE > $TMP_YAML_FILE; then
     echo "ERROR: yaml file preprocessing failed"
     exit 1
 fi
 if [[ "$DEBUG" == true ]]; then
-    diff $SOURCE_FILE $YAML_FILE
-else
-    rm -f $YAML_FILE
+    diff $SOURCE_FILE $TMP_YAML_FILE
 fi
 
-convertToJson $YAML_FILE $SRC_FILE
+convertToJson $TMP_YAML_FILE $TMP_SRC_FILE
 
 # pre-process JSON
 
 # edit JSON
-updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") | 
+updateJson "$TMP_SRC_FILE" "$TMP_SOURCE_FILE" '(.esphome.name = "${device_name}") | 
     (.esphome.name_add_mac_suffix = false) |
     (.esphome.friendly_name = "${friendly_name}") |
     (.esphome.comment = "${comment}") |
@@ -67,13 +64,13 @@ updateJson "$SRC_FILE" "$TMP_FILE" '(.esphome.name = "${device_name}") |
     (.api.encryption.key = "!secret api_encryption_key") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 if [[ "$DEBUG" == true ]]; then
-    diff $SRC_FILE $TMP_FILE
+    diff $TMP_SRC_FILE $TMP_SOURCE_FILE
 fi
 
 # convert to YAML and post-process it
-if ! yq -P -o=yaml '.' $TMP_FILE | sed -E "s/'(\x21.*[[:space:]][^']*)'/\1/g" > $DST_FILE; then
+if ! yq -P -o=yaml '.' $TMP_SOURCE_FILE | sed -E "s/'(\x21.*[[:space:]][^']*)'/\1/g" > $DEST_FILE; then
     echo "ERROR: failed to convert file back to YAML"
     exit 1
 fi
 
-# cleanup
+cleanup

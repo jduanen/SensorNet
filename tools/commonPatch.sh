@@ -4,8 +4,9 @@
 
 DEBUG=${DEBUG:-false}
 
-SRC_FILE=$(mktemp --suffix=.json src-XXXX)
-TMP_FILE=$(mktemp --suffix=.json tmp-XXXX)
+TMP_SRC_FILE=$(mktemp --suffix=.json src-XXXX)
+TMP_YAML_FILE=$(mktemp --suffix=.yaml src-XXXX)
+TMP_SOURCE_FILE=$(mktemp --suffix=.json tmp-XXXX)
 
 trap 'cleanup' EXIT
 
@@ -37,6 +38,6 @@ convertToJson() {
 
 cleanup() {
     if [[ "$DEBUG" != true ]]; then
-        rm -f "$SRC_FILE" "$TMP_FILE"
+        rm -f "$TMP_SRC_FILE" "$TMP_SOURCE_FILE" "$TMP_YAML_FILE"
     fi
 }

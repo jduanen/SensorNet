@@ -74,6 +74,18 @@ Most SensorNet devices use the ESP8266 boards' microUSB (or the ESP32 boards') c
 
 These devices, their enclosures, and functionality have evolved over time; e.g., I used ESP8266 controllers, micro-USB power, and the cases were held together with screws, more recently I use ESP32 controllers, USB-C for power, and the cases snap together.
 
+In general, I'm focusing on the US Air Quality Index (AQI) values. AQI values run from 0-500 and are grouped into six (color-coded) health categories.
+
+
+| AQ Range | Color | Label | Interpretation |
+| :--- | :--- | :--- | :--- |
+| 0-50 | Green | Good | Air is clean |
+| 51-100 | Yellow | Moderate | Acceptable overall |
+| 101-150 | Orange | Unhealthy for Sensitive Groups | Kids, elderly, those with heart/lung disease should limit exertion |
+| 151-200 | Red | Unhealthy | Everyone may start to feel effects |
+| 201-300 | Purple | Very Unhealthy | Health alert: higher risk for everyone |
+| 301-500 | Maroon | Hazardous | Emergency conditions: everyone at risk |
+
 ### AirQualityPMS
 
 This sensor device uses the Plantower PMS7003 (aka PMS) to detect amount and size of particulate matter in the air.

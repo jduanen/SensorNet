@@ -34,7 +34,7 @@ checkRepo() {
         cd "${gitDir}"
         if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
             echo "Not inside a git repository."
-            exit 1
+            exit -1
         fi
         git fetch --quiet
         read behind ahead < <(git rev-list --left-right --count @{u}...HEAD)
@@ -49,12 +49,17 @@ checkRepo() {
         echo "    Ahead : $ahead commit(s)"
         echo "    Dirty : $dirty"
 
+        # warning if ahead
+        if (( ahead > 0 )); then
+            echo "  WARNING: ahead of upstream by $ahead commit(s). Consider git push."
+        fi
+
         # if behind and clean, pull
         if (( behind > 0 )); then
             if (( dirty == 1 )); then
                 echo "  There are uncommitted changes; refusing to pull."
                 echo "  Commit/stash your changes first."
-            exit 1
+                exit -1
             fi
             echo "  Pulling latest changes..."
             git pull --ff-only
@@ -62,13 +67,8 @@ checkRepo() {
         else
             echo "  Already up to date with upstream, no config update needed."
         fi
-
-        # warning if ahead
-        if (( ahead > 0 )); then
-            echo "  Note: You are ahead of upstream by $ahead commit(s). Consider git push."
-        fi
     )
-    return $dirty
+    return 0
 }
 
 declare -A handlers
@@ -125,18 +125,28 @@ handlers["${d}"]="patchWSS"
 
 # loop through dirs and check if updates are required
 for dir in "${dirs[@]}"; do
-    path="${baseDir}/${dir}"
-    echo "Checking: ${path##*/} @ ${path}"
-    #### TODO refactor checkRepo and move to updateRepo
-    #### TODO print output from checkRepo only if verbose on
-    checkRepo "${path}"
-    if [ $? == 1 ]; then
-        echo "  Was updated, needs to be patched"
-        #### TODO make patching conditional
-        echo "    patching with: ${handlers[$dir]}"
-        ${handlers[$dir]}
+    doUpdate=0
+    if  (( FORCE_UPDATE != 0 )); then
+        echo "Forcing patch: $dir"
+        doUpdate=1
     else
-        echo "  Not updated"
+        path="${baseDir}/${dir}"
+        echo "Checking: ${path##*/} @ ${path}"
+        checkRepo "${path}"
+        doUpdate=$?
+        if (( doUpdate < 0 )); then
+            exit 1
+        fi
+    fi
+    if (( doUpdate != 0 )); then
+        handler="${handlers[$dir]}.sh"
+        echo "    patching with: $handler"
+        ${SCRIPT_DIR}/${handler}
+        if (( $? == 0 )); then
+            echo "    Patched $dir successfully"
+        else
+            echo "    Failed to patch $dir with $handler"
+        fi
     fi
     echo ""
 done

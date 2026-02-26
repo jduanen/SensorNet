@@ -791,14 +791,6 @@ script:
           const auto timers = id(va).get_timers();
           if (timers.empty()) return;
 
-#          auto output_timer = timers.begin()->second; ## TOADS
-#          for (auto &iterable_timer : timers) {
-#            if (iterable_timer.second.is_active &&  ## TOADS
-#                iterable_timer.second.seconds_left <= output_timer.seconds_left) { ## TOADS
-#              output_timer = iterable_timer.second;  ## TOADS
-#            }
-#          }
-
           auto &output_timer = timers.front();
           for (auto &iterable_timer : timers) {
             if (iterable_timer.is_active &&
@@ -815,7 +807,6 @@ script:
           bool output = false;
           if (!timers.empty()) {
             for (auto &iterable_timer : timers) {
-#              if (iterable_timer.second.is_active) {
               if (iterable_timer.is_active) {
                 output = true;
                 break;

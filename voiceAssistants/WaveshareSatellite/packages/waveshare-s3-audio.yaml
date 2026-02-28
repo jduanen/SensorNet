@@ -791,14 +791,14 @@ script:
           const auto timers = id(va).get_timers();
           if (timers.empty()) return;
 
-          auto &output_timer = timers.front();
+          auto output_timer = timers.empty() ? voice_assistant::Timer{} : timers.front();
+
           for (auto &iterable_timer : timers) {
             if (iterable_timer.is_active &&
-                iterable_timer.seconds_left <= output_timer_seconds_left) {
+                iterable_timer.seconds_left <= output_timer.seconds_left) {
               output_timer = iterable_timer;
             }
           }
-
           id(first_active_timer) = output_timer;
   - id: check_if_timers_active
     then:

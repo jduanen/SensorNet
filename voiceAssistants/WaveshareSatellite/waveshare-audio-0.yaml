@@ -3,6 +3,8 @@ substitutions:
   friendly_name: "Waveshare Voice MBR"
   comment: "Waveshare ESP32-S3 Voice Assistant in Master Bedroom"
   log_level: WARN
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
 
 packages:
   dev_conf: github://jduanen/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-s3-audio.yaml

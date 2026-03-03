@@ -10,6 +10,10 @@
 #      - friendly_name: ${friendly_name}
 #    * add:
 #      - comment: ${comment}
+#  - wifi:
+#    * edit:
+#      - ssid: !secret wifi_ssid
+#      - password: !secret wifi_password
 #  - logger:
 #    * edit:
 #      - level: ${log_level}
@@ -22,11 +26,6 @@
 #      - - platform: wifi_signal
 #          id: wifi_rssi
 #          name: ${friendly_name} WiFi Signal"
-#
-# Must add these to the substitutions in the instance yaml file:
-#  - ssid: !secret wifi_ssid
-#  - password: !secret wifi_password
-
 #
 # N.B. Must use go-yq v4 ("mikefarah/yq"). Don't use the one installed by apt. 'sudo snap install yq'
 
@@ -56,8 +55,8 @@ convertToJson $TMP_YAML_FILE $TMP_SRC_FILE
 updateJson "$TMP_SRC_FILE" "$TMP_SOURCE_FILE" '(.esphome.name = "${device_name}") | 
     (.esphome.friendly_name = "${friendly_name}") |
     (.esphome.comment = "${comment}") |
-    (.wifi.ssid = wifi_ssid) |
-    (.wifi.password = wifi_password) |
+    (.wifi.ssid = ${wifi_ssid}) |
+    (.wifi.password = ${wifi_password}) |
     (.logger.level = "${log_level}") |
     (.api.encryption.key = "!secret api_encryption_key") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'

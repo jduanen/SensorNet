@@ -33,10 +33,10 @@ display:
     scroll_enable: true
     scroll_mode: STOP
     scroll_speed: 90ms
-    scroll_dwell: 400ms
-    scroll_delay: 1500ms
+    scroll_dwell: 1000ms
+    scroll_delay: 2000ms
     flip_x: false
-    #update_interval: 5s
+    update_interval: never
     fonts:
       - MT_Pixel_5x7
       - MatrixLight6
@@ -44,7 +44,6 @@ display:
     lambda: |-
       if (!id(led_display_text).state.empty()) {
         it.printLED(id(led_display_text).state.c_str());
-        ESP_LOGD("led-sign", "> %s", id(led_display_text).state.c_str());
       };
 
 font:
@@ -72,7 +71,10 @@ text_sensor:
     on_value:
       then:
         - lambda: |-
-            if (!x.empty()) {
+            // Only update if the text actually changed
+            static std::string last_text = "";
+            if (!x.empty() && x != last_text) {
+              last_text = x;
               id(leds).update();
             }
 

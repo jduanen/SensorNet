@@ -31,7 +31,7 @@ DEST_FILE="${HOME}/Code/SensorNet/voiceAssistants/ReSpeakerVXF3800Satellite/pack
 checkYQ
 
 # pre-process YAML
-if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/" | sed 's/effect: off/effect: "off"/' > $TMP_YAML_FILE; then
+if ! cat $SOURCE_FILE | sed -E "s@(\x21lambda)[[:space:]]'(.+)'@\1 \2@" | sed -E "s/(\x21lambda[[:space:]].*$)/\'\1\'/" > $TMP_YAML_FILE; then
     echo "ERROR: yaml file preprocessing failed"
     exit 1
 fi
@@ -57,7 +57,7 @@ if [[ "$DEBUG" == true ]]; then
 fi
 
 # convert to YAML and post-process it
-if ! yq -P -o=yaml '.' $TMP_SOURCE_FILE | sed -E "s/'(\x21.* [^']*)'/\1/g" > $DEST_FILE; then
+if ! yq -P -o=yaml '.' $TMP_SOURCE_FILE | sed -E "s/'(\x21.* [^']*)'/\1/g" | sed 's/effect: off/effect: "off"/' > $DEST_FILE; then
     echo "ERROR: failed to convert file back to YAML"
     exit 1
 fi

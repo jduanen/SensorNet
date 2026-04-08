@@ -91,8 +91,8 @@ esp32:
 wifi:
   id: wifi_id
   fast_connect: ${hidden_ssid}
-  ssid: ${wifi_ssid}
-  password: ${wifi_password}
+  ssid: wifi_ssid
+  password: wifi_password
   power_save_mode: none
   reboot_timeout: 10min
   on_connect:
@@ -791,12 +791,11 @@ script:
           const auto timers = id(va).get_timers();
           if (timers.empty()) return;
 
-          auto output_timer = timers.empty() ? voice_assistant::Timer{} : timers.front();
-
+          auto output_timer = timers.begin()->second;
           for (auto &iterable_timer : timers) {
-            if (iterable_timer.is_active &&
-                iterable_timer.seconds_left <= output_timer.seconds_left) {
-              output_timer = iterable_timer;
+            if (iterable_timer.second.is_active &&
+                iterable_timer.second.seconds_left <= output_timer.seconds_left) {
+              output_timer = iterable_timer.second;
             }
           }
           id(first_active_timer) = output_timer;
@@ -807,7 +806,7 @@ script:
           bool output = false;
           if (!timers.empty()) {
             for (auto &iterable_timer : timers) {
-              if (iterable_timer.is_active) {
+              if (iterable_timer.second.is_active) {
                 output = true;
                 break;
               }

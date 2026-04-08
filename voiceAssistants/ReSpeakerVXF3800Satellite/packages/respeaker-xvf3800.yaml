@@ -129,7 +129,7 @@ api:
 ota:
   - platform: esphome
     id: ota_esphome
-    password: ota_password
+    password: !secret ota_password
 i2c:
   - id: internal_i2c
     sda: GPIO5
@@ -912,7 +912,7 @@ script:
     then:
       - script.execute:
           id: led_set_effect
-          effect: "off"
+          effect: off
           r: 0
           g: 0
           b: 0

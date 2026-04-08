@@ -912,7 +912,7 @@ script:
     then:
       - script.execute:
           id: led_set_effect
-          effect: off
+          effect: "off"
           r: 0
           g: 0
           b: 0

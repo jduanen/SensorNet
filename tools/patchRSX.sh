@@ -49,6 +49,7 @@ updateJson "$TMP_SRC_FILE" "$TMP_SOURCE_FILE" '(.esphome.name = "${device_name}"
     (.esphome.comment = "${comment}") |
     (.wifi.ssid = "!secret wifi_ssid") |
     (.wifi.password = "!secret wifi_password") |
+    (.ota[0].password = "!secret ota_password") |
     (.logger.level = "${log_level}") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 if [[ "$DEBUG" == true ]]; then

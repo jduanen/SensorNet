@@ -47,8 +47,8 @@ display:
       };
 
 font:
-  - file: "fonts/5x7_MT_Pixel.ttf"
-    id: MT_Pixel_5x7
+  - file: "fonts/LedSign5x7.ttf"
+    id: LEDSign5x7
     size: 7
   - file: "fonts/MatrixLight6.ttf"
     id: MatrixLight6
@@ -59,6 +59,9 @@ font:
   - file: "fonts/MatrixLight8.ttf"
     id: MatrixLight8
     size: 8
+  - file: "fonts/5x7_MT_Pixel.ttf"
+    id: MT_Pixel_5x7
+    size: 7
   - file: "gfonts://Roboto"
     id: roboto
     size: 7

@@ -48,7 +48,7 @@ display:
 
 font:
   - file: "fonts/LedSign5x7.ttf"
-    id: LEDSign5x7
+    id: LedSign5x7
     size: 7
   - file: "fonts/MatrixLight6.ttf"
     id: MatrixLight6

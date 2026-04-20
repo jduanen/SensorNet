@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Sign Garage — Controller</title>
+    <style>
+      :root {
+        --bg-primary: #0d1117;
+        --bg-card: #161b22;
+        --bg-input: #0d1117;
+        --border: #30363d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-muted: #484f58;
+        --green: #00ff41;
+        --green-dim: #0a3d1a;
+        --red: #ff4444;
+        --amber: #ffaa00;
+        --blue: #58a6ff;
+        --radius: 12px;
+        --radius-sm: 8px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text);
+        line-height: 1.5
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0 24px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 24px
+      }
+
+      header h1 {
+        font-size: 22px;
+        font-weight: 600
+      }
+
+      .subtitle {
+        font-size: 13px;
+        color: var(--text-dim)
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border)
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-muted)
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 16px
+      }
+
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px
+      }
+
+      .display-frame {
+        background: #080808;
+        border: 3px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 12px;
+        display: flex;
+        justify-content: center;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, .5)
+      }
+
+      canvas {
+        display: block
+      }
+
+      .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 12px;
+        flex-wrap: wrap
+      }
+
+      .speed-ctrl {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 140px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
+        outline: none
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--blue);
+        cursor: pointer;
+        border: 2px solid var(--bg-primary)
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        background: var(--bg-card);
+        color: var(--text);
+        transition: .2s;
+        white-space: nowrap
+      }
+
+      .btn:hover {
+        background: var(--border)
+      }
+
+      .btn-blue {
+        background: #0c2d6b;
+        border-color: var(--blue);
+        color: var(--blue)
+      }
+
+      .btn-sm {
+        padding: 6px 14px;
+        font-size: 12px
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 16px
+      }
+
+      @media(max-width:900px) {
+        .grid-2 {
+          grid-template-columns: 1fr
+        }
+      }
+
+      .seg-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px
+      }
+
+      .seg-row select,
+      .seg-row input {
+        padding: 8px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 13px
+      }
+
+      .seg-row input {
+        flex: 1;
+        font-family: monospace
+      }
+
+      .seg-row button {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px
+      }
+
+      .seg-row button:hover {
+        border-color: var(--green);
+        color: var(--green)
+      }
+
+      .seg-num {
+        width: 24px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 12px
+      }
+
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px
+      }
+
+      .preset-btn {
+        padding: 6px 14px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, .04);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        font-size: 12px;
+        cursor: pointer
+      }
+
+      .preset-btn:hover {
+        border-color: var(--green);
+        color: var(--green)
+      }
+
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border)
+      }
+
+      .tab-btn {
+        padding: 8px 16px;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        cursor: pointer;
+        font-size: 13px;
+        border-bottom: 2px solid transparent
+      }
+
+      .tab-btn.active {
+        color: var(--text);
+        border-bottom-color: var(--blue)
+      }
+
+      .output-box {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        font-family: monospace;
+        font-size: 13px;
+        min-height: 90px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #ffbb66
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 16px;
+        font-size: 13px
+      }
+
+      .info-label {
+        color: var(--text-muted)
+      }
+
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, .04)
+      }
+
+      .toggle {
+        position: relative;
+        width: 40px;
+        height: 22px
+      }
+
+      .toggle input {
+        display: none
+      }
+
+      .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: var(--border);
+        border-radius: 11px;
+        transition: .2s;
+        cursor: pointer
+      }
+
+      .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        top: 3px;
+        left: 3px;
+        transition: .2s
+      }
+
+      .toggle input:checked+.toggle-slider {
+        background: var(--green-dim)
+      }
+
+      .toggle input:checked+.toggle-slider::before {
+        background: var(--green);
+        transform: translateX(18px)
+      }
+
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px
+      }
+
+      .toast {
+        padding: 12px 20px;
+        border-radius: 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        font-size: 13px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
+        animation: slideIn .3s
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100px);
+          opacity: 0
+        }
+
+        to {
+          transform: translateX(0);
+          opacity: 1
+        }
+      }
+    </style>
+    <script src="/frontend_latest/entrypoint.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <h1>💡 LED Sign Controller</h1>
+          <div class="subtitle">Garage Bi-LED Display · Seeed XIAO ESP32-C3</div>
+        </div>
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span>Standalone</span>
+        </div>
+      </header>
+      <div class="card">
+        <div class="preview-header">
+          <div class="card-title" style="margin:0">📺 Live Preview</div>
+          <div class="speed-ctrl">
+            <span>Speed</span>
+            <input type="range" id="scrollSpeed" min="20" max="500" value="90">
+            <span id="scrollSpeedVal">90ms</span>
+            <button class="btn btn-sm" id="btnPause">⏸ Pause</button>
+          </div>
+        </div>
+        <div class="display-frame">
+          <canvas id="ledCanvas"></canvas>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <div class="card-title" style="margin:0">✏️ String Builder</div>
+              <button class="btn btn-blue btn-sm" id="btnAddSeg">+ Add Segment</button>
+            </div>
+            <div id="segList"></div>
+            <div class="presets">
+              <button class="preset-btn" data-preset="welcome">🟠 Welcome Home</button>
+              <button class="preset-btn" data-preset="forget">🟠 Do Not Forget</button>
+              <button class="preset-btn" data-preset="warning">🔴 Warning</button>
+              <button class="preset-btn" data-preset="remember">🟢 Remember</button>
+              <button class="preset-btn" data-preset="demo">🌈 Color Demo</button>
+              <button class="preset-btn" data-preset="fonts">🟢 Font Demo</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🧾 Output</div>
+            <div class="tabs">
+              <button class="tab-btn active" data-tab="plain">Plain String</button>
+              <button class="tab-btn" data-tab="ha">HA Service YAML</button>
+              <button class="tab-btn" data-tab="esp">ESPHome Lambda</button>
+              <button class="btn btn-sm" id="btnCopy" style="margin-left:auto">📋 Copy</button>
+            </div>
+            <div class="output-box" id="outPlain"></div>
+            <div class="output-box" id="outHA" style="display:none"></div>
+            <div class="output-box" id="outESP" style="display:none"></div>
+          </div>
+        </div>
+
+    <script>
+      let hass;  // HA connection object
+
+      // Connect to HA WebSocket (runs on load)
+      async function connectHA() {
+        try {
+          const auth = await window.getAuth();  // Uses current browser session
+          hass = await window.createConnection({ auth });
+          console.log('Connected to HA');
+        } catch (err) {
+          console.error('Connection failed:', err);
+        }
+      }
+
+      // Call service via WebSocket (no fetch!)
+      async function updateEntity() {
+        if (!hass) {
+          alert('Not connected to HA');
+          return;
+        }
+        const value = document.getElementById('myinput').value;
+        try {
+          await hass.callService('input_text', 'set_value', {
+            entity_id: 'input_text.your_entity_id',  // Replace with yours
+            value: value
+          });
+          console.log('Updated successfully');
+        } catch (err) {
+          console.error('Service call failed:', err);
+        }
+      }
+
+      connectHA();  // Auto-connect
+    </script>
+
+        <div>
+          <div class="card">
+            <div class="card-title">⚡ Send to Display</div>
+            <button class="btn btn-blue" id="btnSend" style="width:100%;margin-bottom:12px">🚀 Send to LED Sign</button>
+            <button class="btn btn-sm" id="btnClear" style="width:100%;margin-top:12px">🗑 Clear Display</button>
+          </div>
+          <div class="card">
+            <div class="card-title">🎨 Color Codes</div>
+            <div class="info-grid">
+              <div>🔴 <b>1 — Red</b>
+              </div>
+              <div class="info-label">\\[F;1m</div>
+              <div>🟢 <b>2 — Green</b>
+              </div>
+              <div class="info-label">\\[F;2m</div>
+              <div>🟠 <b>3 — Amber</b>
+              </div>
+              <div class="info-label">\\[F;3m</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎨 Font Codes</div>
+            <div class="info-grid">
+              <div>
+                <b>Font 0 — MT Pixel 5x7</b>
+              </div>
+              <div class="info-label">\\[0;Cm</div>
+              <div>
+                <b> Font 1 — MatrixLight6</b>
+              </div>
+              <div class="info-label">\\[1;Cm</div>
+              <div>
+                <b>Font 2 — MatrixLight6X</b>
+              </div>
+              <div class="info-label">\\[2;Cm</div>
+              <div>
+                <b>Font 3 — MatrixLight8</b>
+              </div>
+              <div class="info-label">\\[2;Cm</div>
+              <div>
+                <b>Font 4 — Roboto</b>
+              </div>
+              <div class="info-label">\\[2;Cm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+    <script>
+      (() => {
+        const $ = s => document.querySelector(s),
+          $$ = s => document.querySelectorAll(s);
+        const FONT = [
+          [0, 0, 0, 0, 0],
+          [0, 0, 95, 0, 0],
+          [0, 7, 0, 7, 0],
+          [20, 127, 20, 127, 20],
+          [36, 42, 127, 42, 18],
+          [35, 19, 8, 100, 98],
+          [54, 73, 85, 34, 80],
+          [0, 5, 3, 0, 0],
+          [0, 28, 34, 65, 0],
+          [0, 65, 34, 28, 0],
+          [20, 8, 62, 8, 20],
+          [8, 8, 62, 8, 8],
+          [0, 80, 48, 0, 0],
+          [8, 8, 8, 8, 8],
+          [0, 96, 96, 0, 0],
+          [32, 16, 8, 4, 2],
+          [62, 81, 73, 69, 62],
+          [0, 66, 127, 64, 0],
+          [66, 97, 81, 73, 70],
+          [33, 65, 69, 75, 49],
+          [24, 20, 18, 127, 16],
+          [39, 69, 69, 69, 57],
+          [60, 74, 73, 73, 48],
+          [1, 113, 9, 5, 3],
+          [54, 73, 73, 73, 54],
+          [6, 73, 73, 41, 30],
+          [0, 54, 54, 0, 0],
+          [0, 86, 54, 0, 0],
+          [8, 20, 34, 65, 0],
+          [20, 20, 20, 20, 20],
+          [0, 65, 34, 20, 8],
+          [2, 1, 81, 9, 6],
+          [50, 73, 121, 65, 62],
+          [126, 17, 17, 17, 126],
+          [127, 73, 73, 73, 54],
+          [62, 65, 65, 65, 34],
+          [127, 65, 65, 34, 28],
+          [127, 73, 73, 73, 65],
+          [127, 9, 9, 9, 1],
+          [62, 65, 73, 73, 122],
+          [127, 8, 8, 8, 127],
+          [0, 65, 127, 65, 0],
+          [32, 64, 65, 63, 1],
+          [127, 8, 20, 34, 65],
+          [127, 64, 64, 64, 64],
+          [127, 2, 12, 2, 127],
+          [127, 4, 8, 16, 127],
+          [62, 65, 65, 65, 62],
+          [127, 9, 9, 9, 6],
+          [62, 65, 81, 33, 94],
+          [127, 9, 25, 41, 70],
+          [70, 73, 73, 73, 49],
+          [1, 1, 127, 1, 1],
+          [63, 64, 64, 64, 63],
+          [31, 32, 64, 32, 31],
+          [63, 64, 56, 64, 63],
+          [99, 20, 8, 20, 99],
+          [7, 8, 112, 8, 7],
+          [97, 81, 73, 69, 67]
+        ];
+        const colorMap = {
+          1: '#ff4444',
+          2: '#00ff41',
+          3: '#ffaa00'
+        };
+        const state = {
+          segments: [{
+            font: 0,
+            color: 1,
+            text: 'RED,'
+          }, {
+            font: 0,
+            color: 2,
+            text: ' GREEN,'
+          }, {
+            font: 0,
+            color: 3,
+            text: ' AMBER!'
+          }],
+          cols: 64,
+          rows: 8,
+          intensity: 75,
+          displayOn: true,
+          flipX: false,
+          scroll: {
+            speed: 90
+          },
+          paused: false,
+          scrollOffset: 0,
+          phase: 'SCROLL',
+          phaseStart: 0,
+          blank: false,
+          haUrl: 'http://192.168.166.5',
+          haToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmZjc3MTY3MDQyMjI0ZDhmOTRmYTc1NDBhNjBjNWY3YyIsImlhdCI6MTc3NTE2ODg2OCwiZXhwIjoyMDkwNTI4ODY4fQ.j2jEJqZCX5ZRJpDicwSjytrmAdM7yNOJh3gR1bkqW7s'
+        };
+        let columns = [],
+          animFrame, lastStep = 0;
+        const canvas = $('#ledCanvas'),
+          ctx = canvas.getContext('2d');
+
+        function textToPixels(t) {
+          const c = [];
+          for (let i = 0; i < t.length; i++) {
+            const code = t.charCodeAt(i),
+              g = (code >= 32 && code < 127) ? FONT[code - 32] : FONT[0];
+            for (let j = 0; j < 5; j++) c.push(g[j]);
+            if (i < t.length - 1) c.push(0)
+          }
+          const b = [];
+          for (let r = 0; r < 7; r++) {
+            b[r] = [];
+            for (let col = 0; col < c.length; col++) b[r][col] = (c[col] >> r) & 1
+          }
+          return {
+            buf: b,
+            width: c.length
+          }
+        }
+
+        function rebuild() {
+          columns = [];
+          state.segments.forEach(s => {
+            const {
+              buf,
+              width
+            } = textToPixels(s.text || '');
+            for (let c = 0; c < width; c++) {
+              const bits = [];
+              for (let r = 0; r < 7; r++) bits.push(buf[r][c] || 0);
+              columns.push({
+                bits,
+                color: s.color
+              })
+            }
+            columns.push({
+              bits: [0, 0, 0, 0, 0, 0, 0],
+              color: 0
+            })
+          });
+          resetScroll()
+        }
+
+        function resize() {
+          const sz = 10,
+            g = 3,
+            cell = sz + g;
+          canvas.width = state.cols * cell + g;
+          canvas.height = state.rows * cell + g;
+          const sc = Math.min(1.8, (canvas.parentElement.clientWidth - 24) / canvas.width);
+          canvas.style.width = Math.floor(canvas.width * sc) + 'px';
+          canvas.style.height = Math.floor(canvas.height * sc) + 'px'
+        }
+
+        function render() {
+          const sz = 10,
+            g = 3,
+            cell = sz + g,
+            pad = g,
+            intens = state.displayOn ? state.intensity / 100 : 0;
+          ctx.fillStyle = '#080808';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const off = Math.floor(state.scrollOffset);
+          for (let r = 0; r < state.rows; r++) {
+            for (let dc = 0; dc < state.cols; dc++) {
+              let src = state.flipX ? (state.cols - 1 - dc) + off : dc + off,
+                on = false,
+                col = '#00ff41';
+              if (!state.blank && src >= 0 && src < columns.length && r < 7 && columns[src].bits[r]) {
+                on = true;
+                col = colorMap[columns[src].color] || col
+              }
+              const x = dc * cell + pad + sz / 2,
+                y = r * cell + pad + sz / 2;
+              ctx.beginPath();
+              ctx.arc(x, y, sz / 2, 0, Math.PI * 2);
+              if (on && intens > 0) {
+                const R = parseInt(col.slice(1, 3), 16),
+                  G = parseInt(col.slice(3, 5), 16),
+                  B = parseInt(col.slice(5, 7), 16);
+                ctx.fillStyle = `rgba(${R},${G},${B},${intens})`;
+                ctx.shadowColor = col;
+                ctx.shadowBlur = 8 * intens
+              } else {
+                ctx.fillStyle = 'rgba(0,255,65,0.03)';
+                ctx.shadowBlur = 0
+              }
+              ctx.fill();
+              ctx.shadowBlur = 0
+            }
+          }
+        }
+
+        function resetScroll() {
+          state.scrollOffset = 0;
+          state.phase = 'SCROLL';
+          state.phaseStart = performance.now();
+          state.blank = false;
+          lastStep = performance.now()
+        }
+
+        function loop(ts) {
+          animFrame = requestAnimationFrame(loop);
+          if (state.paused) {
+            render();
+            return
+          }
+          const max = Math.max(0, columns.length - state.cols),
+            now = ts || performance.now();
+          if (max === 0) {
+            switch (state.phase) {
+              case 'SCROLL':
+                state.phase = 'DWELL';
+                state.phaseStart = now;
+                break;
+              case 'DWELL':
+                if (now - state.phaseStart > 500) {
+                  state.phase = 'BLANK';
+                  state.phaseStart = now;
+                  state.blank = true
+                }
+                break;
+              case 'BLANK':
+                if (now - state.phaseStart > 500) {
+                  resetScroll()
+                }
+                break
+            }
+          } else {
+            switch (state.phase) {
+              case 'SCROLL':
+                if (now - lastStep > state.scroll.speed) {
+                  state.scrollOffset++;
+                  lastStep = now;
+                  if (state.scrollOffset >= max) {
+                    state.scrollOffset = max;
+                    state.phase = 'DWELL';
+                    state.phaseStart = now
+                  }
+                }
+                break;
+              case 'DWELL':
+                if (now - state.phaseStart > 500) {
+                  state.phase = 'BLANK';
+                  state.phaseStart = now;
+                  state.blank = true
+                }
+                break;
+              case 'BLANK':
+                if (now - state.phaseStart > 500) {
+                  resetScroll()
+                }
+                break
+            }
+          }
+          render()
+        }
+
+        function renderSegs() {
+          const el = $('#segList');
+          el.innerHTML = '';
+          state.segments.forEach((s, i) => {
+            const d = document.createElement('div');
+            d.className = 'seg-row';
+            d.innerHTML = `
+																	<span class="seg-num">${i+1}</span>
+																	<select data-i="${i}" class="seg-color">
+																		<option value="3"${s.color==3?' selected':''}>🟠 Amber</option>
+																		<option value="2"${s.color==2?' selected':''}>🟢 Green</option>
+																		<option value="1"${s.color==1?' selected':''}>🔴 Red</option>
+																	</select>
+																	<select data-i="${i}" class="seg-font">
+																		<option value="0">Font 0</option>
+                                    <option value="1">Font 1</option>
+                                    <option value="2">Font 2</option>
+                                    <option value="3">Font 3</option>
+                                    <option value="4">Font 4</option>
+																	</select>
+																	<input data-i="${i}" class="seg-text" value="${(s.text||'').replace(/"/g,'&quot;')}" placeholder="Text">
+																		<button data-i="${i}" class="seg-up">▲</button>
+																		<button data-i="${i}" class="seg-down">▼</button>
+																		<button data-i="${i}" class="seg-del">✕</button>`;
+            el.appendChild(d)
+          });
+          $$('.seg-color').forEach(e => e.onchange = ev => {
+            state.segments[+ev.target.dataset.i].color = +ev.target.value;
+            update()
+          });
+          $$('.seg-font').forEach(e => e.onchange = ev => {
+            state.segments[+ev.target.dataset.i].font = +ev.target.value;
+            update()
+          });
+          $$('.seg-text').forEach(e => e.oninput = ev => {
+            state.segments[+ev.target.dataset.i].text = ev.target.value;
+            update()
+          });
+          $$('.seg-del').forEach(e => e.onclick = ev => {
+            state.segments.splice(+ev.target.dataset.i, 1);
+            renderSegs();
+            update()
+          });
+          $$('.seg-up').forEach(e => e.onclick = ev => {
+            const i = +ev.target.dataset.i;
+            if (i > 0) {
+              [state.segments[i - 1], state.segments[i]] = [state.segments[i], state.segments[i - 1]];
+              renderSegs();
+              update()
+            }
+          });
+          $$('.seg-down').forEach(e => e.onclick = ev => {
+            const i = +ev.target.dataset.i;
+            if (i < state.segments.length - 1) {
+              [state.segments[i + 1], state.segments[i]] = [state.segments[i], state.segments[i + 1]];
+              renderSegs();
+              update()
+            }
+          })
+        }
+
+        function update() {
+          rebuild();
+          const enc = state.segments.map(s => `\\[${s.font};${s.color}m${s.text}`).join('');
+          $('#outPlain').textContent = enc;
+          $('#outHA').textContent = `service: input_text.set_value\ndata:\n  entity_id: input_text.led_display_text_input\n  value: "${enc}"`;
+          $('#outESP').textContent = `id(leds).printLED("${enc}");`;
+          state.encoded = enc
+        }
+
+        function parseEncoded(enc) {
+          const segs = [];
+          const re = /\\\[(\d+);(\d+)m([^\\]*)/g;
+          let m;
+          while ((m = re.exec(enc)) !== null)
+            segs.push({ font: +m[1], color: +m[2], text: m[3] });
+          return segs;
+        }
+
+        function toast(m) {
+          const t = document.createElement('div');
+          t.className = 'toast';
+          t.textContent = m;
+          $('#toasts').appendChild(t);
+          setTimeout(() => t.remove(), 3000)
+        }
+        $('#btnAddSeg').onclick = () => {
+          state.segments.push({
+            font: 0,
+            color: 2,
+            text: ''
+          });
+          renderSegs();
+          update()
+        };
+        $('#btnPause').onclick = e => {
+          state.paused = !state.paused;
+          e.target.textContent = state.paused ? '▶ Resume' : '⏸ Pause'
+        };
+        $('#scrollSpeed').oninput = e => {
+          state.scroll.speed = +e.target.value;
+          $('#scrollSpeedVal').textContent = e.target.value + 'ms'
+        };
+        $('#btnClear').onclick = () => {
+          state.segments = [];
+          renderSegs();
+          update();
+          toast('Display cleared')
+        };
+        $('#btnSend').onclick = () => {
+          if (!state.haUrl || !state.haToken) {
+            toast('Configure HA URL/token first');
+            return
+          }
+          fetch(state.haUrl.replace(/\/+$/, '') + '/api/services/input_text/set_value', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + state.haToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              entity_id: 'input_text.led_display_text_input',
+              value: state.encoded
+            })
+          }).then(r => r.ok ? toast('✅ Sent') : toast('❌ Failed'))
+        };
+        $('#btnCopy').onclick = () => {
+          const a = $('.tab-btn.active').dataset.tab;
+          navigator.clipboard.writeText($('#out' + a.charAt(0).toUpperCase() + a.slice(1)).textContent);
+          toast('Copied')
+        };
+        $$('.tab-btn').forEach(b => b.onclick = () => {
+          $$('.tab-btn').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          $('#outPlain').style.display = b.dataset.tab == 'plain' ? 'block' : 'none';
+          $('#outHA').style.display = b.dataset.tab == 'ha' ? 'block' : 'none';
+          $('#outESP').style.display = b.dataset.tab == 'esp' ? 'block' : 'none'
+        });
+        $$('.preset-btn').forEach(b => b.onclick = () => {
+          const p = b.dataset.preset;
+          if (p == 'welcome') state.segments = [{
+            font: 0,
+            color: 3,
+            text: 'WELCOME HOME '
+          }];
+          if (p == 'forget') state.segments = [{
+            font: 0,
+            color: 3,
+            text: 'DO NOT FORGET '
+          }];
+          if (p == 'warning') state.segments = [{
+            font: 0,
+            color: 1,
+            text: 'WARNING! '
+          }];
+          if (p == 'remember') state.segments = [{
+            font: 0,
+            color: 2,
+            text: 'REMEMBER '
+          }];
+          if (p == 'demo') state.segments = [{
+            font: 0,
+            color: 1,
+            text: 'RED '
+          }, {
+            font: 0,
+            color: 2,
+            text: 'GREEN '
+          }, {
+            font: 0,
+            color: 3,
+            text: 'AMBER'
+          }];
+          if (p == 'fonts') state.segments = [{
+            font: 0,
+            color: 2,
+            text: 'FONT 0, '
+          }, {
+            font: 1,
+            color: 2,
+            text: 'FONT 1 '
+          }, {
+            font: 2,
+            color: 2,
+            text: 'FONT 2'
+          }];
+          renderSegs();
+          update()
+        });
+        renderSegs();
+        update();
+        resize();
+        loop();
+        window.addEventListener('resize', resize);
+
+        async function loadFromHA() {
+          if (!state.haUrl || !state.haToken) return;
+          try {
+            const r = await fetch(
+              state.haUrl.replace(/\/+$/, '') + '/api/states/input_text.led_display_text_input',
+              { headers: { Authorization: 'Bearer ' + state.haToken } }
+            );
+            if (!r.ok) return;
+            const data = await r.json();
+            const parsed = parseEncoded(data.state || '');
+            if (parsed.length) { state.segments = parsed; renderSegs(); update(); }
+          } catch (e) { console.warn('HA load failed:', e); }
+        }
+        loadFromHA();
+      })();
+    </script>
+  </body>
+</html>

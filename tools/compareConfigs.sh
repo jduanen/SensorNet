@@ -122,5 +122,5 @@ compareFile "$CONFIG_DIR/$yamlFile" ${VOICE_ASSISTANTS}/Satellite1/${yamlFile}
 # Waveshare Satellites
 yamlFiles="waveshare-audio-0.yaml waveshare-audio-1.yaml"
 for f in ${yamlFiles}; do
-    compareFile "$CONFIG_DIR/$yamlFile" ${VOICE_ASSISTANTS}/WaveshareSatellite/${f}
+    compareFile "$CONFIG_DIR/$f" ${VOICE_ASSISTANTS}/WaveshareSatellite/${f}
 done

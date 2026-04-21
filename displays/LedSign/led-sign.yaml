@@ -38,17 +38,20 @@ display:
     flip_x: false
     update_interval: never
     fonts:
-      - MT_Pixel_5x7
+      - LedSign5x7
       - MatrixLight6
       - MatrixLight6X
+      - MatrixLight8
+      - roboto
+      - MT_Pixel_5x7
     lambda: |-
       if (!id(led_display_text).state.empty()) {
         it.printLED(id(led_display_text).state.c_str());
       };
 
 font:
-  - file: "fonts/5x7_MT_Pixel.ttf"
-    id: MT_Pixel_5x7
+  - file: "fonts/LedSign5x7.ttf"
+    id: LedSign5x7
     size: 7
   - file: "fonts/MatrixLight6.ttf"
     id: MatrixLight6
@@ -59,6 +62,9 @@ font:
   - file: "fonts/MatrixLight8.ttf"
     id: MatrixLight8
     size: 8
+  - file: "fonts/5x7_MT_Pixel.ttf"
+    id: MT_Pixel_5x7
+    size: 7
   - file: "gfonts://Roboto"
     id: roboto
     size: 7

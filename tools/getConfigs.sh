@@ -3,11 +3,11 @@
 # Script to copy ESPHome config files from their github locations to the local dir
 #
 
-SOURCE="/home/jdn/Code/SensorNet"
-CONTROLLERS="${SOURCE}/controllers"
-SENSORS="${SOURCE}/sensors"
+SOURCE_DIR="/home/jdn/Code/SensorNet"
+CONTROLLERS="${SOURCE_DIR}/controllers"
+SENSORS="${SOURCE_DIR}/sensors"
 DISPLAYS="${SOURCE_DIR}/displays"
-VOICE_ASSISTANTS="${SOURCE}/voiceAssistants"
+VOICE_ASSISTANTS="${SOURCE_DIR}/voiceAssistants"
 
 FAILED=
 

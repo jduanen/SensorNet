@@ -105,7 +105,7 @@ cover:
       - wait_until:
           condition:
             binary_sensor.is_on: door_open_switch
-          timeout: ${max_transit_time}
+          timeout: ${max_transit_time}  #### FIXME substitution inaccessible here
       - logger.log:
           format: "Feeder door open: %d"
           args: [ 'id(door_stepper).current_position' ]
@@ -116,7 +116,7 @@ cover:
       - wait_until:
           condition:
             binary_sensor.is_on: door_close_switch
-          timeout: ${max_transit_time}
+          timeout: ${max_transit_time}  #### FIXME substitution inaccessible here
       - logger.log:
           format: "Feeder door closed: %d"
           args: [ 'id(door_stepper).current_position' ]

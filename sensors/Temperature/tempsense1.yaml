@@ -45,7 +45,7 @@ one_wire:
 
 sensor:
   - platform: dallas_temp
-    address: 0xf3000000075c9228
+    address: 0xf3000000075c9228  #### FIXME hardcoded address
     state_class: "measurement"
     unit_of_measurement: "°C"
     name: "Attic Temp Sensor"

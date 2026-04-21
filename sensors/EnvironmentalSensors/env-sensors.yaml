@@ -52,6 +52,8 @@ sensor:
     humidity:
       name: "AHT21 Humidity"
     update_interval: 60s
+    update_trigger:
+      - interval: 60s
   - platform: ens160_i2c
     i2c_id: i2cBus
     address: 0x53
@@ -62,6 +64,8 @@ sensor:
     aqi:
       name: "ENS160 AQI"
     update_interval: 60s
+    update_trigger:
+      - interval: 20s
   - platform: sen5x  # For SEN55, SEN54, SEN50
     i2c_id: i2cBus
     address: 0x69
@@ -90,6 +94,8 @@ sensor:
       name: "SEN55 Humidity"
       id: sen55_humid
     update_interval: 60s
+    update_trigger:
+      - interval: 40s
   - platform: aqi
     name: "Air Quality Index"
     pm_2_5: pm2_5

@@ -404,11 +404,16 @@ export default function App() {
 
   const [scrollSpeed, setScrollSpeed] = useState(90);
   const [isPaused, setIsPaused] = useState(false);
+  const [previewTab, setPreviewTab] = useState<"composing" | "live">("live");
   const [outputTab, setOutputTab] = useState<"plain" | "yaml" | "lambda">("plain");
   const [copyLabel, setCopyLabel] = useState("Copy");
   const [sendStatus, setSendStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Live HA state — polled independently of the composition
+  const [liveHaString, setLiveHaString] = useState<string | null>(null);
+  const [liveHaUpdated, setLiveHaUpdated] = useState<Date | null>(null);
 
   // HA config — persisted to localStorage
   const [haUrl, setHaUrl] = useState(() => {
@@ -434,6 +439,23 @@ export default function App() {
     localStorage.setItem("ledSignHaToken", val);
   };
 
+  // Background poll — updates the live preview without touching the composition
+  const pollHaState = useCallback(async () => {
+    if (!haToken) return;
+    const state = await haGetState(haUrl, haToken);
+    if (state !== null) {
+      setLiveHaString(state === "unknown" ? "" : state);
+      setLiveHaUpdated(new Date());
+    }
+  }, [haUrl, haToken]);
+
+  useEffect(() => {
+    if (!haToken) return;
+    pollHaState();
+    const id = setInterval(pollHaState, 15_000);
+    return () => clearInterval(id);
+  }, [haToken, haUrl, pollHaState]);
+
   const displayString = buildFullString(segments);
 
   // ── Output formats ─────────────────────────────────────────────────────
@@ -446,13 +468,15 @@ export default function App() {
     outputTab === "plain" ? displayString :
     outputTab === "yaml"  ? yamlOutput : lambdaOutput;
 
-  // ── Load current state from HA ─────────────────────────────────────────
+  // ── Load current state from HA into the segment builder ───────────────
   const handleLoadFromHa = useCallback(async () => {
     if (!haToken) return;
     setIsLoading(true);
     const state = await haGetState(haUrl, haToken);
     setIsLoading(false);
     if (state !== null && state !== "unknown" && state !== "") {
+      setLiveHaString(state);
+      setLiveHaUpdated(new Date());
       const parsed = parseEscapeString(state);
       if (parsed.length > 0) {
         setSegments(parsed);
@@ -464,13 +488,6 @@ export default function App() {
     setSendStatus({ ok: false, message: "Could not load state (check URL & token)" });
     setTimeout(() => setSendStatus(null), 4000);
   }, [haUrl, haToken]);
-
-  // Auto-load on mount if token is already saved
-  useEffect(() => {
-    if (haToken) handleLoadFromHa();
-    // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Segment operations ─────────────────────────────────────────────────
   const addSegment = () =>
@@ -513,6 +530,10 @@ export default function App() {
     const result = await haSetValue(haUrl, haToken, displayString);
     setSendStatus(result);
     setIsSending(false);
+    if (result.ok) {
+      setLiveHaString(displayString);
+      setLiveHaUpdated(new Date());
+    }
     setTimeout(() => setSendStatus(null), 4000);
   };
 
@@ -522,6 +543,10 @@ export default function App() {
       ok: result.ok,
       message: result.ok ? "Display cleared ✓" : result.message,
     });
+    if (result.ok) {
+      setLiveHaString("");
+      setLiveHaUpdated(new Date());
+    }
     setTimeout(() => setSendStatus(null), 4000);
   };
 
@@ -597,11 +622,35 @@ export default function App() {
       <div className="p-6 space-y-6">
         {/* Live Preview */}
         <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-semibold tracking-widest uppercase text-gray-300">
-              Live Preview
-            </span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1 border-b border-gray-800 -mb-px">
+              <button
+                onClick={() => setPreviewTab("live")}
+                className={`px-4 py-2 text-xs font-semibold tracking-wide border-b-2 transition -mb-px ${
+                  previewTab === "live"
+                    ? "border-green-500 text-green-400"
+                    : "border-transparent text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                Live Display
+              </button>
+              <button
+                onClick={() => setPreviewTab("composing")}
+                className={`px-4 py-2 text-xs font-semibold tracking-wide border-b-2 transition -mb-px ${
+                  previewTab === "composing"
+                    ? "border-blue-500 text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                Composing
+              </button>
+            </div>
             <div className="flex items-center gap-3">
+              {previewTab === "live" && liveHaUpdated && (
+                <span className="text-xs text-gray-500">
+                  updated {liveHaUpdated.toLocaleTimeString()}
+                </span>
+              )}
               <span className="text-sm text-gray-400">Speed</span>
               <input
                 type="range"
@@ -623,11 +672,25 @@ export default function App() {
             </div>
           </div>
           <div className="rounded-lg overflow-hidden bg-black border border-gray-800">
-            <LedPreview
-              text={displayString}
-              scrollSpeed={scrollSpeed}
-              isPaused={isPaused}
-            />
+            {previewTab === "live" ? (
+              liveHaString !== null ? (
+                <LedPreview
+                  text={liveHaString}
+                  scrollSpeed={scrollSpeed}
+                  isPaused={isPaused}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-16 text-xs text-gray-600">
+                  {haToken ? "Fetching live state…" : "Configure HA to see the live display"}
+                </div>
+              )
+            ) : (
+              <LedPreview
+                text={displayString}
+                scrollSpeed={scrollSpeed}
+                isPaused={isPaused}
+              />
+            )}
           </div>
         </div>
 

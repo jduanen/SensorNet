@@ -355,14 +355,19 @@ function LedPreview({
 }
 
 // ── HA REST API helpers ────────────────────────────────────────────────────
+function haOrigin(haUrl: string): string {
+  try { return new URL(haUrl).origin; } catch { return haUrl.replace(/\/$/, ""); }
+}
+
 async function haSetValue(
   haUrl: string,
   haToken: string,
   value: string
 ): Promise<{ ok: boolean; message: string }> {
+  const base = haOrigin(haUrl);
   try {
     const res = await fetch(
-      `${haUrl.replace(/\/$/, "")}/api/services/input_text/set_value`,
+      `${base}/api/services/input_text/set_value`,
       {
         method: "POST",
         headers: {
@@ -374,7 +379,7 @@ async function haSetValue(
     );
     if (res.ok) return { ok: true, message: "Sent to LED Sign ✓" };
     const body = await res.text();
-    return { ok: false, message: `HA Error ${res.status}: ${body}` };
+    return { ok: false, message: `HA Error ${res.status} (${base}): ${body}` };
   } catch (e: unknown) {
     return { ok: false, message: `Network error: ${(e as Error).message}` };
   }
@@ -383,7 +388,7 @@ async function haSetValue(
 async function haGetState(haUrl: string, haToken: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `${haUrl.replace(/\/$/, "")}/api/states/${haEntity}`,
+      `${haOrigin(haUrl)}/api/states/${haEntity}`,
       { headers: { Authorization: `Bearer ${haToken}` } }
     );
     if (!res.ok) return null;

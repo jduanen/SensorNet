@@ -2,7 +2,7 @@
 set -euo pipefail
 
 HA_HOST="homeassistant.local"
-HA_USER="jdn"
+HA_USER="root"
 HA_DEST="/config/www/led-sign/index.html"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

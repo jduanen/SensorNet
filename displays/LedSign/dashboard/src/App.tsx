@@ -355,8 +355,14 @@ function LedPreview({
 }
 
 // ── HA REST API helpers ────────────────────────────────────────────────────
+// Returns the scheme+host+port of a URL, or "" if the input isn't a valid
+// absolute HTTP/HTTPS URL. Never returns a relative path fragment.
 function haOrigin(haUrl: string): string {
-  try { return new URL(haUrl).origin; } catch { return haUrl.replace(/\/$/, ""); }
+  try {
+    const o = new URL(haUrl).origin;
+    if (o && o !== "null" && (o.startsWith("http://") || o.startsWith("https://"))) return o;
+  } catch { /* fall through */ }
+  return "";
 }
 
 async function haSetValue(
@@ -365,6 +371,7 @@ async function haSetValue(
   value: string
 ): Promise<{ ok: boolean; message: string }> {
   const base = haOrigin(haUrl);
+  if (!base) return { ok: false, message: "Invalid HA URL — open Settings and enter the full URL (e.g. http://homeassistant.local:8123)" };
   try {
     const res = await fetch(
       `${base}/api/services/input_text/set_value`,
@@ -386,9 +393,11 @@ async function haSetValue(
 }
 
 async function haGetState(haUrl: string, haToken: string): Promise<string | null> {
+  const base = haOrigin(haUrl);
+  if (!base) return null;
   try {
     const res = await fetch(
-      `${haOrigin(haUrl)}/api/states/${haEntity}`,
+      `${base}/api/states/${haEntity}`,
       { headers: { Authorization: `Bearer ${haToken}` } }
     );
     if (!res.ok) return null;
@@ -423,7 +432,11 @@ export default function App() {
   // HA config — persisted to localStorage
   const [haUrl, setHaUrl] = useState(() => {
     const saved = localStorage.getItem("ledSignHaUrl");
-    if (saved) return haOrigin(saved);   // strip any path from old saved values
+    if (saved) {
+      const origin = haOrigin(saved);
+      if (origin) return origin;
+      localStorage.removeItem("ledSignHaUrl"); // bad value — drop it
+    }
     const { protocol, hostname, port } = window.location;
     if (hostname !== "localhost" && hostname !== "127.0.0.1") {
       return `${protocol}//${hostname}${port ? ":" + port : ""}`;
@@ -436,9 +449,9 @@ export default function App() {
   const [showConfig, setShowConfig] = useState(false);
 
   const saveHaUrl = (val: string) => {
+    setHaUrl(val); // allow free typing; origin is extracted at call time
     const origin = haOrigin(val);
-    setHaUrl(origin);
-    localStorage.setItem("ledSignHaUrl", origin);
+    if (origin) localStorage.setItem("ledSignHaUrl", origin);
   };
   const saveHaToken = (val: string) => {
     setHaToken(val);

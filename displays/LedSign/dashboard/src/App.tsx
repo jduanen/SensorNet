@@ -423,7 +423,7 @@ export default function App() {
   // HA config — persisted to localStorage
   const [haUrl, setHaUrl] = useState(() => {
     const saved = localStorage.getItem("ledSignHaUrl");
-    if (saved) return saved;
+    if (saved) return haOrigin(saved);   // strip any path from old saved values
     const { protocol, hostname, port } = window.location;
     if (hostname !== "localhost" && hostname !== "127.0.0.1") {
       return `${protocol}//${hostname}${port ? ":" + port : ""}`;
@@ -436,8 +436,9 @@ export default function App() {
   const [showConfig, setShowConfig] = useState(false);
 
   const saveHaUrl = (val: string) => {
-    setHaUrl(val);
-    localStorage.setItem("ledSignHaUrl", val);
+    const origin = haOrigin(val);
+    setHaUrl(origin);
+    localStorage.setItem("ledSignHaUrl", origin);
   };
   const saveHaToken = (val: string) => {
     setHaToken(val);
@@ -620,6 +621,10 @@ export default function App() {
           <p className="mt-2 text-xs text-gray-500">
             Generate a token in HA → Profile → Long-Lived Access Tokens. Entity:{" "}
             <code className="text-blue-400">{haEntity}</code>
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            API calls go to:{" "}
+            <code className="text-gray-400">{haOrigin(haUrl)}</code>
           </p>
         </div>
       )}

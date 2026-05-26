@@ -24,8 +24,8 @@ esphome:
   friendly_name: ${friendly_name}
   project:
     name: formatbce.Respeaker XVF3800 Satellite
-    version: 2026.3.0
-  min_version: 2026.3.0
+    version: 2026.5.0
+  min_version: 2026.5.0
   on_boot:
     - priority: 375
       then:
@@ -258,6 +258,13 @@ switch:
     entity_category: config
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
+  - platform: template
+    id: beam_lock_enabled
+    name: Beam lock
+    icon: mdi:target-account
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
   - platform: template
     id: timer_ringing
     optimistic: true
@@ -1132,8 +1139,6 @@ speaker:
 sendspin:
   id: sendspin_hub
   task_stack_in_psram: false
-http_request:
-  buffer_size_rx: 2048
 audio_file:
   - id: mute_switch_on_sound
     file: ${mute_switch_on_sound_file}
@@ -1148,10 +1153,10 @@ audio_file:
 media_source:
   - platform: audio_file
     id: audio_file_announcement_source
-  - platform: http_request
+  - platform: audio_http
     id: http_announcement_source
     buffer_size: 250000
-  - platform: http_request
+  - platform: audio_http
     id: http_media_source
     buffer_size: 500000
   - platform: sendspin
@@ -1173,7 +1178,7 @@ media_player:
         - http_announcement_source
     media_pipeline:
       format: FLAC
-      num_channels: 2
+      num_channels: 1
       sample_rate: 48000
       speaker: media_resampling_speaker
       sources:
@@ -1230,21 +1235,6 @@ external_components:
       - respeaker_xvf3800
       - aic3104
     refresh: 0s
-  - source:
-      type: git
-      url: https://github.com/kahrendt/esphome
-      ref: 7a6cf5c8472b7e2fa18ee0fc314f66a80d249e32
-    components:
-      - const
-      - media_source
-      - sendspin
-  - source:
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
-    refresh: 0s
-    components:
-      - http_request
 respeaker_xvf3800:
   id: respeaker
   address: 44
@@ -1349,6 +1339,11 @@ micro_wake_word:
                                   - delay: 300ms
                             - voice_assistant.start:
                                 wake_word: !lambda return wake_word;
+                            - if:
+                                condition:
+                                  switch.is_on: beam_lock_enabled
+                                then:
+                                  - lambda: id(respeaker).lock_beam();
 select:
   - platform: template
     name: Wake word sensitivity
@@ -1503,6 +1498,7 @@ voice_assistant:
     - script.execute: control_leds
   on_stt_vad_end:
     - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
+    - lambda: id(respeaker).unlock_beam();
     - script.execute: control_leds
   on_intent_progress:
     - if:
@@ -1529,6 +1525,7 @@ voice_assistant:
         id: send_stt_text_event
         stt_text: !lambda return x;
   on_end:
+    - lambda: id(respeaker).unlock_beam();
     - wait_until:
         not:
           voice_assistant.is_running: null

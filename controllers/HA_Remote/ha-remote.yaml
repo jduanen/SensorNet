@@ -1,0 +1,151 @@
+substitutions:
+  device_name: ha-remote
+  friendly_name: "Remote Controller"
+  comment: "Lily-Go T-Encoder Pro Controller"
+  log_level: DEBUG
+
+esphome:
+  min_version: 2024.6.0
+  name_add_mac_suffix: false
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.esp-idf.memory_type: qio_opi
+
+packages:
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+  flash_size: 16MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  - id: i2c_bus_touch
+    sda: GPIO5
+    scl: GPIO6
+    scan: true
+
+touchscreen:
+  - platform: cst816
+    id: my_touch
+    i2c_id: i2c_bus_touch
+    display: my_display
+    interrupt_pin: GPIO9
+    reset_pin: GPIO8
+
+spi:
+  id: display_qspi
+  type: quad
+  clk_pin: GPIO12
+  data_pins: [GPIO11, GPIO13, GPIO7, GPIO14]
+
+output:
+  - platform: ledc
+    pin: GPIO17
+    id: buzzer
+
+display:
+  - platform: mipi_spi
+    id: my_display
+    model: CUSTOM
+    bus_mode: quad
+    dimensions:
+      width: 390
+      height: 390
+    cs_pin: GPIO10
+    reset_pin: GPIO4
+    enable_pin: GPIO3
+    data_rate: 40MHz
+    color_order: rgb
+    auto_clear_enabled: true
+    update_interval: 2s
+    lambda: |-
+      it.filled_rectangle(0, 0, 390, 390, Color(255, 0, 0));
+    init_sequence:
+      - [0x11]        # SLPOUT
+      - [0xFE, 0x00]  # PAGESEL (unlock register bank)
+      - [0xC4, 0x80]  # SPIMODESEL (QSPI pixel mode)
+      - [0x35, 0x00]  # TEON
+      - [0x53, 0x20]  # WRCTRLD (brightness control on)
+      - [0x63, 0xFF]  # HBM brightness enable (LilyGo-required, missing from CO5300 model)
+      - [0x51, 0xD0]  # WRDISBV (brightness ~80%)
+
+color:
+  - id: color_background
+    red: 0%
+    green: 0%
+    blue: 0%
+  - id: color_foreground
+    red: 100%
+    green: 100%
+    blue: 100%
+  - id: color_foreground_dim
+    red: 50%
+    green: 55%
+    blue: 50%
+  - id: color_highlight
+    red: 30%
+    green: 100%
+    blue: 30%
+  - id: color_temp_cold
+    hex: 3366FF
+  - id: color_temp_hot
+    hex: FF6633
+  - id: c_blue # #005eae
+    red: 0% # 0 = 0
+    green: 36.72% # 5e = 94
+    blue: 67.97% # ae = 174 
+  - id: c_red # #97440a
+    red: 37.89% # 97 = 151
+    green: 26.56% # 44 = 68
+    blue: 3.91% # 0a = 10 
+  - id: c_emerald
+    red: 21.09% # 54
+    green: 40.23% # 103
+    blue: 20.70% #53
+
+font:
+  - file: "gfonts://Roboto"
+    id: my_font
+    size: 115
+
+# lvgl: (temporarily removed for hardware display test)
+
+sensor:
+  - platform: rotary_encoder
+    id: screen_rotate
+    pin_a: GPIO1
+    pin_b: GPIO2
+    resolution: 2
+    on_clockwise:
+      - logger.log: "Turned Clockwise"
+    on_anticlockwise:
+      - logger.log: "Turned Anti Clockwise"
+
+binary_sensor:
+  - platform: gpio
+    id: screen_press
+    pin:
+      number: GPIO0
+    on_press:
+      - logger.log: 'Button Pressed!'
+      - if:
+          condition:
+            rtttl.is_playing
+          then:
+            - logger.log: 'Playback stopping!'
+            - rtttl.stop
+          else:
+            - logger.log: 'Playing starting!' 
+            - rtttl.play: 'star_wars:d=16,o=5,b=100:4e,4e,4e,8c,p,g,4e,8c,p,g,4e,4p,4b,4b,4b,8c6,p,g,4d#,8c,p,g,4e,8p'
+
+rtttl:
+  output: buzzer
+  id: my_rtttl
+  gain: 60%

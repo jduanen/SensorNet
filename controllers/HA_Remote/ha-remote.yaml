@@ -38,6 +38,9 @@ touchscreen:
     display: my_display
     interrupt_pin: GPIO9
     reset_pin: GPIO8
+    on_touch:
+      - lambda: |-
+          ESP_LOGI("touch", "Touch at (%d, %d)", touch.x, touch.y);
 
 spi:
   id: display_qspi

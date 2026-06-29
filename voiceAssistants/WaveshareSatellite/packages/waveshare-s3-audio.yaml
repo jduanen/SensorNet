@@ -91,8 +91,6 @@ esp32:
 wifi:
   id: wifi_id
   fast_connect: ${hidden_ssid}
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   power_save_mode: none
   reboot_timeout: 10min
   on_connect:
@@ -100,6 +98,8 @@ wifi:
     - script.execute: control_leds
   on_disconnect:
     - script.execute: control_leds
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
 debug:
   update_interval: 5s
 logger:
@@ -152,7 +152,6 @@ api:
 ota:
   - platform: esphome
     id: ota_esphome
-    password: ota_password
 i2c:
   - id: internal_i2c
     sda: GPIO11
@@ -190,20 +189,20 @@ light:
           name: Pulse Slow
           min_brightness: 30%
           max_brightness: 100%
-          transition_length: 1000ms
-          update_interval: 16ms
+          transition_length: 2000ms
+          update_interval: 3000ms
       - pulse:
           name: Pulse Medium
           min_brightness: 30%
           max_brightness: 100%
           transition_length: 600ms
-          update_interval: 16ms
+          update_interval: 1200ms
       - pulse:
           name: Pulse Fast
           min_brightness: 30%
           max_brightness: 100%
           transition_length: 300ms
-          update_interval: 16ms
+          update_interval: 600ms
       - addressable_rainbow:
           name: Rainbow Slow
           speed: 6
@@ -788,25 +787,24 @@ script:
           if (now - last_fetch_time < 500) return;
           last_fetch_time = now;
 
-          const auto timers = id(va).get_timers();
+          const auto &timers = id(va).get_timers();
           if (timers.empty()) return;
 
-          auto output_timer = timers.begin()->second;
-          for (auto &iterable_timer : timers) {
-            if (iterable_timer.second.is_active &&
-                iterable_timer.second.seconds_left <= output_timer.seconds_left) {
-              output_timer = iterable_timer.second;
+          auto output_timer = *timers.begin();
+          for (const auto &timer : timers) {
+            if (timer.is_active && timer.seconds_left <= output_timer.seconds_left) {
+              output_timer = timer;
             }
           }
           id(first_active_timer) = output_timer;
   - id: check_if_timers_active
     then:
       - lambda: |
-          const auto timers = id(va).get_timers();
+          const auto &timers = id(va).get_timers();
           bool output = false;
           if (!timers.empty()) {
-            for (auto &iterable_timer : timers) {
-              if (iterable_timer.second.is_active) {
+            for (const auto &timer : timers) {
+              if (timer.is_active) {
                 output = true;
                 break;
               }
@@ -967,7 +965,7 @@ switch:
       - script.execute: flash_ring
   - platform: template
     id: mute_sound
-    name: Mute/unmute sound
+    name: Mute-unmute sound
     icon: mdi:bullhorn
     entity_category: config
     optimistic: true
@@ -1125,6 +1123,7 @@ button:
     icon: mdi:restart
 binary_sensor:
   - platform: gpio
+    id: key1_button
     name: Key1
     pin:
       tca9555: ioexp
@@ -1133,6 +1132,7 @@ binary_sensor:
     on_press:
       - media_player.volume_down: external_media_player
   - platform: gpio
+    id: key2_button
     name: Key2
     pin:
       tca9555: ioexp
@@ -1141,6 +1141,7 @@ binary_sensor:
     on_press:
       - media_player.toggle: external_media_player
   - platform: gpio
+    id: key3_button
     name: Key3
     pin:
       tca9555: ioexp

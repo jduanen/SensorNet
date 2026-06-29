@@ -62,7 +62,7 @@ updateJson "$TMP_SRC_FILE" "$TMP_SOURCE_FILE" '(.esphome.name = "${device_name}"
     (.wifi.password = "!secret wifi_password") |
     (.logger.level = "${log_level}") |
     (.api.encryption.key = "!secret api_encryption_key") |
-    (.ota[0].id = "!secret ota_password") |
+    (.ota[0].password = "!secret ota_password") |
     (.sensor += [{"platform": "wifi_signal", "id": "wifi_rssi", "name": "${friendly_name} WiFi Signal"}])'
 if [[ "$DEBUG" == true ]]; then
     diff $TMP_SRC_FILE $TMP_SOURCE_FILE

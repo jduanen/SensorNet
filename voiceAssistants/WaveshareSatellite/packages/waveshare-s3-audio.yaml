@@ -151,7 +151,7 @@ api:
     key: !secret api_encryption_key
 ota:
   - platform: esphome
-    id: !secret ota_password
+    id: ota_esphome
 i2c:
   - id: internal_i2c
     sda: GPIO11

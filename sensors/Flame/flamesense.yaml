@@ -1,0 +1,43 @@
+substitutions:
+  device_name: flamesense
+  friendly_name: "Flame Sensor"
+  comment: "UVTRON-R2628-based Flame Sensor"
+  log_level: DEBUG
+
+esphome:
+
+packages:
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
+
+esp32:
+  board: lolin_c3_mini
+  framework:
+    type: esp-idf
+
+binary_sensor:
+  - platform: gpio
+    name: "Flame Detection Pulse Input"
+    pin:
+      number: GPIO4
+      mode:
+        input: true
+        pullup: true
+    count_mode:
+      rising_edge: DISABLE
+      falling_edge: INCREMENT
+    internal_filter: 10ms
+    update_interval: 60s
+    total:
+      name: "Flame Sense Pulses"
+
+output:
+  - platform: ledc
+    id: led_pwm
+    pin: GPIO5
+    frequency: 1000 Hz
+
+light:
+  - platform: monochromatic
+    name: "GPIO5 LED"
+    output: led_pwm
+    default_transition_length: 0s

@@ -1,0 +1,51 @@
+substitutions:
+  device_name: light-sensor
+  friendly_name: "Lux Sensor"
+  comment: "Battery-powered light (lux) Sensor"
+  log_level: WARN
+
+esphome:
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.mcu: esp32c3
+    board_build.variant: esp32c3
+
+packages:
+  wifi_ws_conf: github://jduanen/SensorNet/common/wifi_ws.yaml
+
+esp32:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  framework:
+    type: esp-idf
+
+# i2c bus (GPIO 4 = SDA, GPIO 5 = SCL on ESP32-C3)
+i2c:
+  scl: GPIO5
+  sda: GPIO4
+  scan: true
+  id: bus_a
+
+sensor:
+  # MAX44009 lux sensor
+  - platform: max44009
+    id: lux_sensor
+    i2c_id: bus_a
+    name: "Lux"
+    unit_of_measurement: "lx"
+    accuracy_decimals: 2
+
+  # template sensor for normalized brightness (0–1)
+  - platform: template
+    name: "Normalized Brightness"
+    id: normalized_brightness
+    unit_of_measurement: ""
+    accuracy_decimals: 3
+    state_class: "measurement"
+    lambda: |-
+      // Return lux / 1000, clipped to [0, 1]
+      float lux = id(lux_sensor).state;
+      float norm = lux / 1000.0;
+      if (norm < 0.0) norm = 0.0;
+      if (norm > 1.0) norm = 1.0;
+      return norm;

@@ -6,7 +6,7 @@
 #  workon ESPHOME
 # Also needs to have symlink to secrets.yaml
 
-source "${dirname "$0"}/common.sh"
+source "$(dirname "$0")/common.sh"
 
 LOG_FILE="/tmp/sensornet.log"
 

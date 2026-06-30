@@ -85,7 +85,7 @@ copyFile ${SENSORS}/WaterHeaterLeak/${yamlFiles}
 # **Displays
 # LED Sign
 yamlFiles="led-sign.yaml"
-copyFile ${SENSORS}/LedSign/${yamlFiles}
+copyFile ${DISPLAYS}/LedSign/${yamlFiles}
 
 # **Voice Assistants
 # Home Assistant Voice

@@ -15,17 +15,18 @@ esp32:
     type: esp-idf
 
 binary_sensor:
-  - platform: gpio
+  - platform: pulse_counter
     name: "Flame Detection Pulse Input"
     pin:
       number: GPIO4
+      inverted: true
       mode:
         input: true
         pullup: true
     count_mode:
       rising_edge: DISABLE
       falling_edge: INCREMENT
-    internal_filter: 10ms
+    internal_filter: 8ms
     update_interval: 60s
     total:
       name: "Flame Sense Pulses"

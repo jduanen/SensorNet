@@ -14,6 +14,7 @@ VOICE_ASSISTANTS="${SOURCE_DIR}/voiceAssistants"
 
 SOURCE_FILES=(
     "${CONTROLLERS}/FeederDoor/feeder-door.yaml"
+    "${CONTROLLERS}/HA_Remote/ha-remote.yaml"
     "${SENSORS}/AirQualityPMS/air-quality-pms-0.yaml"
     "${SENSORS}/AirQualityPMS/air-quality-pms-1.yaml"
     "${SENSORS}/AirQualityPMS/air-quality-pms-2.yaml"

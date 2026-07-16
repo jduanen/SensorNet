@@ -5,6 +5,7 @@ substitutions:
   log_level: WARN
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
+  ota_esphome: !secret ota_password
 
 packages:
   dev_conf: github://jduanen/SensorNet/voiceAssistants/WaveshareSatellite/packages/waveshare-s3-audio.yaml

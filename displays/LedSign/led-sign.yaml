@@ -29,7 +29,7 @@ esp32:
 display:
   - platform: led_display
     id: leds
-    intensity: 75
+    intensity: 65
     scroll_enable: true
     scroll_mode: STOP
     scroll_speed: 90ms

@@ -20,6 +20,7 @@ SOURCE_FILES=(
     "${SENSORS}/AirQualityPMS/air-quality-pms-2.yaml"
     "${SENSORS}/AirQualitySPS/air-quality-sps-0.yaml"
     "${SENSORS}/EnvironmentalSensors/env-sensors.yaml"
+    "${SENSORS}/Flame/flamesense.yaml"
     "${SENSORS}/KittyCam/kittycam.yaml"
     "${SENSORS}/KittyCamV2/kittycam2.yaml"
     "${SENSORS}/Radiation/radiation-0.yaml"

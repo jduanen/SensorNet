@@ -27,8 +27,8 @@ psram:
 
 i2c:
   - id: i2c_bus_touch
-    sda: GPIO5
-    scl: GPIO6
+    sda: GPIO05
+    scl: GPIO06
     scan: true
   - id: i2c_bus_qwiic
     sda: GPIO16

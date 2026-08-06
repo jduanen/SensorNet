@@ -24,8 +24,8 @@ esphome:
   friendly_name: ${friendly_name}
   project:
     name: formatbce.Respeaker XVF3800 Satellite
-    version: 2026.5.0
-  min_version: 2026.5.0
+    version: 2026.6.0
+  min_version: 2026.6.0
   on_boot:
     - priority: 375
       then:
@@ -58,8 +58,6 @@ esp32:
   framework:
     type: esp-idf
     version: recommended
-    components:
-      - espressif/esp-nn==1.1.2
     sdkconfig_options:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_ESP32S3_DATA_CACHE_LINE_64B: y
@@ -1178,7 +1176,7 @@ media_player:
         - http_announcement_source
     media_pipeline:
       format: FLAC
-      num_channels: 1
+      num_channels: 2
       sample_rate: 48000
       speaker: media_resampling_speaker
       sources:
@@ -1286,7 +1284,7 @@ micro_wake_word:
     channels: 1
   stop_after_detection: false
   models:
-    - model: https://github.com/kahrendt/microWakeWord/releases/download/okay_nabu_20241226.3/okay_nabu.json
+    - model: https://github.com/OHF-Voice/micro-wake-word/releases/download/okay_nabu_20241226.3/okay_nabu.json
       id: okay_nabu
     - model: https://raw.githubusercontent.com/formatBCE/Respeaker-Lite-ESPHome-integration/refs/heads/main/microwakeword/models/v2/kenobi.json
       id: kenobi
@@ -1294,7 +1292,7 @@ micro_wake_word:
       id: hey_jarvis
     - model: hey_mycroft
       id: hey_mycroft
-    - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
+    - model: https://github.com/OHF-Voice/micro-wake-word/releases/download/stop/stop.json
       id: stop
       internal: true
   vad:

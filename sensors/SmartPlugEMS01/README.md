@@ -56,7 +56,7 @@
   - GPIO0 must be low when booting to enter flash mode
   - GPIO2 must be left unconnected (internally pulled-up)
   - On power-up, UART0Tx outputs chars
-    * 115200 baud (@40MHz) or 74800 baud (@27MHz)
+    * 115200 baud (@40MHz) or 74880 baud (@27MHz)
   - Arduino IDE 2.3.6 can be used with USB-to-serial converter to flash
     * DTR: Reset
     * RTS: Boot Mode
@@ -69,8 +69,8 @@
       - "boot mode:(3,7)"
         * trying to boot from flash (3), but bootloader is corrupt (7)
       - "boot mode:(1, 6)"
-        * trying to boot from UART (1), strapping pin states (GPIO0=HIGH, GPIO2=HIGH, GPIO15=LOW)
-        * wiring problem (strapping not correct)
+        * booting from UART (1), strapping pin states (GPIO0=LOW, GPIO2=HIGH, GPIO15=LOW)
+        * strapping is correct, device is in the bootloader (download mode)
       - "boot mode:(3,6)"
         * normal boot
     * force to download mode
@@ -93,6 +93,21 @@
       - WHT = GPIO0 = LOW
       - N.C. = GPIO2 = HIGH
       - N.C. = GPIO15 = LOW
+  - Procedure to force the UART bootloader (download mode)
+    * disconnect the plug from mains before connecting the converter
+      - the plug's power supply may not be isolated
+    * connect the jig, using 3V3 logic only
+      - power must be a stable 3V3 source capable of 300-500mA
+    * hold GPIO0 (WHT) to GND
+    * power cycle, or pulse EXT_RSTB (BLU) low
+    * keep GPIO0 low for 1-2 secs after power-up, then it can be released
+    * confirm the device is in the bootloader
+      - `esptool --port /dev/ttyUSB0 flash-id`
+      - or look for "boot mode:(1,x)" with serial monitor at 74880 baud
+    * flash the device
+      - `esphome upload --device /dev/ttyUSB0 smart-plug-ems01-0.yaml`
+    * release GPIO0 and power cycle to run the new firmware
+      - the device stays in the bootloader until it is reset
   
 * links
   - https://devices.esphome.io/devices/emporia_smart_plug/

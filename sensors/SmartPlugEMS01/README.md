@@ -18,17 +18,19 @@ power information from the power meter chip, and communicates with Home
 Assistant over WiFi.
 
 The ESP8266 MCU is mounted on a board with its associated peripheral components
-(e.g., resistors, capacitors, crystal, flash EEPROM, etc.). This module is
+(e.g., resistors, capacitors, crystal, flash memory, etc.). This module is
 attached to the device's main board via a (soldered) edge connector.
 
 ##### ESP8266EX Pin Assignments
 
 The diagram represents a top view of the component and the character `*` marks
-the pins which are of interest here. Letters in parentheses associate pins to
-the module's edge connector pins.
+the pins which are of interest here. Letters in parentheses are the labels used
+on the annotated printout. The `Edge` column in the table gives the
+corresponding [edge connector](#esp8266-module-edge-connector-pinout) pin.
 
-This is transcribed from the annotated printout in [SmartPlug.jpg](assets/SmartPlug.jpg), which
-has handwritten notes on top of page 10 of the Espressif ESP8266EX datasheet.
+This is transcribed from the annotated printout in
+[SmartPlug.jpg](assets/SmartPlug.jpg), which has handwritten notes on top of
+page 10 of the [Espressif ESP8266EX datasheet](docs/0a-esp8266ex_datasheet_en.pdf).
 
 ```
                  (E)                        (F)                        TX       RX
@@ -51,40 +53,26 @@ has handwritten notes on top of page 10 of the Espressif ESP8266EX datasheet.
                  CF1      SEL               BTN      RED LED  (D)      (boot)   RELAY (C)
 ```
 
-| Pin | Signal Name | GPIO   | Edge | Function          |
-|----:|-------------|--------|------|-------------------|
-|   6 | TOUT        |        | (B)  | ADC               |
-|   8 | XPD_DCDC    |        | (A)  | Deep sleep wakeup |
-|   9 | MTMS        | GPIO14 |      | BL0937 CF1        |
-|  10 | MTDI        | GPIO12 |      | BL0937 SEL        |
-|  12 | MTCK        | GPIO13 |      | Push button       |
-|  13 | MTDO        | GPIO15 |      | Red LED           |
-|  14 | GPIO2       | GPIO2  | (D)  | TX'               |
-|  15 | GPIO0       | GPIO0  |      | Boot mode         |
-|  16 | GPIO4       | GPIO4  | (C)  | Relay control     |
-|  24 | GPIO5       | GPIO5  |      | BL0937 CF         |
-|  25 | U0RXD       | GPIO3  |      | UART RX           |
-|  26 | U0TXD       | GPIO1  |      | UART TX           |
-|  29 | VDDD        |        | (F)  | Vdd 3V3           |
-|  32 | EXT_RSTB    |        | (E)  | External reset    |
-
-##### GPIO Pin Usage
-
-Several of the MCU's GPIO pins are used to sense and control the state of the
-smart plug. The GPIO pin and its function are given in the table below.
-
-| Pin | Function |
-|:----|:---------|
-| GPIO4 | Relay |
-| GPIO5 | BL0937 CF |
-| GPIO12 | BL0937 SEL |
-| GPIO13 | Push Button (High=off, Low=on) |
-| GPIO14 | BL0937 CF1 |
-| GPIO15 | RED LED (High=on, Low=off) |
+| Pin | Signal Name | GPIO   | Label | Edge | Function                            |
+|----:|-------------|--------|-------|-----:|-------------------------------------|
+|   6 | TOUT        |        | (B)   |    1 | ADC                                 |
+|   8 | XPD_DCDC    |        | (A)   |    8 | Deep sleep wakeup                   |
+|   9 | MTMS        | GPIO14 |       |      | BL0937 CF1                          |
+|  10 | MTDI        | GPIO12 |       |      | BL0937 SEL                          |
+|  12 | MTCK        | GPIO13 |       |    9 | Push button (pressed = low)         |
+|  13 | MTDO        | GPIO15 |       |   11 | Red LED (high = on); boot strap     |
+|  14 | GPIO2       | GPIO2  | (D)   |    4 | TX'; boot strap                     |
+|  15 | GPIO0       | GPIO0  |       |    7 | Boot mode strap                     |
+|  16 | GPIO4       | GPIO4  | (C)   |    5 | Relay control                       |
+|  24 | GPIO5       | GPIO5  |       |      | BL0937 CF                           |
+|  25 | U0RXD       | GPIO3  |       |    3 | UART RX                             |
+|  26 | U0TXD       | GPIO1  |       |   10 | UART TX                             |
+|  29 | VDDD        |        | (F)   |    6 | Vdd 3V3                             |
+|  32 | EXT_RSTB    |        | (E)   |    2 | External reset                      |
 
 ##### ESP8266 Module Edge Connector Pinout
 
-(as seen when looking at the the device from the back side of the main board,
+(as seen when looking at the device from the back side of the main board,
 with the plug's ground pin at bottom and the module connections to the right
 of the plug)
 
@@ -105,17 +93,17 @@ of the plug)
   </thead>
   <tbody>
     <tr><td>ADC input</td><td>TOUT</td><td>1</td><td>12</td><td>GND</td><td>Ground</td></tr>
-    <tr><td>External Reset</td><td>EXT_RST</td><td>2</td><td>11</td><td>MTDO</td><td>GPIO15, Red LED</td></tr>
+    <tr><td>External Reset</td><td>EXT_RSTB</td><td>2</td><td>11</td><td>MTDO</td><td>GPIO15, Red LED</td></tr>
     <tr><td>GPIO3, Rx</td><td>U0RXD</td><td>3</td><td>10</td><td>U0TXD</td><td>GPIO1, Tx</td></tr>
     <tr><td>TX'</td><td>GPIO2</td><td>4</td><td>9</td><td>MTCK</td><td>GPIO13, Button</td></tr>
-    <tr><td>?Relay?</td><td>GPIO4</td><td>5</td><td>8</td><td>XPD_DCDC</td><td>Deep Sleep Wakeup</td></tr>
-    <tr><td>3V3</td><td>Vddd</td><td>6</td><td>7</td><td>GPIO4</td><td>?Relay?</td></tr>
+    <tr><td>Relay</td><td>GPIO4</td><td>5</td><td>8</td><td>XPD_DCDC</td><td>Deep Sleep Wakeup</td></tr>
+    <tr><td>3V3</td><td>VDDD</td><td>6</td><td>7</td><td>GPIO0</td><td>Boot Mode</td></tr>
   </tbody>
 </table>
 
-Twelve pads in two columns either side of the board, drawn with the plug's pins
-up. The programming connections are given in parentheses, matching the
-[wiring table](#programming-wiring).
+The same twelve pads, drawn with the plug's pins up. The programming wire
+colors are given in parentheses, matching the
+[USB adapter wiring](#usb-adapter-wiring).
 
 ```
                       _
@@ -133,7 +121,10 @@ up. The programming connections are given in parentheses, matching the
 
 #### BL0937 Energy Meter Chip
 
-????
+The BL0937 ([datasheet](docs/BL0937_V1.02_en.pdf)) is a single-phase energy
+meter IC in an SOP8 package. It has two ADCs, a DSP, and voltage-to-frequency
+converters. It measures current and voltage RMS and active power with +/-0.5%
+error, and reports them as pulse trains that the ESP8266 counts.
 
 ```
               +----\_/----+
@@ -145,44 +136,32 @@ up. The programming connections are given in parentheses, matching the
                   BL0937
 ```
 
-????
-
-* BL0937
-  - Single Phase Energy Meter IC
-  - +/-0.5% error
-  - current and voltage RMS
-  - SOP8
-  - 2x ADCs, DSP, Voltage to Frequency Converter
-  - pinout
-    * 1 (Vdd): 3.3V
-    * 2 (IP), 3 (IN): differential current channel inputs, +/-50mV
-    * 4 (VP): positive voltage channel input
-    * 5 (GND): Ground
-    * 6 (CF): high freq pulse output for active power, if over-current 6.78KHz
-    * 7 (CF1): current/voltage RMS, 38usec (typ) pulse width
-      - SEL=0: current RMS pulse
-      - SEL=1: voltage RMS pulse
-    * 8 (SEL): CF1 output selection
+| Pin | Name | Description |
+|----:|------|-------------|
+| 1 | VDD | 3.3V supply |
+| 2 | IP  | Current channel differential input (+), +/-50mV |
+| 3 | IN  | Current channel differential input (-) |
+| 4 | VP  | Voltage channel positive input |
+| 5 | GND | Ground |
+| 6 | CF  | Active power pulse output (high frequency); 6.78KHz on over-current |
+| 7 | CF1 | Current or voltage RMS pulse output, 38usec (typ) pulse width |
+| 8 | SEL | CF1 output select: 0 = current RMS, 1 = voltage RMS |
 
 #### Flash Chip
 
-????
+The ESP8266 module's firmware is stored in a 16Mb (2MB) serial NOR flash
+chip from Zbit Semi, in an SOP8 package, on the SPI bus.
 
-* ZB25FQ16ATIG
-  - 16Mb/2MB Serial NOR Flash
-  - SPI bus
-  - SOP8
-  - Zbit Semi
-  - Pins: CS#, DO, WP#, GND, DI, CLK, HOLD#/RESET#, VCC
-  - 2.3-3.3V
+* Part number: `ZB25FQ16ATIG` (see [Open Questions](#open-questions))
+* Pins: CS#, DO, WP#, GND, DI, CLK, HOLD#/RESET#, VCC
+* Supply: 2.3-3.3V
 
 #### Button and LEDs
 
 - LEDs
   * BLU: power on
-  * RED: controlled by MCU (GPIO15)
-
-- Momentary Button: input (GPIO13)
+  * RED: controlled by MCU (GPIO15), high = on
+- Momentary Button: input (GPIO13), low when pressed
 
 ```
    GPIO13                  GPIO15
@@ -198,18 +177,24 @@ up. The programming connections are given in parentheses, matching the
 #### Power Relay
 
 ????
-switches power to socket (GPIO4)
+The relay switches power to the socket, and is controlled by GPIO4.
 
 ## Reprogramming the EMS01
 
-????
+The factory firmware is replaced with ESPHome by flashing the ESP8266 over its
+serial port, using a 3V3 USB-to-serial converter. This requires access to the
+module's edge connector through holes drilled in the case. After the first
+flash, all later updates are done over WiFi (OTA).
+
+**Warning:** disconnect the plug from mains before connecting the converter.
+The plug's power supply may not be isolated.
 
 ### ESP8266 Boot-Mode Strapping
 
 The ESP8266 must be set into download mode. This requires that GPIO15 and GPIO0
-are held low and GPIO2 high while the part is reset.
-
-????
+are held low and GPIO2 high while the part is reset. On the EMS01, GPIO15 is
+pulled low on the board and GPIO2 is pulled up internally, so only GPIO0
+has to be driven (low) by the programming jig.
 
 ```
                      Boot Mode
@@ -226,6 +211,12 @@ are held low and GPIO2 high while the part is reset.
                                  |
                                 GND
 ```
+
+| Strap  | Level | Provided by |
+|--------|-------|-------------|
+| GPIO0  | LOW   | WHT wire (RTS) |
+| GPIO2  | HIGH  | Not connected (internal pull-up) |
+| GPIO15 | LOW   | Not connected (pulled low on board) |
 
 ### Using Jigs to Enable Programming
 
@@ -253,6 +244,7 @@ PCB.
 ```
 
 #### Programming Jig Attachment
+
 Once the holes are drilled, a jig with pogo-pins is placed onto the back of the
 EMS01 and a (3V3) USB UART device is connected to the wires coming from the pogo
 pins. This provides a USB connection to a (Linux/Windows) machine that runs the
@@ -264,117 +256,95 @@ subsequent programming of the device can be done over the WiFi connection
 
 ??image here??
 
-????
-
 #### USB Adapter Wiring
 
 The final wiring provides the connection from the programming jig to a (3V3)
-USB-to-serial converter.
+USB-to-serial converter. RX and TX cross over between the converter and the
+device.
 
 ```
  USB-serial    Plug edge connector
  ----------    -------------------
-  DTR  ---- BLU ---> External Reset (EXT_RSTB)
-  TX   ---- GRN ---> RX (U0RXD/GPIO3)
-  3V3  ---- RED ---> Vdd (VDDD)
-  RTS  ---- WHT ---> Boot mode (GPIO0)
-  RX   <--- YEL ---- TX (U0TXD/GPIO1)
-  GND  ---- BLK ---- GND
-  ???  ---- ORG ---- ? (TX'/GPIO2)
+  DTR  ---- BLU ---> [2]  External Reset (EXT_RSTB)
+  TX   ---- GRN ---> [3]  RX (U0RXD/GPIO3)
+  3V3  ---- RED ---> [6]  Vdd (VDDD)
+  RTS  ---- WHT ---> [7]  Boot mode (GPIO0)
+  RX   <--- YEL ---- [10] TX (U0TXD/GPIO1)
+  GND  ---- BLK ---- [12] GND
+  ???  ---- ORG ---- [4]  ? (TX'/GPIO2)
 ```
 
-"Device" names the signal at the plug. "Converter" names the signal at
-the USB-serial end, so RX and TX cross over.
+| # | Converter | Wire | Device    | Edge |
+|--:|-----------|------|-----------|-----:|
+| 1 | DTR       | BLU  | Reset     |    2 |
+| 2 | TX        | GRN  | Rx        |    3 |
+| 3 | 3V3       | RED  | 3V3       |    6 |
+| 4 | RTS       | WHT  | Boot mode |    7 |
+| 5 | RX        | YEL  | Tx        |   10 |
+| 6 | GND       | BLK  | GND       |   12 |
 
-| # | Device    | Color | Converter | Color |
-|--:|-----------|-------|-----------|-------|
-| 1 | Reset     | GRN   | Reset/DTR | BLU   |
-| 2 | Rx        | ORG   | Tx        | GRN   |
-| 3 | 3V3       | RED   | 3V3       | RED   |
-| 4 | Boot mode | YEL   | Boot/RTS  | WHT   |
-| 5 | Tx        | BRN   | Rx        | YEL   |
-| 6 | GND       | BLK   | GND       | BLK   |
+Notes:
+* The 3V3 supply must be stable and able to source 300-500mA. Use 3V3 logic
+  levels only.
+* The same DTR/RTS wiring lets tools like Arduino IDE (2.3.6) and esptool
+  drive reset and boot mode automatically.
+* An earlier version of this cable used different colors (Reset GRN, Rx ORG,
+  Boot YEL, Tx BRN). The printout shows them in black ink, with the current
+colors written over them in green.
 
+### Flashing Procedure
 
-## Open questions
+1. Disconnect the plug from mains.
+2. Attach the programming jig and connect the USB-to-serial converter.
+3. Hold GPIO0 (WHT) to GND.
+4. Power cycle, or pulse EXT_RSTB (BLU) low.
+5. Keep GPIO0 low for 1-2 secs after power-up, then it can be released.
+6. Confirm the device is in the bootloader:
+   * `esptool --port /dev/ttyUSB0 flash-id`
+   * or look for `boot mode:(1,x)` with a serial monitor at 74880 baud
+7. Flash the device:
+   * `esphome upload --device /dev/ttyUSB0 smart-plug-ems01-0.yaml`
+8. Release GPIO0 and power cycle to run the new firmware. The device stays in
+   the bootloader until it is reset.
 
-1. **Flash part number.** The sheet reads `25VG16ATIG`, and the "G" may be a
-   "Q". The README says `ZB25FQ16ATIG`. Check against the chip.
-2. **Bottom-right edge pad.** The sketch shows GPIO0 / Boot mode, and the jig
-   and wiring tables agree. The README's edge connector list has
-   `7 (GPIO4): ????Relay????` there.
-3. **Relay pad letter.** The circled letter beside RELAY on the edge connector
-   and at chip pin 16 is blacked out. It is read as C from the legend.
-4. **Pad markings.** The edge connector pads are drawn with several fills
-   (solid, red, crossed, grid, empty). The sheet doesn't define them, so the
-   diagram above omits them, apart from noting the red pads.
-5. **GPIO2 in the jig.** The jig pattern has GPIO2 populated with an ORG wire,
-   but no final wiring table includes it. The README says to leave GPIO2
-   unconnected and rely on its pull-up.
-6. **`JG2436`.** Written above the flash part number, with no explanation. It
-   may be a lot or date code.
+### Troubleshooting
 
+On power-up the ROM bootloader prints a status line on UART0 TX at 74880 baud
+(26MHz crystal) or 115200 baud (40MHz crystal). Open a serial monitor at
+that rate and reset the device.
 
-## Notes
+| Message | Meaning |
+|---------|---------|
+| `boot mode:(3,6)` | Normal boot from flash |
+| `boot mode:(3,7)` | Trying to boot from flash (3), but the bootloader is corrupt (7) |
+| `boot mode:(1,6)` | Booting from UART (1): strapping is correct (GPIO0=LOW, GPIO2=HIGH, GPIO15=LOW) and the device is in the bootloader (download mode) |
 
-* Flash Programming the ESP8266
-  - use 3V3-capable USB-to-serial converter
-  - GPIO0 must be low when booting to enter flash mode
-  - GPIO2 must be left unconnected (internally pulled-up)
-  - On power-up, UART0Tx outputs chars
-    * 115200 baud (@40MHz) or 74880 baud (@27MHz)
-  - Arduino IDE 2.3.6 can be used with USB-to-serial converter to flash
-    * DTR: Reset
-    * RTS: Boot Mode
-  - Boot-mode operation
-    * set strapping options: GPIO0: LOW, GPIO2: HIGH, GPIO15: LOW
-    * Reset or power cycle the device
-  - failure to flash
-    * use serial monitor with baud=74880 and do a reset
-    * error codes
-      - "boot mode:(3,7)"
-        * trying to boot from flash (3), but bootloader is corrupt (7)
-      - "boot mode:(1, 6)"
-        * booting from UART (1), strapping pin states (GPIO0=LOW, GPIO2=HIGH, GPIO15=LOW)
-        * strapping is correct, device is in the bootloader (download mode)
-      - "boot mode:(3,6)"
-        * normal boot
-    * force to download mode
-      - GPIO0=LOW, GPIO15=LOW, GPIO2=HIGH
-    * reflash bootloader
-      - erase the chip
-        * `esptool --port /dev/ttyUSB0 erase-flash`  #### bad
-        * `esptool --chip esp8266 --baud 74880 --port /dev/ttyUSB0 --before usb-reset --connect-attempts 0 erase-flash`
-      - flash complete factory image (bootloader + SDK + blank app)
-        * `esptool --port /dev/ttyUSB0 --flash_size 2MB --flash_mode qio --flash_freq 40m 0x0000 bootloader.bin`  #### bad
-  - Programming Jig to FTDI Converter board connections
-    * pin: board signal - wire color (device function)
-      - 1: DTR - BLU (Reset)
-      - 2: TX - GRN (Rx)
-      - 3: 3V3 - RED (Vdd)
-      - 4: RTS - WHT (Boot Mode)
-      - 5: RX - YEL (Tx)
-      - 6: GND - BLK (Ground)
-    * boot mode
-      - WHT = GPIO0 = LOW
-      - N.C. = GPIO2 = HIGH
-      - N.C. = GPIO15 = LOW
-  - Procedure to force the UART bootloader (download mode)
-    * disconnect the plug from mains before connecting the converter
-      - the plug's power supply may not be isolated
-    * connect the jig, using 3V3 logic only
-      - power must be a stable 3V3 source capable of 300-500mA
-    * hold GPIO0 (WHT) to GND
-    * power cycle, or pulse EXT_RSTB (BLU) low
-    * keep GPIO0 low for 1-2 secs after power-up, then it can be released
-    * confirm the device is in the bootloader
-      - `esptool --port /dev/ttyUSB0 flash-id`
-      - or look for "boot mode:(1,x)" with serial monitor at 74880 baud
-    * flash the device
-      - `esphome upload --device /dev/ttyUSB0 smart-plug-ems01-0.yaml`
-    * release GPIO0 and power cycle to run the new firmware
-      - the device stays in the bootloader until it is reset
-  
-### Links
-  - https://devices.esphome.io/devices/emporia_smart_plug/
-  - ? 
+To reflash the bootloader:
+* Erase the chip:
+  * `esptool --chip esp8266 --baud 74880 --port /dev/ttyUSB0 --before usb-reset --connect-attempts 0 erase-flash`
+  * (`esptool --port /dev/ttyUSB0 erase-flash` did not work)
+* Flash a complete factory image (bootloader + SDK + blank app):
+  * `esptool --port /dev/ttyUSB0 --flash_size 2MB --flash_mode qio --flash_freq 40m 0x0000 bootloader.bin` did not work.
+  * ????
+
+## Open Questions
+
+1. **Flash part number.** The printout reads `25VG16ATIG`, and the "G" may be a
+   "Q" (i.e., Zbit `ZB25VQ16A`). This README previously said `ZB25FQ16ATIG`.
+   Check against the chip.
+2. **Relay pad letter.** The circled letter beside RELAY on the edge connector
+   and at chip pin 16 is blacked out on the printout. It is read as (C) from
+   the legend.
+3. **Pad markings.** The edge connector pads on the printout are drawn with
+   several fills (solid, red, crossed, grid, empty). Their meaning isn't
+   given, so they are omitted here.
+4. **GPIO2 in the jig.** The jig pattern has GPIO2 populated with an ORG wire,
+   but the final wiring doesn't use it, and GPIO2 should be left unconnected
+   so its pull-up holds it high at boot.
+5. **`JG2436`.** Written above the flash part number on the printout, with no
+   explanation. It may be a lot or date code.
+
+## Links
+
+- https://devices.esphome.io/devices/emporia_smart_plug/
+- ?

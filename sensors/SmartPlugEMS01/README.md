@@ -228,7 +228,11 @@ to the ESP8266 module's edge connector pins.
 
 #### Hole Pattern Drilling Jig
 
-??image here??
+????
+[Drilling Jig 1](assets/drillingJig1.jpg)
+[Drilling Jig 2](assets/drillingJig2.jpg)
+[Drilling Jig 3](assets/drillingJig3.jpg)
+????
 
 In the diagram below, the filled holes are populated, and the layout
 matches that of the edge connector's solder pads on the device's main
@@ -243,6 +247,10 @@ PCB.
          3V3: RED    ●   ●  WHT: Boot
 ```
 
+????
+[EMS01 holes](assets/EMS01_holes.jpg)
+????
+
 #### Programming Jig Attachment
 
 Once the holes are drilled, a jig with pogo-pins is placed onto the back of the
@@ -254,7 +262,9 @@ Following the reprogramming, the jig is removed and the holes are sealed. All
 subsequent programming of the device can be done over the WiFi connection
 (i.e., OTA programming).
 
-??image here??
+????
+[Programming Jig](assets/programmingJig.jpg)
+????
 
 #### USB Adapter Wiring
 
@@ -274,14 +284,14 @@ device.
   ???  ---- ORG ---- [4]  ? (TX'/GPIO2)
 ```
 
-| # | Converter | Wire | Device    | Edge |
-|--:|-----------|------|-----------|-----:|
-| 1 | DTR       | BLU  | Reset     |    2 |
-| 2 | TX        | GRN  | Rx        |    3 |
-| 3 | 3V3       | RED  | 3V3       |    6 |
-| 4 | RTS       | WHT  | Boot mode |    7 |
-| 5 | RX        | YEL  | Tx        |   10 |
-| 6 | GND       | BLK  | GND       |   12 |
+| # | Converter | Color | Device    | Edge |
+|--:|-----------|-------|-----------|-----:|
+| 1 | DTR       | BLU   | Reset     |    2 |
+| 2 | TX        | GRN   | Rx        |    3 |
+| 3 | 3V3       | RED   | 3V3       |    6 |
+| 4 | RTS       | WHT   | Boot mode |    7 |
+| 5 | RX        | YEL   | Tx        |   10 |
+| 6 | GND       | BLK   | GND       |   12 |
 
 Notes:
 * The 3V3 supply must be stable and able to source 300-500mA. Use 3V3 logic

@@ -82,21 +82,16 @@ smart plug. The GPIO pin and its function are given in the table below.
 | GPIO14 | BL0937 CF1 |
 | GPIO15 | RED LED (High=on, Low=off) |
 
-  - GPIO4:  Relay
-  - GPIO5:  BL0937 CF
-  - GPIO12: BL0937 SEL
-  - GPIO13: Push Button (High=off, Low=on)
-  - GPIO14: BL0937 CF1
-  - GPIO15: RED LED (High=on, Low=off)
-
 ##### ESP8266 Module Edge Connector Pinout
 
 (as seen when looking at the the device from the back side of the main board,
 with the plug's ground pin at bottom and the module connections to the right
 of the plug)
 
-| Left Pin # (Name) | Pin Function | Right Pin # (Name) | Pin Function |
-|:------------------|--------------|:-------------------|--------------|
+| Left Pin Column | Left Pin Column |
+|-----------------|-----------------|
+| # | Name | Function | # | Name | Function |
+|:--|:-----|:---------|:--|:-----|:---------|
 | 1 (TOUT) | ADC input | 12 (GND) | Ground |
 | 2 (EXT_RSTB) | External Reset | 11 (MTDO) | GPIO15, Red LED |
 | 3 (U0RXD) | GPIO3, Rx | 10 (U0TXD) | GPIO1, Tx |

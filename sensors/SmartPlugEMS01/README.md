@@ -229,9 +229,9 @@ to the ESP8266 module's edge connector pins.
 #### Hole Pattern Drilling Jig
 
 ????
-[Drilling Jig 1](assets/drillingJig1.jpg)
-[Drilling Jig 2](assets/drillingJig2.jpg)
-[Drilling Jig 3](assets/drillingJig3.jpg)
+[Drilling Jig 1](assets/drillingJig1.gif)
+[Drilling Jig 2](assets/drillingJig2.gif)
+[Drilling Jig 3](assets/drillingJig3.gif)
 ????
 
 In the diagram below, the filled holes are populated, and the layout
@@ -248,7 +248,7 @@ PCB.
 ```
 
 ????
-[EMS01 holes](assets/EMS01_holes.jpg)
+[EMS01 holes](assets/EMS01_holes.gif)
 ????
 
 #### Programming Jig Attachment
@@ -263,7 +263,7 @@ subsequent programming of the device can be done over the WiFi connection
 (i.e., OTA programming).
 
 ????
-[Programming Jig](assets/programmingJig.jpg)
+[Programming Jig](assets/programmingJig.gif)
 ????
 
 #### USB Adapter Wiring
@@ -292,6 +292,10 @@ device.
 | 4 | RTS       | WHT   | Boot mode |    7 |
 | 5 | RX        | YEL   | Tx        |   10 |
 | 6 | GND       | BLK   | GND       |   12 |
+
+????
+[USB Adaptor](assets/USB_adaptor.gif)
+????
 
 Notes:
 * The 3V3 supply must be stable and able to source 300-500mA. Use 3V3 logic

@@ -88,26 +88,33 @@ smart plug. The GPIO pin and its function are given in the table below.
 with the plug's ground pin at bottom and the module connections to the right
 of the plug)
 
-| Left Pin Column | Left Pin Column |
-|-----------------|-----------------|
-| # | Name | Function | # | Name | Function |
-|:--|:-----|:---------|:--|:-----|:---------|
-| 1 (TOUT) | ADC input | 12 (GND) | Ground |
-| 2 (EXT_RSTB) | External Reset | 11 (MTDO) | GPIO15, Red LED |
-| 3 (U0RXD) | GPIO3, Rx | 10 (U0TXD) | GPIO1, Tx |
-| 4 (GPIO2) | TX' | 9 (MTCK) | GPIO13, Button |
-| 5 (GPIO4) | ?Relay? | 8 (XPD_DCDC) | Deep Sleep Wakeup |
-| 6 (Vdd) | 3V3 | 7 (GPIO4) | ?Relay? |
-
-  - 1 (TOUT):     ADC input       ; - 12 (GND):      Ground
-  - 2 (EXT_RSTB): External Reset  ; - 11 (MTDO):     GPIO15, Red LED
-  - 3 (U0RXD):    GPIO3, Rx       ; - 10 (U0TXD):    GPIO1, Tx
-  - 4 (GPIO2):    TX'             ; -  9 (MTCK):     GPIO13, Button
-  - 5 (GPIO4):    ?Relay?         ; -  8 (XPD_DCDC): Deep Sleep Wakeup
-  - 6 (Vdd):      3V3             ; -  7 (GPIO4):    ?Relay?
+<table>
+  <thead>
+    <tr>
+      <th colspan="3">Left Pins Column</th>
+      <th colspan="3">Right Pins Column</th>
+    </tr>
+    <tr>
+      <th>Function</th>
+      <th>Name</th>
+      <th>Pin #</th>
+      <th>Pin #</th>
+      <th>Name</th>
+      <th>Function</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>ADC input</td><td>TOUT</td><td>1</td><td>12</td><td>GND</td><td>Ground</td></tr>
+    <tr><td>External Reset</td><td>EXT_RST</td><td>2</td><td>11</td><td>MTDO</td><td>GPIO15, Red LED</td></tr>
+    <tr><td>GPIO3, Rx</td><td>U0RXD</td><td>3</td><td>10</td><td>U0TXD</td><td>GPIO1, Tx</td></tr>
+    <tr><td>TX'</td><td>GPIO2</td><td>4</td><td>9</td><td>MTCK</td><td>GPIO13, Button</td></tr>
+    <tr><td>?Relay?</td><td>GPIO4</td><td>5</td><td>8</td><td>XPD_DCDC</td><td>Deep Sleep Wakeup</td></tr>
+    <tr><td>3V3</td><td>Vddd</td><td>6</td><td>7</td><td>GPIO4</td><td>?Relay?</td></tr>
+  </tbody>
+</table>
 
 Twelve pads in two columns either side of the board, drawn with the plug's pins
-up. The programming connections are given in square brackets, matching the
+up. The programming connections are given in parentheses, matching the
 [wiring table](#programming-wiring).
 
 ```
@@ -115,12 +122,12 @@ up. The programming connections are given in square brackets, matching the
                   ___|_|___
                  |___| |___|
                      | |
-          ADC --> [1]| |[12] <-- GND     [BLK]
-[BLU] EXT_RST --> [2]| |[11] --> RED LED
-[GRN]     RX  --> [3]| |[10] --> TX      [YEL]
-[ORG]   GPIO2 --> [4]| |[9]  <-- BTN
+          ADC --> [1]| |[12] <-- GND     (BLK)
+(BLU) EXT_RST --> [2]| |[11] --> RED LED
+(GRN)     RX  --> [3]| |[10] --> TX      (YEL)
+(ORG)   GPIO2 --> [4]| |[9]  <-- BTN
         RELAY <-- [5]| |[8]  <-- XPD_DCDC
-[RED] Vdd 3V3 --> [6]|_|[7]  <-- BOOT    [WHT]
+(RED) Vdd 3V3 --> [6]|_|[7]  <-- BOOT    (WHT)
 
 ```
 

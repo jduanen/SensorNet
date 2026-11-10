@@ -73,7 +73,8 @@ has handwritten notes on top of page 10 of the Espressif ESP8266EX datasheet.
 Several of the MCU's GPIO pins are used to sense and control the state of the
 smart plug. The GPIO pin and its function are given in the table below.
 
-|-- Pin --|-- Function --|
+| Pin | Function |
+|:----|:---------|
 | GPIO4 | Relay |
 | GPIO5 | BL0937 CF |
 | GPIO12 | BL0937 SEL |
@@ -94,7 +95,8 @@ smart plug. The GPIO pin and its function are given in the table below.
 with the plug's ground pin at bottom and the module connections to the right
 of the plug)
 
-|:-- Left Pin # (Name) --|-- Pin Function --|:-- Right Pin # (Name) --|-- Pin Function --|
+| Left Pin # (Name) | Pin Function | Right Pin # (Name) | Pin Function |
+|:------------------|--------------|:-------------------|--------------|
 | 1 (TOUT) | ADC input | 12 (GND) | Ground |
 | 2 (EXT_RSTB) | External Reset | 11 (MTDO) | GPIO15, Red LED |
 | 3 (U0RXD) | GPIO3, Rx | 10 (U0TXD) | GPIO1, Tx |

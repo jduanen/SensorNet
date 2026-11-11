@@ -1,10 +1,14 @@
 substitutions:
   device_name: flamesense
   friendly_name: "Flame Sensor"
-  comment: "UVTRON-R2628-based Flame Sensor"
+  comment: "UVTRON-R2868-based Flame Sensor"
   log_level: WARN
+  # flame is detected when the average rate over the window reaches this (pulses/min)
   pulse_threshold: "20"
-  no_change_limit: "10"
+  # averaging window (seconds) for the pulse rate
+  rate_window: "10"
+  # how long "Flame Detected" stays on after the rate drops below threshold
+  hold_time: 10s
 
 esphome:
   name: ${device_name}
@@ -17,19 +21,11 @@ esp32:
   framework:
     type: esp-idf
 
-globals:
-  - id: last_total
-    type: int
-    restore_value: no
-    initial_value: "0"
-  - id: no_change_count
-    type: int
-    restore_value: no
-    initial_value: "0"
-
 sensor:
+  # C10807 open-collector output: one ~10ms pulse per detection event
   - platform: pulse_counter
-    name: "Flame Detection Pulse Input"
+    id: uv_rate
+    internal: true
     pin:
       number: GPIO5
       inverted: true
@@ -40,27 +36,39 @@ sensor:
       rising_edge: DISABLE
       falling_edge: INCREMENT
     update_interval: 1s
+    # pulse_counter reports pulses/min per 1s sample; average over the window
+    filters:
+      - sliding_window_moving_average:
+          window_size: ${rate_window}
+          send_every: 1
     total:
       id: pulse_total
       name: "Flame Sense Pulses"
+      filters:
+        - delta: 1  # only publish when the count changes
 
-interval:
-  - interval: 1s
-    then:
-      - lambda: |-
-          int total = (int) id(pulse_total).state;
-          if (total != id(last_total)) {
-            id(last_total) = total;
-            id(no_change_count) = 0;
-          } else if (id(no_change_count) < atoi("${no_change_limit}")) {
-            id(no_change_count)++;
-          }
+  # HA-facing copy of the rate, rate-limited so it doesn't publish every second
+  - platform: copy
+    source_id: uv_rate
+    name: "Flame Sense Pulse Rate"
+    unit_of_measurement: "pulses/min"
+    accuracy_decimals: 0
+    filters:
+      - or:
+          - throttle: 60s
+          - delta: 5
 
-          if (total > atoi("${pulse_threshold}") && id(no_change_count) < atoi("${no_change_limit}")) {
-            id(led_pwm).turn_on();
-          } else {
-            id(led_pwm).turn_off();
-          }
+binary_sensor:
+  - platform: template
+    name: "Flame Detected"
+    device_class: safety
+    lambda: return id(uv_rate).state >= ${pulse_threshold};
+    filters:
+      - delayed_off: ${hold_time}
+    on_press:
+      - light.turn_on: flame_led
+    on_release:
+      - light.turn_off: flame_led
 
 output:
   - platform: ledc
@@ -72,6 +80,7 @@ output:
 
 light:
   - platform: monochromatic
-    name: "GPIO5 LED"
+    id: flame_led
+    name: "Flame LED"
     output: led_pwm
     default_transition_length: 0s

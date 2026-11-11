@@ -1,70 +1,69 @@
 # Flame Sensor
 
-**WIP**
+This sensor has a sensor that is sensitive to UV light emitted from an open flame.
 
-## Notes
+## Hardware
+- Hamamatsu R2868 Side-on type UVTRON Flame/Discharge Sensor
+  * sensitive only to UV light between 185-260nm (Nickel electrodes)
+    - good at sensing open flame or electrical discharge in full daylight
+    - can detect small flame at 1-20m distance
+    - can also detect hydrogen flames
+  * fast response, on/off sensor
+  * UV causes ionization that triggers a discharge
+  * powered by high-voltage DC PSU
+  * sensitivity is a function of the supply voltage
+  * has finite lifetime (active and storage)
+    - discharge starts at minimum spec voltage: ????V
+    - sensitivity drops below 50% of initial value: ????
+    - background noise reaches max value: ????
+  * don't solder the sensor directly to the board, use a socket
+    - there is a purpose-built socket for this
+    - can solder if use heat-sinks between the joint and the glass, <5secs @ 350C
+  * don't bend the leads near the glass, bend below the bend
+  * dropping the sensor can damage it
+    - so can cutting the leads
+      * cut leads in direction facing the sensor's front
+      * cut two or three times, not all at once
+  * background noise sources include: cosmic rays, X-rays, static electricity, high electric/magnetic fields/EMI, intense light (e.g., laser/LED, greater than direct sunlight), other sources of UV light
+  * operating environment: -40-125C, <80% humidity
+    - deteriorates faster under high temperatures
+    - sensitivity increases in low temperatures
+    - high humidity causes instability (arcing of HVDC)
+  * need to insulate the sensor lead wires
+  * specs
+    - Discharge Start Voltage: 280 VDC (max)
+    - Discharge Sustaining Voltage: 240 VDC (typ)
+    - Sensitivity: 5000 counts/min (typ)
+    - Background Noise: 10 counts/min (max)
+    - Expected Lifetime: 25000 hrs
+    - Input Voltage: 325 +/-25 VDC (typ), 400 VDC (max)
+    - Discharge Current: 0.3 mA (avg), 1 mA (max), 30 mA (peak)
+    - Quenching Time: 2 msec (min)
+  * dimensions: 44mm (H), 12mm (Base), 9mm (Bulb)
 
-* Hardware
-  - Hamamatsu R2868 Side-on type UVTRON Flame/Discharge Sensor
-    * sensitive only to UV light between 185-260nm (Nickel electrodes)
-      - good at sensing open flame or electrical discharge in full daylight
-      - can detect small flame at 1-20m distance
-      - can also detect hydrogen flames
-    * fast response, on/off sensor
-    * UV causes ionization that triggers a discharge
-    * powered by high-voltage DC PSU
-    * sensitivity is a function of the supply voltage
-    * has finite lifetime (active and storage)
-      - discharge starts at minimum spec voltage: ????V
-      - sensitivity drops below 50% of initial value: ????
-      - background noise reaches max value: ????
-    * don't solder the sensor directly to the board, use a socket
-      - there is a purpose-built socket for this
-      - can solder if use heat-sinks between the joint and the glass, <5secs @ 350C
-    * don't bend the leads near the glass, bend below the bend
-    * dropping the sensor can damage it
-      - so can cutting the leads
-        * cut leads in direction facing the sensor's front
-        * cut two or three times, not all at once
-    * background noise sources include: cosmic rays, X-rays, static electricity, high electric/magnetic fields/EMI, intense light (e.g., laser/LED, greater than direct sunlight), other sources of UV light
-    * operating environment: -40-125C, <80% humidity
-      - deteriorates faster under high temperatures
-      - sensitivity increases in low temperatures
-      - high humidity causes instability (arcing of HVDC)
-    * need to insulate the sensor lead wires
-    * specs
-      - Discharge Start Voltage: 280 VDC (max)
-      - Discharge Sustaining Voltage: 240 VDC (typ)
-      - Sensitivity: 5000 counts/min (typ)
-      - Background Noise: 10 counts/min (max)
-      - Expected Lifetime: 25000 hrs
-      - Input Voltage: 325 +/-25 VDC (typ), 400 VDC (max)
-      - Discharge Current: 0.3 mA (avg), 1 mA (max), 30 mA (peak)
-      - Quenching Time: 2 msec (min)
-    * dimensions: 44mm (H), 12mm (Base), 9mm (Bulb)
+- Hamamatsu C10807 PSU board
+  * oscillator and DC-DC converter generates pulses to the UVTRON
+  * has gating circuit to reduce background noise
+  * specs
+    - Supply Voltage: 350 +/-25 VDC
+    - Output Voltage: 50 VDC (max)
+    - Output Current: 80 mA (max)
+    - Output Pulse Duration: 10 msec
+    - Input Voltage: 12-24 VDC (typ), 30 VDC (max)
+    - Operating Environment: -10-50C, 20-80% non condensing humidity
+  * dimensions: 50mm (W), 36mm (D), 12mm (above PCB), 1.6mm (PCB), 2.5 (max below PCB)
+    - 3.5mm holes at 40x26mm, centered
+    - holes for tube and i/o are centered on long edges (width)
+  * open-collector output
+  * jumpers for setting level for background noise cancellation
+    - J1: Pulse Count = 1; no background cancellation
+    - J2: Pulse Count = 3; normal setting
+    - J3: Pulse Count = 5; more cancellation
+    - J4: Pulse Count = 9; even more cancellation
+  * can add capacitor to stretch the output pulse beyond 10 msec
+  * generates output when 1-9x or more consecutive pulses detected over a 2 sec interval
 
-  - Hamamatsu C10807 PSU board
-    * oscillator and DC-DC converter generates pulses to the UVTRON
-    * has gating circuit to reduce background noise
-    * specs
-      - Supply Voltage: 350 +/-25 VDC
-      - Output Voltage: 50 VDC (max)
-      - Output Current: 80 mA (max)
-      - Output Pulse Duration: 10 msec
-      - Input Voltage: 12-24 VDC (typ), 30 VDC (max)
-      - Operating Environment: -10-50C, 20-80% non condensing humidity
-    * dimensions: 50mm (W), 36mm (D), 12mm (above PCB), 1.6mm (PCB), 2.5 (max below PCB)
-      - 3.5mm holes at 40x26mm, centered
-      - holes for tube and i/o are centered on long edges (width)
-    * open-collector output
-    * jumpers for setting level for background noise cancellation
-      - J1: Pulse Count = 1; no background cancellation
-      - J2: Pulse Count = 3; normal setting
-      - J3: Pulse Count = 5; more cancellation
-      - J4: Pulse Count = 9; even more cancellation
-    * can add capacitor to stretch the output pulse beyond 10 msec
-    * generates output when 1-9x or more consecutive pulses detected over a 2 sec interval
-
+### Available Lamp Checker Device
 * there's a checker lamp that emits flame-like UV and has it's own driver circuit board
 * put board and sensor in shielded enclosure (separate compartment for the MCU)
   - e.g., copper-tape-lined PLA connected to PSU ground
@@ -74,54 +73,19 @@
     * that means there's at most around 167 pulses/sec, so a cumulative count every minute or so wou
   - the response is pretty much linear between these two bounds
 
-* Links
+## ESPHome Config (`flamesense.yaml`)
+
+* Lolin C3 Mini; C10807 open-collector output on GPIO5 (internal pullup), indicator LED on GPIO4 (active low)
+* Entities
+  - `Flame Detected` (binary, `safety`): on when the pulse rate averaged over `rate_window` seconds is >= `pulse_threshold` pulses/min; stays on for `hold_time` after the rate drops; drives the LED
+  - `Flame Sense Pulse Rate` (pulses/min): published on change of >=5 or at least every 60s
+  - `Flame Sense Pulses`: cumulative pulse count since boot
+  - `Flame LED`: indicator light (also controllable from HA)
+* Tunables (substitutions): `pulse_threshold` (default 20 pulses/min), `rate_window` (10s), `hold_time` (10s)
+  - with the defaults, 4 pulses within 10s trips detection
+
+## Links
   - UVTRON Sensor FAQs
     * https://www.hamamatsu.com/us/en/product/optical-sensors/uv_flame-sensor/flame-sensor_uv-tron/faqs.html
   - ?
     * ?
-
-```yaml
-esphome:
-  name: pulse-counter-sensor
-  friendly_name: Pulse Counter Sensor
-
-esp32:
-  board: esp32-s3-devkitc-1  # adjust to exact S3 board
-  framework:
-    type:arduino
-
-api:
-  encryption:
-    key: !secret ????
-
-ota:
-  - platform: esphome
-    password: !secret ????
-
-wifi:
-  ssid: "Home2"
-  password: !secret ????
-
-logger:
-
-sensor:
-  - platform: pulse_counter
-    pin:
-      number: GPIO5
-      mode:
-        input: true
-    name: "Pulses per second"
-    id: pulses_per_second
-    unit_of_measurement: "pulses/s"
-    accuracy_decimals: 0
-    state_class: measurement
-    update_interval: 1s
-
-    count_mode:
-      rising_edge: INCREMENT
-      falling_edge: DISABLE
-
-    # Default is pulses/min; convert to pulses/s
-    filters:
-      - divide: 60
-```

@@ -4,12 +4,6 @@ substitutions:
   comment: "LED Sign Board with Bi-LED Array in Garage"
   log_level: INFO
 
-globals:
-  - id: page_index
-    type: int
-    restore_value: no
-    initial_value: '0'
-
 external_components:
   - source:
       type: git

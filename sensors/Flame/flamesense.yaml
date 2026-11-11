@@ -3,12 +3,9 @@ substitutions:
   friendly_name: "Flame Sensor"
   comment: "UVTRON-R2868-based Flame Sensor"
   log_level: WARN
-  # flame is detected when the average rate over the window reaches this (pulses/min)
-  pulse_threshold: "20"
-  # averaging window (seconds) for the pulse rate
-  rate_window: "10"
-  # how long "Flame Detected" stays on after the rate drops below threshold
-  hold_time: 10s
+  pulse_threshold: "20"  # (pulses/min) flame detected when avg rate over the window reaches this threshold
+  rate_window: "10"  # (secs) averaging window for the pulse rate
+  hold_time: 10s  # how long "Flame Detected" stays on after the rate drops below threshold
 
 esphome:
   name: ${device_name}

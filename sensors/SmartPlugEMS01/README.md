@@ -197,19 +197,19 @@ pulled low on the board and GPIO2 is pulled up internally, so only GPIO0
 has to be driven (low) by the programming jig.
 
 ```
-                     Boot Mode
-                      [ ]| |[ ]
-                      [ ]| |[■]--+   GPIO15
-                      [ ]| |[ ]  |
-                                GND
-       3V3
-        o
-        |
-        +------------ [■]| |[ ]        GPIO2
-                      [ ]| |[ ]
-                      [ ]|_|[■]--+   GPIO0
-                                 |
-                                GND
+           Boot Mode
+          [ ]| |[ ]
+          [ ]| |[■]--+   GPIO15
+          [ ]| |[ ]  |
+                    GND
+ 3V3
+  o
+  |
+  +------ [■]| |[ ]      GPIO2
+          [ ]| |[ ]
+          [ ]|_|[■]--+   GPIO0
+                     |
+                    GND
 ```
 
 | Strap  | Level | Provided by |
